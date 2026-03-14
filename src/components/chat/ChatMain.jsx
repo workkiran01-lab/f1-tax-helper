@@ -25,6 +25,9 @@ function buildWelcomeMessage(initialContext) {
   }
 }
 
+const GROQ_SYSTEM_PROMPT =
+  "You are Alex, a friendly tax buddy for F-1 international students in the US. You explain US taxes in a casual, easy-going way — like a smart friend who knows taxes, not a formal advisor. Use simple language, occasional emojis, and short responses (2-4 sentences). If something is complex, say 'you might want to double-check this with your university's international office 😊'. Focus only on F-1 student tax topics."
+
 const suggestedQuestions = [
   'Do I need to file taxes?',
   'Am I FICA exempt?',
@@ -38,34 +41,109 @@ export function ChatMain({ initialContext, navigationKey }) {
   )
   const [messages, setMessages] = useState([welcome])
   const [input, setInput] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
 
   useEffect(() => {
     setMessages([welcome])
     setInput('')
   }, [welcome, navigationKey])
 
-  const handleSend = () => {
-    if (!input.trim()) return
+  const handleSend = async () => {
+    const text = input.trim()
+    if (!text) return
 
-    const newMessage = {
+    const userMessage = {
       id: messages.length + 1,
       role: 'user',
-      content: input,
+      content: text,
     }
-    setMessages([...messages, newMessage])
+    setMessages((prev) => [...prev, userMessage])
     setInput('')
+    setIsLoading(true)
 
-    setTimeout(() => {
+    try {
+      const apiMessages = [
+        { role: 'system', content: GROQ_SYSTEM_PROMPT },
+        ...messages.map((m) => ({ role: m.role, content: m.content })),
+        { role: 'user', content: text },
+      ]
+
+      const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${import.meta.env.VITE_GROQ_API_KEY}`,
+        },
+        body: JSON.stringify({
+          model: 'llama-3.3-70b-versatile',
+          messages: apiMessages,
+          stream: true,
+        }),
+      })
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}))
+        throw new Error(err?.error?.message || `API error: ${res.status}`)
+      }
+
+      // Add placeholder assistant message for streaming
+      const streamMessageId = messages.length + 2
+      setMessages((prev) => [
+        ...prev,
+        { id: streamMessageId, role: 'assistant', content: '' },
+      ])
+
+      const reader = res.body.getReader()
+      const decoder = new TextDecoder()
+      let buffer = ''
+
+      while (true) {
+        const { done, value } = await reader.read()
+        if (done) break
+        buffer += decoder.decode(value, { stream: true })
+        const lines = buffer.split('\n')
+        buffer = lines.pop() ?? ''
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            const data = line.slice(6)
+            if (data === '[DONE]') continue
+            try {
+              const parsed = JSON.parse(data)
+              const delta = parsed?.choices?.[0]?.delta?.content
+              if (typeof delta === 'string') {
+                setMessages((prev) => {
+                  const next = [...prev]
+                  const last = next[next.length - 1]
+                  next[next.length - 1] = { ...last, content: last.content + delta }
+                  return next
+                })
+              }
+            } catch {
+              // ignore parse errors for incomplete chunks
+            }
+          }
+        }
+      }
+
+      // Trim final message in case of trailing whitespace
+      setMessages((prev) => {
+        const next = [...prev]
+        const last = next[next.length - 1]
+        next[next.length - 1] = { ...last, content: last.content.trim() || "I couldn't generate a response. Please try again." }
+        return next
+      })
+    } catch (err) {
       setMessages((prev) => [
         ...prev,
         {
           id: prev.length + 1,
           role: 'assistant',
-          content:
-            "Thanks for your question! I'm processing your request and will provide personalized guidance based on your F-1 visa status. Please note that this is AI-generated guidance and you should verify with a licensed tax professional.",
+          content: `Sorry, something went wrong: ${err.message}. Please check your connection and try again.`,
         },
       ])
-    }, 1000)
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   const handleSuggestionClick = (question) => {
@@ -121,6 +199,13 @@ export function ChatMain({ initialContext, navigationKey }) {
             </div>
           </div>
         ))}
+        {isLoading && (
+          <div className="flex justify-start">
+            <div className="max-w-[85%] rounded-2xl rounded-bl-md bg-primary px-4 py-3 text-primary-foreground md:max-w-[70%]">
+              <span className="text-sm">Thinking...</span>
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="px-4 pb-2">
@@ -143,14 +228,16 @@ export function ChatMain({ initialContext, navigationKey }) {
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && handleSend()}
+            onKeyDown={(e) => e.key === 'Enter' && !isLoading && handleSend()}
             placeholder="Ask a tax question..."
-            className="flex-1 rounded-xl border border-input bg-background px-4 py-3 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+            disabled={isLoading}
+            className="flex-1 rounded-xl border border-input bg-background px-4 py-3 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50"
           />
           <Button
             onClick={handleSend}
+            disabled={isLoading}
             size="icon"
-            className="h-12 w-12 shrink-0 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90"
+            className="h-12 w-12 shrink-0 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
           >
             <Send className="h-5 w-5" />
             <span className="sr-only">Send message</span>
