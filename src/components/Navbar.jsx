@@ -42,7 +42,7 @@ export function Navbar() {
             Questionnaire
           </Link>
           <Link
-            to="/chat"
+            to="/questionnaire"
             className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-all hover:bg-primary/90 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
           >
             Get Started
@@ -90,7 +90,7 @@ export function Navbar() {
               Questionnaire
             </Link>
             <Link
-              to="/chat"
+              to="/questionnaire"
               className="inline-flex w-full items-center justify-center gap-2 whitespace-nowrap rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-all hover:bg-primary/90 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
               onClick={() => setIsMenuOpen(false)}
             >

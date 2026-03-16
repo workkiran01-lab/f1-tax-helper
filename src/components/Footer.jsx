@@ -28,36 +28,36 @@ export function Footer() {
             </h4>
             <ul className="space-y-3">
               <li>
-                <a
-                  href="#"
+                <Link
+                  to="/tax-guide"
                   className="text-sm text-muted-foreground transition-colors hover:text-foreground"
                 >
                   Tax Guide
-                </a>
+                </Link>
               </li>
               <li>
-                <a
-                  href="#"
+                <Link
+                  to="/faq"
                   className="text-sm text-muted-foreground transition-colors hover:text-foreground"
                 >
                   FAQ
-                </a>
+                </Link>
               </li>
               <li>
-                <a
-                  href="#"
+                <Link
+                  to="/blog"
                   className="text-sm text-muted-foreground transition-colors hover:text-foreground"
                 >
                   Blog
-                </a>
+                </Link>
               </li>
               <li>
-                <a
-                  href="#"
+                <Link
+                  to="/tax-treaties"
                   className="text-sm text-muted-foreground transition-colors hover:text-foreground"
                 >
                   Tax Treaties
-                </a>
+                </Link>
               </li>
             </ul>
           </div>
@@ -68,32 +68,32 @@ export function Footer() {
             </h4>
             <ul className="space-y-3">
               <li>
-                <a
-                  href="#"
+                <Link
+                  to="/privacy-policy"
                   className="text-sm text-muted-foreground transition-colors hover:text-foreground"
                 >
                   Privacy Policy
-                </a>
+                </Link>
               </li>
               <li>
-                <a
-                  href="#"
+                <Link
+                  to="/terms-of-service"
                   className="text-sm text-muted-foreground transition-colors hover:text-foreground"
                 >
                   Terms of Service
-                </a>
+                </Link>
               </li>
               <li>
-                <a
-                  href="#"
+                <Link
+                  to="/disclaimer"
                   className="text-sm text-muted-foreground transition-colors hover:text-foreground"
                 >
                   Disclaimer
-                </a>
+                </Link>
               </li>
               <li>
                 <a
-                  href="#"
+                  href="mailto:work.kiran01@gmail.com"
                   className="text-sm text-muted-foreground transition-colors hover:text-foreground"
                 >
                   Contact Us

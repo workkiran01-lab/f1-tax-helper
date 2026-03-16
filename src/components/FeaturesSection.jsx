@@ -70,7 +70,7 @@ export function FeaturesSection() {
             navigated US taxes with our help.
           </p>
           <Link
-            to="/chat"
+            to="/questionnaire"
             className="inline-flex h-12 items-center justify-center rounded-lg bg-background px-8 text-base font-medium text-primary transition-colors hover:bg-background/90"
           >
             Start for Free
