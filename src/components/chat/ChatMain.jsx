@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, useRef } from 'react'
 import { Send, Bot } from 'lucide-react'
 import Button from '../ui/Button'
 
@@ -70,6 +70,11 @@ export function ChatMain({ initialContext, navigationKey }) {
   const [messages, setMessages] = useState([welcome])
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+  const messagesEndRef = useRef(null)
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [messages])
 
   useEffect(() => {
     setMessages([welcome])
@@ -179,8 +184,8 @@ export function ChatMain({ initialContext, navigationKey }) {
   }
 
   return (
-    <div className="flex flex-1 flex-col bg-background">
-      <div className="hidden items-center gap-3 border-b border-border bg-card p-4 lg:flex">
+    <div className="flex flex-col h-full bg-background">
+      <div className="hidden items-center gap-3 border-b border-border bg-card p-4 lg:flex shrink-0">
         <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary">
           <Bot className="h-5 w-5 text-primary-foreground" />
         </div>
@@ -234,9 +239,10 @@ export function ChatMain({ initialContext, navigationKey }) {
             </div>
           </div>
         )}
+        <div ref={messagesEndRef} />
       </div>
 
-      <div className="px-4 pb-2">
+      <div className="px-4 pb-2 shrink-0">
         <div className="flex flex-wrap justify-center gap-2">
           {suggestedQuestions.map((question) => (
             <button
@@ -250,7 +256,7 @@ export function ChatMain({ initialContext, navigationKey }) {
         </div>
       </div>
 
-      <div className="border-t border-border bg-card p-4">
+      <div className="border-t border-border bg-card p-4 shrink-0">
         <div className="flex items-center gap-2">
           <input
             type="text"
