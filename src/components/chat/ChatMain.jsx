@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, useRef } from 'react'
-import { Send, Bot } from 'lucide-react'
+import { Send, Bot, ClipboardList } from 'lucide-react'
 import Button from '../ui/Button'
 
 function buildWelcomeMessage(initialContext) {
@@ -62,7 +62,7 @@ const suggestedQuestions = [
   'What is a 1040-NR?',
 ]
 
-export function ChatMain({ initialContext, navigationKey }) {
+export function ChatMain({ initialContext, navigationKey, onOpenChecklist }) {
   const welcome = useMemo(
     () => buildWelcomeMessage(initialContext),
     [initialContext],
@@ -185,16 +185,25 @@ export function ChatMain({ initialContext, navigationKey }) {
 
   return (
     <div className="flex flex-col h-full bg-background">
-      <div className="hidden items-center gap-3 border-b border-border bg-card p-4 lg:flex shrink-0">
-        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary">
-          <Bot className="h-5 w-5 text-primary-foreground" />
+      <div className="hidden items-center justify-between border-b border-border bg-card p-4 lg:flex shrink-0">
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary">
+            <Bot className="h-5 w-5 text-primary-foreground" />
+          </div>
+          <div>
+            <h1 className="font-semibold text-foreground">F1 Tax Assistant</h1>
+            <p className="text-xs text-muted-foreground">
+              AI-powered tax guidance for F-1 students
+            </p>
+          </div>
         </div>
-        <div>
-          <h1 className="font-semibold text-foreground">F1 Tax Assistant</h1>
-          <p className="text-xs text-muted-foreground">
-            AI-powered tax guidance for F-1 students
-          </p>
-        </div>
+        <button
+          onClick={onOpenChecklist}
+          className="flex items-center gap-2 rounded-lg bg-primary px-3 py-2 text-sm text-primary-foreground transition-colors hover:bg-primary/90"
+        >
+          <ClipboardList className="h-4 w-4" />
+          My Checklist
+        </button>
       </div>
 
       <div className="flex-1 space-y-4 overflow-y-auto p-4">

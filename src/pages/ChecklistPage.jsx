@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import { Check, ChevronDown, Sparkles } from 'lucide-react'
 import Button from '../components/ui/Button'
 import { cn } from '../utils/cn'
+import { DisclaimerBanner } from '../components/DisclaimerBanner'
 
 const SECTIONS = [
   {
@@ -139,8 +140,9 @@ export default function ChecklistPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <main className="mx-auto max-w-5xl px-4 py-10">
+    <div className="min-h-screen bg-background flex flex-col">
+      <DisclaimerBanner />
+      <main className="mx-auto max-w-5xl px-4 py-10 w-full">
         <header className="mb-8 space-y-3">
           <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
             <Sparkles className="h-3 w-3" />

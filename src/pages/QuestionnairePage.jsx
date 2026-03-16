@@ -11,6 +11,7 @@ import {
 } from 'lucide-react'
 import Button from '../components/ui/Button'
 import { cn } from '../utils/cn'
+import { DisclaimerBanner } from '../components/DisclaimerBanner'
 
 const COUNTRIES = [
   'Nepal',
@@ -305,6 +306,7 @@ export default function QuestionnairePage() {
 
   return (
     <div className="flex min-h-screen flex-col bg-secondary">
+      <DisclaimerBanner />
       <header className="px-4 py-6">
         <div className="flex items-center justify-center gap-2">
           <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary">

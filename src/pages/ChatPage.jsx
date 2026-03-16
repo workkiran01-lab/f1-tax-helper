@@ -3,7 +3,10 @@ import { useLocation } from 'react-router-dom'
 import { Menu } from 'lucide-react'
 import { ChatSidebar } from '../components/chat/ChatSidebar'
 import { ChatMain } from '../components/chat/ChatMain'
+import { ChatChecklistPanel } from '../components/chat/ChatChecklistPanel'
+import { DisclaimerBanner } from '../components/DisclaimerBanner'
 import Button from '../components/ui/Button'
+import { X } from 'lucide-react'
 
 const CHAT_STORAGE_KEY = 'f1-conversations'
 
@@ -20,6 +23,7 @@ const loadConversations = () => {
 
 export default function ChatPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [checklistOpen, setChecklistOpen] = useState(false)
   const [conversations, setConversations] = useState(loadConversations)
   const [selectedConversation, setSelectedConversation] = useState(null)
   
@@ -38,6 +42,7 @@ export default function ChatPage() {
       setNavKey(location.key)
       sessionId.current = Date.now().toString()
       setSelectedConversation(null)
+      setChecklistOpen(false)
     }
   }, [location.key])
 
@@ -108,7 +113,9 @@ export default function ChatPage() {
   }, [])
 
   return (
-    <div className="flex h-screen bg-background">
+    <div className="flex h-screen bg-background flex-col">
+      <DisclaimerBanner />
+      <div className="flex flex-1 min-h-0">
       {sidebarOpen && (
         <div
           className="fixed inset-0 z-40 bg-foreground/50 lg:hidden"
@@ -209,10 +216,31 @@ export default function ChatPage() {
               <ChatMain
                 initialContext={initialContext}
                 navigationKey={navKey}
+                onOpenChecklist={() => setChecklistOpen(true)}
               />
             </div>
           </div>
         )}
+      </div>
+
+      <div
+        className={`fixed inset-y-0 right-0 z-50 w-[380px] transform bg-card shadow-2xl transition-transform duration-300 ease-in-out lg:relative lg:border-l lg:border-border lg:shadow-none ${
+          checklistOpen ? 'translate-x-0' : 'translate-x-full lg:hidden'
+        }`}
+      >
+        <div className="flex h-16 items-center justify-between border-b border-border px-4">
+          <h2 className="font-semibold text-foreground">My Checklist</h2>
+          <button
+            onClick={() => setChecklistOpen(false)}
+            className="rounded-md p-2 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+        <div className="h-[calc(100vh-4rem)] overflow-y-auto">
+          <ChatChecklistPanel />
+        </div>
+      </div>
       </div>
     </div>
   )
