@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { Check, ChevronDown, X } from 'lucide-react'
 import { SECTIONS } from '../checklist/data'
+import { FilingOptionsSection } from '../checklist/FilingOptionsSection'
 import { cn } from '../../utils/cn'
 
 const CHECKLIST_STORAGE_KEY = 'f1-tax-helper-checklist'
@@ -46,6 +47,7 @@ export function ChatChecklistPanel({ onClose }) {
   const total = allItemIds.length
   const completed = Object.values(checked).filter(Boolean).length
   const progress = Math.round((completed / total) * 100)
+  const allDone = completed === total && total > 0
 
   const toggleItem = (id) => {
     setChecked((prev) => {
@@ -164,6 +166,8 @@ export function ChatChecklistPanel({ onClose }) {
               </ul>
             </div>
           ))}
+
+          {allDone && <FilingOptionsSection />}
         </div>
       </div>
     </div>
