@@ -4,7 +4,7 @@ import { Menu } from 'lucide-react'
 import { ChatSidebar } from '../components/chat/ChatSidebar'
 import { ChatMain } from '../components/chat/ChatMain'
 import { ChatChecklistPanel } from '../components/chat/ChatChecklistPanel'
-import { DisclaimerBanner } from '../components/DisclaimerBanner'
+import { DisclaimerBanner } from '../components/DisclaimerBanner.jsx'
 import Button from '../components/ui/Button'
 import { X } from 'lucide-react'
 
