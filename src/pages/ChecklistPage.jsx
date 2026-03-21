@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import { Check, ChevronDown, Sparkles } from 'lucide-react'
 import Button from '../components/ui/Button'
 import { cn } from '../utils/cn'
-import { DisclaimerBanner } from '../components/DisclaimerBanner'
+import DisclaimerBanner from '../components/DisclaimerBanner'
 
 const SECTIONS = [
   {
