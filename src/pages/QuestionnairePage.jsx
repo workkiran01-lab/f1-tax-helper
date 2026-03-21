@@ -363,7 +363,11 @@ export default function QuestionnairePage() {
                 <Results
                   answers={answers}
                   actionItems={actionItems}
-                  onChat={() => navigate('/chat', { state: { answers, actionItems } })}
+                  onChat={() =>
+                    navigate('/chat', {
+                      replace: true,
+                      state: { answers, actionItems },
+                    })}
                 />
               )}
             </div>
