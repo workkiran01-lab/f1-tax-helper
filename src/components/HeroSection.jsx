@@ -31,7 +31,7 @@ export function HeroSection() {
 
           <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
             <Link
-              to="/questionnaire"
+              to="/login"
               className="inline-flex h-10 items-center justify-center gap-2 rounded-md bg-primary px-6 text-base font-medium text-primary-foreground transition-all hover:bg-primary/90 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
             >
               Get Started Free
