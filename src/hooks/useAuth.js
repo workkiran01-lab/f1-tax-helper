@@ -10,23 +10,11 @@ export default function useAuth() {
   useEffect(() => {
     let mounted = true
 
-    const loadUser = async () => {
-      setLoading(true)
-      const { data } = await supabase.auth.getUser()
-
+    // Don't call getUser() first — let onAuthStateChange be the single source of truth
+    const { data: listener } = supabase.auth.onAuthStateChange((event, session) => {
       if (!mounted) return
-
-      setUser(data?.user ?? null)
-      setLoading(false)
-    }
-
-    loadUser()
-
-    const { data: listener } = supabase.auth.onAuthStateChange((_, session) => {
-      if (!mounted) return
-
       setUser(session?.user ?? null)
-      setLoading(false)
+      setLoading(false)  // only set false AFTER auth state is known
     })
 
     return () => {
