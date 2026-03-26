@@ -8,6 +8,7 @@ import TermsOfService from './pages/TermsOfService'
 import Disclaimer from './pages/Disclaimer'
 import ComingSoon from './pages/ComingSoon'
 import LoginPage from './pages/LoginPage'
+import AuthCallbackPage from './pages/AuthCallbackPage'
 import useAuth from './hooks/useAuth'
 
 function FullScreenSpinner() {
@@ -40,6 +41,7 @@ function AppRoutes() {
     <Routes>
       <Route path="/" element={<HomePage />} />
       <Route path="/login" element={<LoginPage />} />
+      <Route path="/auth/callback" element={<AuthCallbackPage />} />
       <Route
         path="/chat"
         element={
