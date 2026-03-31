@@ -14,7 +14,7 @@ export function HeroSection() {
         <div className="mx-auto max-w-3xl text-center">
           <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-border bg-secondary px-4 py-1.5 text-sm text-muted-foreground">
             <Sparkles className="h-4 w-4 text-accent" />
-            <span>Free for all F-1 visa holders</span>
+            <span>Updated for tax year 2025 · Filing season 2026</span>
           </div>
 
           <h1 className="mb-6 text-balance text-4xl font-bold tracking-tight text-foreground md:text-5xl lg:text-6xl">
@@ -49,11 +49,11 @@ export function HeroSection() {
           <div className="mt-12 flex flex-wrap items-center justify-center gap-6 text-sm text-muted-foreground">
             <div className="flex items-center gap-2">
               <Shield className="h-4 w-4 text-accent" />
-              <span>IRS Compliant</span>
+              <span>Built for F-1 students</span>
             </div>
             <div className="h-4 w-px bg-border" />
             <div className="flex items-center gap-2">
-              <span>Trusted by 10,000+ students</span>
+              <span>Filing season 2026 ready</span>
             </div>
             <div className="hidden h-4 w-px bg-border sm:block" />
             <div className="flex items-center gap-2">

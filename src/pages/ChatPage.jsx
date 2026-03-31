@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback, useRef, useEffect } from 'react'
-import { useLocation } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { Menu } from 'lucide-react'
 import { ChatSidebar } from '../components/chat/ChatSidebar'
 import { ChatMain } from '../components/chat/ChatMain'
@@ -22,6 +22,7 @@ const loadConversations = () => {
 }
 
 export default function ChatPage() {
+  const navigate = useNavigate()
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [checklistOpen, setChecklistOpen] = useState(false)
   const [conversations, setConversations] = useState(loadConversations)
@@ -115,6 +116,14 @@ export default function ChatPage() {
   return (
     <div className="flex h-screen bg-background flex-col">
       <DisclaimerBanner />
+      <div style={{ padding: '1rem 1rem 0 1rem' }}>
+        <button
+            onClick={() => navigate('/results')}
+            style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--navy)', fontWeight: 500, fontSize: '14px' }}
+        >
+            ← Back to my results
+        </button>
+      </div>
       <div className="flex flex-1 min-h-0">
       {sidebarOpen && (
         <div
