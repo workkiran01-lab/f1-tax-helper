@@ -1,14 +1,21 @@
 import { useMemo, useState } from 'react'
-import { useLocation } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { Check, ChevronDown, Sparkles } from 'lucide-react'
 import { SECTIONS } from '../components/checklist/data'
 import { FilingOptionsSection } from '../components/checklist/FilingOptionsSection'
 import { cn } from '../utils/cn'
 import DisclaimerBanner from '../components/DisclaimerBanner'
+import FloatingChatButton from '../components/FloatingChatButton'
+import useAuth from '../hooks/useAuth'
 
 export default function ChecklistPage() {
+  const navigate = useNavigate()
   const location = useLocation()
+  const { user } = useAuth()
+  const storedQuestionnaire = user?.user_metadata?.questionnaire || null
   const { documents = [], country } = location.state || {}
+  const answers = location.state?.answers || storedQuestionnaire?.answers || null
+  const actionItems = location.state?.actionItems || storedQuestionnaire?.actionItems || []
   const allItemIds = useMemo(
     () => SECTIONS.flatMap((section) => section.items.map((item) => item.id)),
     [],
@@ -49,6 +56,12 @@ export default function ChecklistPage() {
     <div className="min-h-screen bg-background flex flex-col">
       <DisclaimerBanner />
       <main className="mx-auto max-w-5xl px-4 py-10 w-full">
+        <button
+          onClick={() => navigate('/results')}
+          className="mb-6 inline-flex items-center gap-1 text-sm font-medium text-muted-foreground hover:text-foreground"
+        >
+          ← Back to my results
+        </button>
         <header className="mb-8 space-y-3">
           <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
             <Sparkles className="h-3 w-3" />
@@ -185,7 +198,7 @@ export default function ChecklistPage() {
           </aside>
         </div>
       </main>
+      <FloatingChatButton state={{ answers, actionItems }} />
     </div>
   )
 }
-
