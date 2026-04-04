@@ -7,6 +7,7 @@ export default function AuthCallbackPage() {
 
   useEffect(() => {
     let isMounted = true
+    const nextPath = new URLSearchParams(window.location.search).get('next') || '/welcome'
 
     const finishAuth = async () => {
       const code = new URLSearchParams(window.location.search).get('code')
@@ -20,7 +21,7 @@ export default function AuthCallbackPage() {
       if (!isMounted) return
 
       if (session?.user) {
-        navigate('/welcome', { replace: true })
+        navigate(nextPath, { replace: true })
         return
       }
 
@@ -32,7 +33,7 @@ export default function AuthCallbackPage() {
     const { data: listener } = supabase.auth.onAuthStateChange((event, session) => {
       if (!isMounted) return
       if (event === 'SIGNED_IN' && session?.user) {
-        navigate('/welcome', { replace: true })
+        navigate(nextPath, { replace: true })
       }
     })
 
