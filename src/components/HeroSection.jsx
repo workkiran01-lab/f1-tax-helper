@@ -1,8 +1,12 @@
 import { ArrowRight, Shield, Sparkles } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import Button from './ui/Button'
+import useAuth from '../hooks/useAuth'
 
 export function HeroSection() {
+  const { user } = useAuth()
+  const getStartedHref = user ? '/welcome' : '/login'
+
   return (
     <section className="relative overflow-hidden bg-background px-4 py-20 md:py-32">
       <div className="absolute inset-0 -z-10">
@@ -31,7 +35,7 @@ export function HeroSection() {
 
           <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
             <Link
-              to="/login"
+              to={getStartedHref}
               className="inline-flex h-10 items-center justify-center gap-2 rounded-md bg-primary px-6 text-base font-medium text-primary-foreground transition-all hover:bg-primary/90 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
             >
               Get Started Free

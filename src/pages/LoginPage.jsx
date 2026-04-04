@@ -1,7 +1,8 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { ArrowRight, LoaderCircle } from 'lucide-react'
 import supabase from '../utils/supabase'
+import useAuth from '../hooks/useAuth'
 
 const initialValues = {
   email: '',
@@ -11,6 +12,7 @@ const initialValues = {
 
 export default function LoginPage() {
   const navigate = useNavigate()
+  const { user, loading: authLoading } = useAuth()
   const [mode, setMode] = useState('login')
   const [formValues, setFormValues] = useState(initialValues)
   const [error, setError] = useState('')
@@ -26,6 +28,12 @@ export default function LoginPage() {
   const description = isSignUp
     ? 'Sign up to save your progress and access personalized F-1 tax guidance.'
     : 'Sign in to continue your F-1 tax questionnaire, checklist, and assistant chat.'
+
+  useEffect(() => {
+    if (!authLoading && user) {
+      navigate('/welcome', { replace: true })
+    }
+  }, [authLoading, navigate, user])
 
   const handleChange = (event) => {
     const { name, value } = event.target
