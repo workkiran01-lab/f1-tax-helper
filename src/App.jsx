@@ -3,6 +3,8 @@ import HomePage from './pages/HomePage'
 import ChatPage from './pages/ChatPage'
 import QuestionnairePage from './pages/QuestionnairePage'
 import ChecklistPage from './pages/ChecklistPage'
+import ResultsPage from './pages/ResultsPage'
+import WelcomePage from './pages/WelcomePage'
 import PrivacyPolicy from './pages/PrivacyPolicy'
 import TermsOfService from './pages/TermsOfService'
 import Disclaimer from './pages/Disclaimer'
@@ -43,6 +45,14 @@ function AppRoutes() {
       <Route path="/login" element={<LoginPage />} />
       <Route path="/auth/callback" element={<AuthCallbackPage />} />
       <Route
+        path="/welcome"
+        element={
+          <ProtectedRoute>
+            <WelcomePage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
         path="/chat"
         element={
           <ProtectedRoute>
@@ -55,6 +65,14 @@ function AppRoutes() {
         element={
           <ProtectedRoute>
             <QuestionnairePage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/results"
+        element={
+          <ProtectedRoute>
+            <ResultsPage />
           </ProtectedRoute>
         }
       />

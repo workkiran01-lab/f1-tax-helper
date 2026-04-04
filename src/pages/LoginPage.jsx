@@ -81,7 +81,7 @@ export default function LoginPage() {
     }
 
     if (data?.session || !isSignUp) {
-      navigate('/questionnaire')
+      navigate('/welcome')
       return
     }
 

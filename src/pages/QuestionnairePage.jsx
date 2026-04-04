@@ -1,18 +1,18 @@
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   ArrowRight,
   Check,
   ChevronDown,
-  Download,
   FileText,
-  MessageCircle,
   Search,
   AlertTriangle,
 } from 'lucide-react'
 import Button from '../components/ui/Button'
 import { cn } from '../utils/cn'
 import DisclaimerBanner from '../components/DisclaimerBanner'
+import supabase from '../utils/supabase'
+import useAuth from '../hooks/useAuth'
 
 const COUNTRIES = [
   'Nepal',
@@ -225,6 +225,7 @@ const TREATY_COUNTRIES = {
 
 export default function QuestionnairePage() {
   const navigate = useNavigate()
+  const { user } = useAuth()
   const [currentStep, setCurrentStep] = useState(1)
   const [isTransitioning, setIsTransitioning] = useState(false)
   const [stopped, setStopped] = useState(false)
@@ -372,6 +373,31 @@ export default function QuestionnairePage() {
 
   const totalSteps = 5;
 
+  useEffect(() => {
+    if (currentStep !== 6) return
+
+    const persistAndContinue = async () => {
+      const metadata = user?.user_metadata || {}
+      await supabase.auth.updateUser({
+        data: {
+          ...metadata,
+          questionnaire: {
+            answers,
+            actionItems,
+            completedAt: new Date().toISOString(),
+          },
+        },
+      })
+
+      navigate('/results', {
+        replace: true,
+        state: { answers, actionItems },
+      })
+    }
+
+    persistAndContinue()
+  }, [actionItems, answers, currentStep, navigate, user?.user_metadata])
+
   if (stopped) {
     return (
        <div className="flex min-h-screen flex-col bg-secondary">
@@ -448,15 +474,9 @@ export default function QuestionnairePage() {
               {currentStep === 4 && <Question4 onAnswer={handleYearsInUSAnswer} />}
               {currentStep === 5 && <Question5 onSelect={handleCountrySelect} />}
               {currentStep === 6 && (
-                <Results
-                  answers={answers}
-                  actionItems={actionItems}
-                  onChat={() =>
-                    navigate('/chat', {
-                      replace: true,
-                      state: { answers, actionItems },
-                    })}
-                />
+                <div className="py-8 text-center">
+                  <p className="text-sm text-muted-foreground">Preparing your results…</p>
+                </div>
               )}
             </div>
           </div>
@@ -706,78 +726,6 @@ function Question5({ onSelect }) {
             )}
           </div>
         )}
-      </div>
-    </div>
-  )
-}
-
-
-function Results({ answers, actionItems, onChat }) {
-  const navigate = useNavigate()
-  return (
-    <div className="text-center">
-      <button
-        onClick={() => navigate('/questionnaire')}
-        style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--color-text-secondary)', fontSize: '13px', marginBottom: '1rem' }}
-      >
-        ← Retake questionnaire
-      </button>
-      <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
-        <Check className="h-8 w-8 text-primary" />
-      </div>
-      <h2 className="mb-2 text-2xl font-semibold text-foreground">
-        Your Personalized Tax Summary
-      </h2>
-      <p className="mb-6 text-muted-foreground">
-        Based on your answers, here is a summary of your likely US tax obligations.
-      </p>
-      <div className="mb-2 text-center text-sm text-muted-foreground">
-          Updated for tax year 2025 · Filing season 2026
-      </div>
-
-      <div className="mb-8 space-y-3 text-left">
-        {actionItems.map((item, index) => (
-          <div key={index} className="flex gap-3 rounded-xl bg-secondary p-4">
-            <div className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-primary text-sm font-medium text-primary-foreground">
-              {index + 1}
-            </div>
-            <p className="text-sm leading-relaxed text-foreground">{item}</p>
-          </div>
-        ))}
-      </div>
-
-       <div className="my-6 rounded-lg border border-border bg-background p-4 text-center">
-          <p className="text-sm text-muted-foreground">
-             Always verify with a licensed tax professional and your DSO before filing. This tool provides general educational information only.
-          </p>
-       </div>
-
-      <div className="space-y-3">
-        <Button
-          variant="default"
-          onClick={() =>
-            navigate('/checklist', {
-              state: { answers },
-            })
-          }
-          className="h-12 w-full bg-primary text-base text-primary-foreground hover:bg-primary/90"
-        >
-          <Download className="mr-2 h-5 w-5" />
-          View My Document Checklist
-        </Button>
-
-        <p className="text-center text-xs text-muted-foreground">
-          or if you have more questions
-        </p>
-
-        <Button
-          variant="outline"
-          onClick={onChat}
-          className="h-12 w-full border-2 border-primary text-base text-primary hover:bg-primary/5"
-        >
-          <MessageCircle className="mr-2 h-5 w-5" />
-          Chat with F1 Tax Assistant
-        </Button>
       </div>
     </div>
   )
