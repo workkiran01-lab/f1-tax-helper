@@ -192,15 +192,9 @@ export function ChatSidebar({ conversations = [], onSelect, onNewChat }) {
     {showSettings && (
       <>
         <div className="fixed inset-0 z-40 bg-black/50" onClick={() => setShowSettings(false)} aria-hidden />
-        <div className="fixed left-0 right-0 top-0 z-[100] h-full w-full overflow-y-auto border-l border-white/10 bg-slate-900/95 p-5 backdrop-blur-xl sm:left-auto sm:w-80">
-          <div className="mb-4 flex items-center justify-between border-b border-white/10 pb-3">
-            <button
-              type="button"
-              onClick={() => setShowSettings(false)}
-              className="text-sm font-medium text-slate-200 hover:text-white"
-            >
-              ← Settings
-            </button>
+        <div className="fixed right-0 top-0 z-50 h-full w-80 border-l border-white/10 bg-slate-900/95 p-5 backdrop-blur-xl">
+          <div className="mb-4 flex items-center justify-between">
+            <h3 className="text-lg font-semibold text-slate-100">Settings</h3>
             <button
               type="button"
               onClick={() => setShowSettings(false)}
