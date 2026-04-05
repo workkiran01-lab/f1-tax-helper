@@ -1,5 +1,42 @@
 import { Link } from 'react-router-dom'
 
+const termsSections = [
+  {
+    title: 'Acceptance of Terms',
+    description:
+      'By accessing or using F1 Tax Helper, you agree to be bound by these Terms of Service. If you do not agree, please do not use the app.',
+  },
+  {
+    title: 'Not Legal or Tax Advice',
+    description:
+      'F1 Tax Helper provides general tax information for educational purposes only. We are not a licensed tax advisor, CPA, or attorney. Nothing in this app constitutes legal or tax advice. For your specific situation, please consult a qualified tax professional.',
+  },
+  {
+    title: 'Use of Service',
+    description:
+      'You agree to use F1 Tax Helper only for lawful purposes. You must not misuse the service, attempt to hack or reverse engineer it, or use it to harm others.',
+  },
+  {
+    title: 'Accuracy of Information',
+    description:
+      'We strive to keep our tax information accurate and up to date. However, tax laws change frequently. Always verify information with the IRS website or a qualified tax professional before filing.',
+  },
+  {
+    title: 'Limitation of Liability',
+    description:
+      'F1 Tax Helper and its creators are not liable for any errors, omissions, or outcomes resulting from the use of this app. Use of this service is at your own risk.',
+  },
+  {
+    title: 'Changes to Terms',
+    description:
+      'We may update these terms from time to time. We will notify users of significant changes via email. Continued use of the app after changes constitutes acceptance of the new terms.',
+  },
+  {
+    title: 'Contact',
+    description: 'For questions about these terms, email us at work.kiran01@gmail.com',
+  },
+]
+
 export default function TermsPage() {
   return (
     <main className="relative min-h-screen overflow-hidden bg-[#0f172a] text-slate-100">
@@ -26,68 +63,17 @@ export default function TermsPage() {
             EFFECTIVE: JANUARY 2026
           </p>
           <h1 className="text-4xl font-extrabold tracking-tight text-white sm:text-5xl">Terms of Service</h1>
+          <p className="mt-4 text-base leading-7 text-slate-300 sm:text-lg">
+            By using F1 Tax Helper, you agree to these terms. Please read them carefully.
+          </p>
 
-          <div className="mt-8 space-y-8 text-sm leading-7 text-slate-300 sm:text-base">
-            <section>
-              <h2 className="text-xl font-semibold text-white">Acceptance of Terms</h2>
-              <p className="mt-2">
-                By accessing or using F1 Tax Helper, you agree to these Terms of Service. If you do not agree, please
-                discontinue use of the platform.
-              </p>
-            </section>
-
-            <section>
-              <h2 className="text-xl font-semibold text-white">Use of Service</h2>
-              <p className="mt-2">
-                You agree to use the service only for lawful purposes and to provide accurate information where
-                requested. You are responsible for maintaining the confidentiality of your account and any activity
-                conducted under it.
-              </p>
-            </section>
-
-            <section>
-              <h2 className="text-xl font-semibold text-white">Not Legal Advice</h2>
-              <p className="mt-2">
-                F1 Tax Helper provides educational tax information and workflow support. We are not a law firm,
-                accounting firm, or licensed tax advisor, and our content does not constitute legal or tax advice.
-              </p>
-            </section>
-
-            <section>
-              <h2 className="text-xl font-semibold text-white">Disclaimer</h2>
-              <p className="mt-2">
-                We strive for accuracy, but tax rules may change and individual situations vary. You are responsible for
-                reviewing your filings and consulting a qualified professional when appropriate.
-              </p>
-            </section>
-
-            <section>
-              <h2 className="text-xl font-semibold text-white">Limitation of Liability</h2>
-              <p className="mt-2">
-                To the fullest extent permitted by law, F1 Tax Helper and its operators are not liable for indirect,
-                incidental, consequential, or special damages arising from your use of the platform.
-              </p>
-            </section>
-
-            <section>
-              <h2 className="text-xl font-semibold text-white">Changes to Terms</h2>
-              <p className="mt-2">
-                We may update these terms from time to time. Continued use of the service after updates are posted
-                constitutes acceptance of the revised terms.
-              </p>
-            </section>
-
-            <section>
-              <h2 className="text-xl font-semibold text-white">Contact</h2>
-              <p className="mt-2">
-                For questions about these Terms, email us at
-                {' '}
-                <a className="text-blue-300 hover:text-blue-200" href="mailto:work.kiran01@gmail.com">
-                  work.kiran01@gmail.com
-                </a>
-                .
-              </p>
-            </section>
+          <div className="mt-8 space-y-4">
+            {termsSections.map((section) => (
+              <section key={section.title} className="rounded-3xl border border-white/20 bg-white/5 p-6 backdrop-blur-xl">
+                <h2 className="text-xl font-semibold text-white">{section.title}</h2>
+                <p className="mt-2 text-sm leading-7 text-slate-300 sm:text-base">{section.description}</p>
+              </section>
+            ))}
           </div>
 
           <Link to="/" className="mt-10 inline-flex text-sm font-medium text-blue-300 transition-colors hover:text-blue-200">

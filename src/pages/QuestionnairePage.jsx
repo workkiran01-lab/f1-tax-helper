@@ -1,14 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import {
   ArrowRight,
   Check,
   ChevronDown,
-  FileText,
   Search,
   AlertTriangle,
 } from 'lucide-react'
-import Button from '../components/ui/Button'
 import { cn } from '../utils/cn'
 import DisclaimerBanner from '../components/DisclaimerBanner'
 import supabase from '../utils/supabase'
@@ -372,6 +370,16 @@ export default function QuestionnairePage() {
   }, [answers, needsW2Flow, needs1042SFlow, needs1099Flow, needsInvestmentFlow])
 
   const totalSteps = 5;
+  const progressPercentage = Math.round((currentStep / totalSteps) * 100)
+
+  const handleBack = useCallback(() => {
+    if (currentStep <= 1) {
+      navigate('/welcome')
+      return
+    }
+
+    setCurrentStep((prev) => Math.max(1, prev - 1))
+  }, [currentStep, navigate])
 
   useEffect(() => {
     if (currentStep !== 6) return
@@ -400,13 +408,28 @@ export default function QuestionnairePage() {
 
   if (stopped) {
     return (
-       <div className="flex min-h-screen flex-col bg-secondary">
+       <div className="relative flex min-h-screen flex-col overflow-hidden bg-[#0f172a] text-slate-100">
+        <div className="pointer-events-none absolute inset-0">
+          <div className="absolute -left-24 top-16 h-72 w-72 rounded-full bg-blue-500/20 blur-3xl animate-pulse [animation-duration:9s]" />
+          <div className="absolute -right-20 top-36 h-80 w-80 rounded-full bg-violet-500/20 blur-3xl animate-pulse [animation-duration:11s]" />
+          <div className="absolute bottom-0 left-1/2 h-96 w-96 -translate-x-1/2 rounded-full bg-cyan-500/10 blur-3xl animate-pulse [animation-duration:13s]" />
+        </div>
         <DisclaimerBanner />
-         <main className="flex flex-1 items-center justify-center px-4 py-8 text-center">
-            <div className="w-full max-w-xl rounded-2xl border border-border bg-card p-8 shadow-lg">
-                <AlertTriangle className="mx-auto mb-4 h-12 w-12 text-amber-500" />
-                <h2 className="mb-2 text-2xl font-semibold text-foreground">Important Notice</h2>
-                <p className="text-muted-foreground">
+         <header className="sticky top-0 z-20 border-b border-white/10 bg-slate-900/50 backdrop-blur-xl">
+          <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-4 sm:px-6">
+            <Link to="/" className="flex items-center gap-3">
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-[#3b82f6] to-[#8b5cf6] text-sm font-bold text-white shadow-lg shadow-blue-500/30">
+                F1
+              </div>
+              <span className="text-base font-semibold tracking-wide text-slate-100 sm:text-lg">F1 Tax Helper</span>
+            </Link>
+          </div>
+        </header>
+         <main className="relative z-10 flex flex-1 items-center justify-center px-4 py-8 text-center sm:px-6">
+            <div className="w-full max-w-xl rounded-3xl border border-white/20 bg-white/5 p-8 shadow-2xl shadow-blue-950/40 backdrop-blur-xl">
+                <AlertTriangle className="mx-auto mb-4 h-12 w-12 text-amber-400" />
+                <h2 className="mb-2 text-2xl font-semibold text-slate-100">Important Notice</h2>
+                <p className="text-slate-300">
                     This tool is designed specifically for students on an F-1 visa. For other visa types, tax rules can be very different. Please consult a qualified tax professional for assistance.
                 </p>
             </div>
@@ -416,44 +439,27 @@ export default function QuestionnairePage() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-secondary">
+    <div className="relative flex min-h-screen flex-col overflow-hidden bg-[#0f172a] text-slate-100">
+      <div className="pointer-events-none absolute inset-0">
+        <div className="absolute -left-24 top-16 h-72 w-72 rounded-full bg-blue-500/20 blur-3xl animate-pulse [animation-duration:9s]" />
+        <div className="absolute -right-20 top-36 h-80 w-80 rounded-full bg-violet-500/20 blur-3xl animate-pulse [animation-duration:11s]" />
+        <div className="absolute bottom-0 left-1/2 h-96 w-96 -translate-x-1/2 rounded-full bg-cyan-500/10 blur-3xl animate-pulse [animation-duration:13s]" />
+      </div>
       <DisclaimerBanner />
-      <header className="px-4 py-6">
-        <div className="flex items-center justify-center gap-2">
-          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary">
-            <FileText className="h-5 w-5 text-primary-foreground" />
-          </div>
-          <span className="text-xl font-semibold text-foreground">
-            F1 Tax Helper
-          </span>
-        </div>
-        <div className="mt-2 text-center text-sm text-muted-foreground">
-          Updated for tax year 2025 · Filing season 2026
+      <header className="sticky top-0 z-20 border-b border-white/10 bg-slate-900/50 backdrop-blur-xl">
+        <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-4 sm:px-6">
+          <Link to="/" className="flex items-center gap-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-[#3b82f6] to-[#8b5cf6] text-sm font-bold text-white shadow-lg shadow-blue-500/30">
+              F1
+            </div>
+            <span className="text-base font-semibold tracking-wide text-slate-100 sm:text-lg">F1 Tax Helper</span>
+          </Link>
         </div>
       </header>
 
-      <main className="flex flex-1 items-center justify-center px-4 py-8">
-        <div className="w-full max-w-xl">
-          {currentStep <= totalSteps && (
-            <div className="mb-8">
-              <div className="mb-2 flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">
-                  Step {currentStep} of {totalSteps}
-                </span>
-                <span className="text-sm text-muted-foreground">
-                  {Math.round((currentStep / totalSteps) * 100)}%
-                </span>
-              </div>
-              <div className="h-2 overflow-hidden rounded-full bg-muted">
-                <div
-                  className="h-full rounded-full bg-primary transition-all duration-500 ease-out"
-                  style={{ width: `${(currentStep / totalSteps) * 100}%` }}
-                />
-              </div>
-            </div>
-          )}
-
-          <div className="rounded-2xl border border-border bg-card shadow-lg">
+      <main className="relative z-10 flex flex-1 items-center justify-center px-4 py-8 sm:px-6">
+        <div className="w-full max-w-2xl">
+          <div className="rounded-3xl border border-white/20 bg-white/5 shadow-2xl shadow-blue-950/40 backdrop-blur-xl">
             <div
               className={cn(
                 'p-6 transition-all duration-300 md:p-8',
@@ -462,6 +468,23 @@ export default function QuestionnairePage() {
                   : 'translate-y-0 opacity-100',
               )}
             >
+              {currentStep <= totalSteps && (
+                <div className="mb-8">
+                  <div className="mb-2 flex items-center justify-between">
+                    <span className="text-sm text-slate-400">
+                      Question {currentStep} of {totalSteps}
+                    </span>
+                    <span className="text-sm text-slate-400">{progressPercentage}%</span>
+                  </div>
+                  <div className="h-2 overflow-hidden rounded-full bg-white/10">
+                    <div
+                      className="h-2 rounded-full bg-gradient-to-r from-[#3b82f6] to-[#8b5cf6] transition-all duration-500 ease-out"
+                      style={{ width: `${(currentStep / totalSteps) * 100}%` }}
+                    />
+                  </div>
+                </div>
+              )}
+
               {currentStep === 1 && <Question1 onAnswer={handleF1Answer} />}
               {currentStep === 2 && <Question2 onAnswer={handleIncomeAnswer} />}
               {currentStep === 3 && (
@@ -475,7 +498,20 @@ export default function QuestionnairePage() {
               {currentStep === 5 && <Question5 onSelect={handleCountrySelect} />}
               {currentStep === 6 && (
                 <div className="py-8 text-center">
-                  <p className="text-sm text-muted-foreground">Preparing your results…</p>
+                  <p className="text-sm text-slate-400">Preparing your results…</p>
+                </div>
+              )}
+
+              {currentStep <= totalSteps && (
+                <div className="mt-8 flex items-center justify-between border-t border-white/10 pt-6">
+                  <button
+                    type="button"
+                    onClick={handleBack}
+                    className="rounded-xl border border-white/20 bg-white/5 px-5 py-2.5 text-sm font-semibold text-slate-100 transition-all duration-300 hover:bg-white/10"
+                  >
+                    ← Back
+                  </button>
+                  <p className="text-xs text-slate-500">Your progress is saved automatically</p>
                 </div>
               )}
             </div>
@@ -488,27 +524,31 @@ export default function QuestionnairePage() {
 
 function Question1({ onAnswer }) {
   return (
-    <div className="text-center">
-      <h2 className="mb-2 text-2xl font-semibold text-foreground">
+    <div>
+      <p className="mb-3 w-fit rounded-full border border-white/20 bg-white/10 px-4 py-1 text-xs font-medium uppercase tracking-[0.16em] text-blue-100/90">
+        STEP 1
+      </p>
+      <h2 className="mb-2 text-2xl font-bold text-slate-100">
         Are you currently on an F-1 student visa?
       </h2>
-      <p className="mb-8 text-muted-foreground">
+      <p className="mb-6 text-slate-300">
         This helps us determine which tax forms and rules apply to you.
       </p>
-      <div className="flex flex-col justify-center gap-4 sm:flex-row">
-        <Button
+      <div className="space-y-3">
+        <button
+          type="button"
           onClick={() => onAnswer(true)}
-          className="h-14 bg-primary px-12 text-lg text-primary-foreground hover:bg-primary/90"
+          className="w-full rounded-xl border border-white/20 bg-white/5 p-4 text-left text-slate-100 transition-all duration-200 hover:border-blue-500/50 hover:bg-white/10"
         >
           Yes, I am
-        </Button>
-        <Button
+        </button>
+        <button
+          type="button"
           onClick={() => onAnswer(false)}
-          variant="outline"
-          className="h-14 border-2 border-destructive px-12 text-lg text-destructive hover:bg-destructive/5"
+          className="w-full rounded-xl border border-white/20 bg-white/5 p-4 text-left text-slate-100 transition-all duration-200 hover:border-blue-500/50 hover:bg-white/10"
         >
           No, I'm not
-        </Button>
+        </button>
       </div>
     </div>
   )
@@ -516,27 +556,31 @@ function Question1({ onAnswer }) {
 
 function Question2({ onAnswer }) {
  return (
-    <div className="text-center">
-      <h2 className="mb-2 text-2xl font-semibold text-foreground">
+    <div>
+      <p className="mb-3 w-fit rounded-full border border-white/20 bg-white/10 px-4 py-1 text-xs font-medium uppercase tracking-[0.16em] text-blue-100/90">
+        STEP 2
+      </p>
+      <h2 className="mb-2 text-2xl font-bold text-slate-100">
         Did you have any US-source income in tax year 2025?
       </h2>
-      <p className="mb-8 text-muted-foreground">
+      <p className="mb-6 text-slate-300">
         This includes wages, scholarships, freelance work, investments, etc.
       </p>
-      <div className="flex flex-col justify-center gap-4 sm:flex-row">
-        <Button
+      <div className="space-y-3">
+        <button
+          type="button"
           onClick={() => onAnswer(true)}
-          className="h-14 bg-primary px-12 text-lg text-primary-foreground hover:bg-primary/90"
+          className="w-full rounded-xl border border-white/20 bg-white/5 p-4 text-left text-slate-100 transition-all duration-200 hover:border-blue-500/50 hover:bg-white/10"
         >
           Yes, I had income
-        </Button>
-        <Button
+        </button>
+        <button
+          type="button"
           onClick={() => onAnswer(false)}
-          variant="outline"
-          className="h-14 border-2 border-primary px-12 text-lg text-primary hover:bg-primary/5"
+          className="w-full rounded-xl border border-white/20 bg-white/5 p-4 text-left text-slate-100 transition-all duration-200 hover:border-blue-500/50 hover:bg-white/10"
         >
           No, I had no income
-        </Button>
+        </button>
       </div>
     </div>
   )
@@ -551,10 +595,13 @@ function Question3({ selected, onToggle, onContinue }) {
   ]
   return (
     <div>
-      <h2 className="mb-2 text-center text-2xl font-semibold text-foreground">
+      <p className="mb-3 w-fit rounded-full border border-white/20 bg-white/10 px-4 py-1 text-xs font-medium uppercase tracking-[0.16em] text-blue-100/90">
+        STEP 3
+      </p>
+      <h2 className="mb-2 text-2xl font-bold text-slate-100">
         What type of income did you receive?
       </h2>
-      <p className="mb-6 text-center text-muted-foreground">
+      <p className="mb-6 text-slate-300">
         Select all that apply. This determines the forms you'll need.
       </p>
 
@@ -566,51 +613,52 @@ function Question3({ selected, onToggle, onContinue }) {
               key={type.id}
               onClick={() => onToggle(type.id)}
               className={cn(
-                'flex w-full items-center justify-between rounded-xl border-2 p-4 text-left transition-all',
+                'flex w-full items-center justify-between rounded-xl border border-white/20 bg-white/5 p-4 text-left transition-all duration-200 hover:bg-white/10 hover:border-blue-500/50',
                 isSelected
-                  ? 'border-primary bg-primary/5'
-                  : 'border-border hover:border-primary/50',
-                type.id === '1099' && isSelected ? 'border-amber-500 bg-amber-500/5' : ''
+                  ? 'border-blue-500 bg-blue-500/20 text-blue-100'
+                  : '',
+                type.id === '1099' && isSelected ? 'border-amber-400 bg-amber-500/20 text-amber-50' : ''
               )}
             >
               <div>
-                <div className={cn('font-medium', isSelected ? 'text-primary' : 'text-foreground',  type.id === '1099' && isSelected ? 'text-amber-600' : '')}>
+                <div className={cn('font-medium text-slate-100', isSelected ? 'text-blue-100' : '',  type.id === '1099' && isSelected ? 'text-amber-50' : '')}>
                   {type.title}
                 </div>
-                <div className="mt-1 text-sm text-muted-foreground">{type.description}</div>
+                <div className="mt-1 text-sm text-slate-300">{type.description}</div>
               </div>
               <div
                 className={cn(
-                  'flex h-6 w-6 items-center justify-center rounded-md border-2 transition-colors',
-                  isSelected ? 'border-primary bg-primary' : 'border-muted-foreground',
-                  type.id === '1099' && isSelected ? 'border-amber-500 bg-amber-500' : ''
+                  'flex h-6 w-6 items-center justify-center rounded-md border transition-colors',
+                  isSelected ? 'border-blue-500 bg-gradient-to-r from-[#3b82f6] to-[#8b5cf6]' : 'border-slate-500',
+                  type.id === '1099' && isSelected ? 'border-amber-400 bg-amber-400' : ''
                 )}
               >
                 {isSelected && (
-                  <Check className="h-4 w-4 text-primary-foreground" />
+                  <Check className="h-4 w-4 text-white" />
                 )}
               </div>
             </button>
           )
         })}
          {selected.includes('1099') && (
-            <div className="mt-4 flex items-start gap-3 rounded-lg border border-amber-500/50 bg-amber-500/10 p-3">
-                <AlertTriangle className="h-5 w-5 flex-shrink-0 text-amber-500" />
-                <p className="text-xs text-amber-700">
+            <div className="mt-4 flex items-start gap-3 rounded-xl border border-amber-400/60 bg-amber-500/15 p-3">
+                <AlertTriangle className="h-5 w-5 flex-shrink-0 text-amber-300" />
+                <p className="text-xs text-amber-100">
                     <strong>Warning:</strong> Freelance (1099) work may violate your F-1 status unless it is directly related to your studies and authorized CPT/OPT. This carries immigration risk. You must still report this income to the IRS.
                 </p>
             </div>
         )}
       </div>
 
-      <Button
+      <button
+        type="button"
         onClick={onContinue}
         disabled={selected.length === 0}
-        className="h-12 w-full bg-primary text-base text-primary-foreground hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
+        className="inline-flex h-12 w-full items-center justify-center rounded-xl bg-gradient-to-r from-[#3b82f6] to-[#8b5cf6] text-base font-semibold text-white shadow-lg shadow-blue-600/30 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-violet-500/40 disabled:cursor-not-allowed disabled:opacity-50"
       >
-        Continue
+        Next
         <ArrowRight className="ml-2 h-4 w-4" />
-      </Button>
+      </button>
     </div>
   )
 }
@@ -624,10 +672,13 @@ function Question4({ onAnswer }) {
   ]
   return (
      <div>
-      <h2 className="mb-2 text-center text-2xl font-semibold text-foreground">
+      <p className="mb-3 w-fit rounded-full border border-white/20 bg-white/10 px-4 py-1 text-xs font-medium uppercase tracking-[0.16em] text-blue-100/90">
+        STEP 4
+      </p>
+      <h2 className="mb-2 text-2xl font-bold text-slate-100">
         How many calendar years have you been in the US on F-1 status?
       </h2>
-      <p className="mb-6 text-center text-muted-foreground">
+      <p className="mb-6 text-slate-300">
         This helps determine your tax residency status (Non-Resident vs. Resident).
       </p>
 
@@ -636,18 +687,18 @@ function Question4({ onAnswer }) {
           <button
             key={option.id}
             onClick={() => onAnswer(option.id)}
-            className="group w-full rounded-xl border-2 border-border p-4 text-left transition-all hover:border-primary hover:bg-primary/5"
+            className="group w-full rounded-xl border border-white/20 bg-white/5 p-4 text-left transition-all duration-200 hover:border-blue-500/50 hover:bg-white/10"
           >
-            <span className="font-medium text-foreground transition-colors group-hover:text-primary">
+            <span className="font-medium text-slate-100 transition-colors group-hover:text-blue-100">
               {option.text}
             </span>
           </button>
         ))}
          <button
             onClick={() => onAnswer(0)} // Special value for "not sure"
-            className="group w-full rounded-xl border-2 border-border p-4 text-left transition-all hover:border-primary hover:bg-primary/5"
+            className="group w-full rounded-xl border border-white/20 bg-white/5 p-4 text-left transition-all duration-200 hover:border-blue-500/50 hover:bg-white/10"
           >
-            <span className="font-medium text-foreground transition-colors group-hover:text-primary">
+            <span className="font-medium text-slate-100 transition-colors group-hover:text-blue-100">
               I'm not sure / It's complicated
             </span>
           </button>
@@ -667,26 +718,29 @@ function Question5({ onSelect }) {
 
   return (
     <div>
-      <h2 className="mb-2 text-center text-2xl font-semibold text-foreground">
+      <p className="mb-3 w-fit rounded-full border border-white/20 bg-white/10 px-4 py-1 text-xs font-medium uppercase tracking-[0.16em] text-blue-100/90">
+        STEP 5
+      </p>
+      <h2 className="mb-2 text-2xl font-bold text-slate-100">
         What is your country of citizenship?
       </h2>
-      <p className="mb-6 text-center text-muted-foreground">
+      <p className="mb-6 text-slate-300">
         This is for checking potential tax treaty benefits.
       </p>
 
       <div className="relative">
         <div
-          className="flex cursor-pointer items-center gap-3 rounded-xl border-2 border-border p-4 transition-colors hover:border-primary/50"
+          className="flex cursor-pointer items-center gap-3 rounded-xl border border-white/20 bg-white/5 p-4 transition-colors hover:border-blue-500/50 hover:bg-white/10"
           onClick={() => setIsOpen(!isOpen)}
           role="button"
           tabIndex={0}
           onKeyDown={(e) => e.key === 'Enter' && setIsOpen(!isOpen)}
         >
-          <Search className="h-5 w-5 text-muted-foreground" />
+          <Search className="h-5 w-5 text-slate-400" />
           <input
             type="text"
             placeholder="Search for your country..."
-            className="flex-1 bg-transparent text-foreground outline-none placeholder:text-muted-foreground"
+            className="flex-1 bg-transparent text-slate-100 outline-none placeholder:text-slate-500"
             value={search}
             onChange={(e) => {
               setSearch(e.target.value)
@@ -699,18 +753,18 @@ function Question5({ onSelect }) {
           />
           <ChevronDown
             className={cn(
-              'h-5 w-5 text-muted-foreground transition-transform',
+              'h-5 w-5 text-slate-400 transition-transform',
               isOpen && 'rotate-180',
             )}
           />
         </div>
 
         {isOpen && (
-          <div className="absolute left-0 right-0 top-full z-10 mt-2 max-h-64 overflow-y-auto rounded-xl border border-border bg-card shadow-lg">
+          <div className="absolute left-0 right-0 top-full z-10 mt-2 max-h-64 overflow-y-auto rounded-xl border border-white/20 bg-slate-900/95 shadow-2xl backdrop-blur-xl">
             {filteredCountries.map((country) => (
               <button
                 key={country}
-                className="w-full px-4 py-3 text-left text-foreground transition-colors hover:bg-secondary"
+                className="w-full px-4 py-3 text-left text-slate-100 transition-colors hover:bg-white/10"
                 onClick={() => {
                   onSelect(country)
                   setIsOpen(false)
@@ -720,7 +774,7 @@ function Question5({ onSelect }) {
               </button>
             ))}
             {filteredCountries.length === 0 && (
-              <div className="px-4 py-3 text-muted-foreground">
+              <div className="px-4 py-3 text-slate-400">
                 No countries found
               </div>
             )}
@@ -730,4 +784,3 @@ function Question5({ onSelect }) {
     </div>
   )
 }
-

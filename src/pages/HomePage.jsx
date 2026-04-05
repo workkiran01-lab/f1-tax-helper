@@ -176,32 +176,48 @@ export default function HomePage() {
 
       <section className="relative z-10 mx-auto w-full max-w-6xl px-4 pb-10 sm:px-6">
         <div className="rounded-3xl border border-white/20 bg-white/5 p-8 shadow-2xl shadow-blue-950/40 backdrop-blur-xl sm:p-12">
-          <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
-            Trusted by international students
-          </h2>
-          <div className="mt-8 grid gap-4 md:grid-cols-3">
-            <article className="rounded-2xl border border-white/15 bg-slate-900/40 p-5">
-              <p className="text-sm leading-6 text-slate-200">
-                “Finally a tool that actually understands F1 tax rules. Saved me hours of confusion.”
+          <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">Why students trust us</h2>
+          <div className="mt-8 grid gap-4 sm:grid-cols-2">
+            <article className="rounded-3xl border border-white/20 bg-white/5 p-6 backdrop-blur-xl">
+              <p className="text-4xl" aria-hidden="true">
+                🎓
               </p>
-              <p className="mt-4 text-sm font-medium text-white">Priya S., Indian student at MIT</p>
-              <p className="mt-2 text-xs text-amber-300">⭐⭐⭐⭐⭐</p>
+              <h3 className="mt-4 text-lg font-semibold text-white">Built for F1 only</h3>
+              <p className="mt-2 text-sm leading-6 text-slate-300">
+                Not a generic tax tool. Every feature is designed specifically for F1 visa holders and international
+                students
+              </p>
             </article>
 
-            <article className="rounded-2xl border border-white/15 bg-slate-900/40 p-5">
-              <p className="text-sm leading-6 text-slate-200">
-                “The tax treaty checker alone is worth it. Didn&apos;t even know I qualified for an exemption.”
+            <article className="rounded-3xl border border-white/20 bg-white/5 p-6 backdrop-blur-xl">
+              <p className="text-4xl" aria-hidden="true">
+                🌍
               </p>
-              <p className="mt-4 text-sm font-medium text-white">Jinho K., Korean student at UCLA</p>
-              <p className="mt-2 text-xs text-amber-300">⭐⭐⭐⭐⭐</p>
+              <h3 className="mt-4 text-lg font-semibold text-white">20+ Treaty Countries</h3>
+              <p className="mt-2 text-sm leading-6 text-slate-300">
+                We support students from every major tax treaty country including India, China, South Korea, Germany,
+                UK and more
+              </p>
             </article>
 
-            <article className="rounded-2xl border border-white/15 bg-slate-900/40 p-5">
-              <p className="text-sm leading-6 text-slate-200">
-                “Used this for my first U.S. tax filing. The checklist made it so simple.”
+            <article className="rounded-3xl border border-white/20 bg-white/5 p-6 backdrop-blur-xl">
+              <p className="text-4xl" aria-hidden="true">
+                ⚡
               </p>
-              <p className="mt-4 text-sm font-medium text-white">Lucas M., Brazilian student at NYU</p>
-              <p className="mt-2 text-xs text-amber-300">⭐⭐⭐⭐⭐</p>
+              <h3 className="mt-4 text-lg font-semibold text-white">Free to Start</h3>
+              <p className="mt-2 text-sm leading-6 text-slate-300">
+                No credit card required. Get your personalized tax checklist completely free
+              </p>
+            </article>
+
+            <article className="rounded-3xl border border-white/20 bg-white/5 p-6 backdrop-blur-xl">
+              <p className="text-4xl" aria-hidden="true">
+                🤖
+              </p>
+              <h3 className="mt-4 text-lg font-semibold text-white">AI Powered</h3>
+              <p className="mt-2 text-sm leading-6 text-slate-300">
+                Our assistant is trained on IRS guidelines and F1-specific tax rules to answer your questions instantly
+              </p>
             </article>
           </div>
         </div>
@@ -348,17 +364,17 @@ export default function HomePage() {
           </div>
 
           <nav className="flex items-center gap-3 text-sm text-slate-400">
-            <a href="#" className="transition-colors hover:text-slate-200">
+            <Link to="/privacy" className="transition-colors hover:text-slate-200">
               Privacy Policy
-            </a>
+            </Link>
             <span aria-hidden="true">·</span>
-            <a href="#" className="transition-colors hover:text-slate-200">
+            <Link to="/terms" className="transition-colors hover:text-slate-200">
               Terms of Service
-            </a>
+            </Link>
             <span aria-hidden="true">·</span>
-            <a href="#" className="transition-colors hover:text-slate-200">
+            <Link to="/contact" className="transition-colors hover:text-slate-200">
               Contact
-            </a>
+            </Link>
           </nav>
         </div>
       </footer>

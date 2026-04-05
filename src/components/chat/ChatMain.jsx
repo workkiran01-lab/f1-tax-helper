@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState, useRef } from 'react'
-import { Send, Bot, ClipboardList } from 'lucide-react'
-import Button from '../ui/Button'
+import { Bot, ClipboardList } from 'lucide-react'
 
 function buildWelcomeMessage(initialContext) {
   if (initialContext?.answers) {
@@ -58,8 +57,9 @@ Guidelines:
 
 const suggestedQuestions = [
   'Do I need to file taxes?',
-  'Am I FICA exempt?',
-  'What is a 1040-NR?',
+  'What is Form 8843?',
+  'Do I qualify for a tax treaty?',
+  'What is the filing deadline?',
 ]
 
 export function ChatMain({ initialContext, navigationKey, onOpenChecklist }) {
@@ -183,111 +183,129 @@ export function ChatMain({ initialContext, navigationKey, onOpenChecklist }) {
     setInput(question)
   }
 
+  const timestamp = new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })
+
   return (
-    <div className="flex flex-col h-full bg-background">
-      <div className="hidden items-center justify-between border-b border-border bg-card p-4 lg:flex shrink-0">
+    <div className="flex h-[calc(100vh-4rem)] flex-col bg-transparent">
+      <div className="flex items-center justify-between border-b border-white/10 bg-white/5 px-6 py-3 backdrop-blur-xl shrink-0">
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary">
-            <Bot className="h-5 w-5 text-primary-foreground" />
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-[#3b82f6] to-[#8b5cf6] shadow-lg shadow-blue-500/20">
+            <Bot className="h-5 w-5 text-white" />
           </div>
           <div>
-            <h1 className="font-semibold text-foreground">F1 Tax Assistant</h1>
-            <p className="text-xs text-muted-foreground">
-              AI-powered tax guidance for F-1 students
+            <h1 className="font-semibold text-slate-100">AI Tax Assistant</h1>
+            <p className="text-xs text-slate-300">
+              Ask me anything about F1 taxes
             </p>
           </div>
         </div>
-        <button
-          onClick={onOpenChecklist}
-          className="flex items-center gap-2 rounded-lg bg-primary px-3 py-2 text-sm text-primary-foreground transition-colors hover:bg-primary/90"
-        >
-          <ClipboardList className="h-4 w-4" />
-          My Checklist
-        </button>
+        <div className="flex items-center gap-2">
+          <span className="inline-flex items-center rounded-full border border-green-500/30 bg-green-500/20 px-3 py-1 text-xs font-medium text-green-400">
+            ● Online
+          </span>
+          <button
+            onClick={onOpenChecklist}
+            className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-white/20 bg-white/5 px-4 py-2 text-sm text-slate-300 transition-all hover:bg-white/10"
+          >
+            <ClipboardList className="h-4 w-4" />
+            📋 My Checklist
+          </button>
+        </div>
       </div>
 
-      <div className="flex-1 space-y-4 overflow-y-auto p-4">
+      <div className="flex-1 space-y-4 overflow-y-auto p-4 bg-white/[0.02] px-4 py-6">
         {messages.map((message) => (
           <div
             key={message.id}
             className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
           >
-            <div
-              className={`max-w-[85%] rounded-2xl px-4 py-3 md:max-w-[70%] ${
-                message.role === 'user'
-                  ? 'rounded-br-md bg-muted text-foreground'
-                  : 'rounded-bl-md bg-primary text-primary-foreground'
-              }`}
-            >
-              <div className="whitespace-pre-wrap text-sm leading-relaxed">
-                {message.content.split('\n').map((line, i) => {
-                  const parts = line.split(/(\*\*[^*]+\*\*)/g)
-                  return (
-                    <p key={i} className={i > 0 ? 'mt-2' : ''}>
-                      {parts.map((part, j) => {
-                        if (part.startsWith('**') && part.endsWith('**')) {
-                          return (
-                            <strong key={j} className="font-semibold">
-                              {part.slice(2, -2)}
-                            </strong>
-                          )
-                        }
-                        return part
-                      })}
-                    </p>
-                  )
-                })}
+            <div className={`max-w-[75%] ${message.role === 'user' ? 'items-end' : 'items-start'} flex flex-col`}>
+              {message.role === 'assistant' && (
+                <div className="mb-1 flex items-center gap-2">
+                  <div className="flex h-6 w-6 items-center justify-center rounded-full bg-gradient-to-r from-[#3b82f6] to-[#8b5cf6] text-xs">
+                    🤖
+                  </div>
+                </div>
+              )}
+              <div
+                className={`w-full rounded-2xl px-4 py-3 ${
+                  message.role === 'user'
+                    ? 'rounded-tr-sm bg-gradient-to-r from-[#3b82f6] to-[#8b5cf6] text-white'
+                    : 'rounded-tl-sm border border-white/10 bg-white/5 text-slate-200'
+                }`}
+              >
+                <div className="whitespace-pre-wrap text-sm leading-relaxed">
+                  {message.content.split('\n').map((line, i) => {
+                    const parts = line.split(/(\*\*[^*]+\*\*)/g)
+                    return (
+                      <p key={i} className={i > 0 ? 'mt-2' : ''}>
+                        {parts.map((part, j) => {
+                          if (part.startsWith('**') && part.endsWith('**')) {
+                            return (
+                              <strong key={j} className="font-semibold">
+                                {part.slice(2, -2)}
+                              </strong>
+                            )
+                          }
+                          return part
+                        })}
+                      </p>
+                    )
+                  })}
+                </div>
               </div>
+              <p className="mt-1 px-1 text-xs text-slate-500">{timestamp}</p>
             </div>
           </div>
         ))}
         {isLoading && (
           <div className="flex justify-start">
-            <div className="max-w-[85%] rounded-2xl rounded-bl-md bg-primary px-4 py-3 text-primary-foreground md:max-w-[70%]">
-              <span className="text-sm">Thinking...</span>
+            <div className="max-w-[75%] rounded-2xl rounded-tl-sm border border-white/10 bg-white/5 px-4 py-3 text-slate-200">
+              <div className="flex items-center gap-1">
+                <span className="h-2 w-2 animate-bounce rounded-full bg-slate-300 [animation-delay:-0.3s]" />
+                <span className="h-2 w-2 animate-bounce rounded-full bg-slate-300 [animation-delay:-0.15s]" />
+                <span className="h-2 w-2 animate-bounce rounded-full bg-slate-300" />
+              </div>
             </div>
           </div>
         )}
         <div ref={messagesEndRef} />
       </div>
 
-      <div className="px-4 pb-2 shrink-0">
-        <div className="flex flex-wrap justify-center gap-2">
+      <div className="border-t border-white/10 bg-slate-900/80 px-4 py-4 backdrop-blur-xl shrink-0">
+        <div className="mb-3 flex flex-wrap gap-2">
           {suggestedQuestions.map((question) => (
             <button
               key={question}
               onClick={() => handleSuggestionClick(question)}
-              className="rounded-full border border-border bg-card px-4 py-2 text-sm text-foreground transition-colors hover:bg-muted"
+              className="cursor-pointer rounded-full border border-white/20 bg-white/5 px-3 py-1.5 text-xs text-slate-300 transition-colors hover:bg-white/10"
             >
               {question}
             </button>
           ))}
         </div>
-      </div>
-
-      <div className="border-t border-border bg-card p-4 shrink-0">
         <div className="flex items-center gap-2">
           <input
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && !isLoading && handleSend()}
-            placeholder="Ask a tax question..."
+            placeholder="Ask about tax treaties, deductions, deadlines..."
             disabled={isLoading}
-            className="flex-1 rounded-xl border border-input bg-background px-4 py-3 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50"
+            className="flex-1 rounded-2xl border border-white/20 bg-white/5 px-4 py-3 text-slate-100 placeholder:text-slate-500 focus:outline-none focus:border-blue-500/50 disabled:opacity-50"
           />
-          <Button
+          <button
+            type="button"
             onClick={handleSend}
-            disabled={isLoading}
-            size="icon"
-            className="h-12 w-12 shrink-0 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+            disabled={isLoading || !input.trim()}
+            className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-r from-[#3b82f6] to-[#8b5cf6] text-white font-semibold transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-50"
           >
-            <Send className="h-5 w-5" />
+            ➤
             <span className="sr-only">Send message</span>
-          </Button>
+          </button>
         </div>
-        <p className="mt-3 text-center text-xs text-muted-foreground">
-          AI guidance only — always verify with a licensed tax professional
+        <p className="mt-2 text-center text-xs text-slate-500">
+          AI responses are for informational purposes only. Consult a tax professional for advice.
         </p>
       </div>
     </div>
