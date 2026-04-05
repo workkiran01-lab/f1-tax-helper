@@ -114,20 +114,33 @@ export default function ChatPage() {
   }, [])
 
   return (
-    <div className="flex h-screen bg-background flex-col">
-      <DisclaimerBanner />
-      <div style={{ padding: '1rem 1rem 0 1rem' }}>
-        <button
-            onClick={() => navigate('/results')}
-            style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--navy)', fontWeight: 500, fontSize: '14px' }}
-        >
-            ← Back to my results
-        </button>
+    <div className="relative flex h-screen flex-col overflow-hidden bg-[#0f172a] text-slate-100">
+      <div className="pointer-events-none absolute inset-0">
+        <div className="absolute -left-24 top-16 h-72 w-72 rounded-full bg-blue-500/20 blur-3xl animate-pulse [animation-duration:9s]" />
+        <div className="absolute -right-20 top-36 h-80 w-80 rounded-full bg-violet-500/20 blur-3xl animate-pulse [animation-duration:11s]" />
+        <div className="absolute bottom-0 left-1/2 h-96 w-96 -translate-x-1/2 rounded-full bg-cyan-500/10 blur-3xl animate-pulse [animation-duration:13s]" />
       </div>
-      <div className="flex flex-1 min-h-0">
+      <DisclaimerBanner />
+      <header className="sticky top-0 z-20 border-b border-white/10 bg-slate-900/50 backdrop-blur-xl">
+        <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-4 sm:px-6">
+          <button
+            onClick={() => navigate('/results')}
+            className="text-sm font-medium text-slate-300 transition-colors hover:text-slate-100"
+          >
+            ← Back to my results
+          </button>
+          <div className="flex items-center gap-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-[#3b82f6] to-[#8b5cf6] text-sm font-bold text-white shadow-lg shadow-blue-500/30">
+              F1
+            </div>
+            <span className="text-base font-semibold tracking-wide text-slate-100 sm:text-lg">F1 Tax Helper</span>
+          </div>
+        </div>
+      </header>
+      <div className="relative z-10 flex flex-1 min-h-0">
       {sidebarOpen && (
         <div
-          className="fixed inset-0 z-40 bg-foreground/50 lg:hidden"
+          className="fixed inset-0 z-40 bg-black/60 lg:hidden"
           onClick={handleCloseSidebar}
           aria-hidden
         />
@@ -147,36 +160,36 @@ export default function ChatPage() {
 
       <div className="flex min-w-0 flex-1 flex-col">
         {selectedConversation ? (
-          <div id="past-conversation-view" className="flex flex-1 flex-col h-full bg-background overflow-hidden relative z-10">
-            <div className="hidden items-center gap-3 border-b border-border bg-card p-4 lg:flex">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary font-bold text-primary-foreground">
+          <div id="past-conversation-view" className="relative z-10 flex h-full flex-1 flex-col overflow-hidden rounded-none bg-transparent">
+            <div className="hidden items-center gap-3 border-b border-white/10 bg-white/5 p-4 backdrop-blur-xl lg:flex">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-[#3b82f6] to-[#8b5cf6] font-bold text-white">
                 <span className="text-sm">F1</span>
               </div>
               <div>
-                <h1 className="font-semibold text-foreground">F1 Tax Assistant</h1>
-                <p className="text-xs text-muted-foreground">{selectedConversation.title}</p>
+                <h1 className="font-semibold text-slate-100">F1 Tax Assistant</h1>
+                <p className="text-xs text-slate-400">{selectedConversation.title}</p>
               </div>
             </div>
 
-            <div className="flex items-center gap-3 border-b border-border bg-card p-4 lg:hidden">
+            <div className="flex items-center gap-3 border-b border-white/10 bg-white/5 p-4 backdrop-blur-xl lg:hidden">
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={handleOpenSidebar}
-                className="text-foreground"
+                className="text-slate-100"
               >
                 <Menu className="h-5 w-5" />
                 <span className="sr-only">Open sidebar</span>
               </Button>
               <div className="flex items-center gap-2">
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary">
-                  <span className="text-sm font-semibold text-primary-foreground">F1</span>
+                <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-[#3b82f6] to-[#8b5cf6]">
+                  <span className="text-sm font-semibold text-white">F1</span>
                 </div>
-                <span className="font-semibold text-foreground">Past Conversation</span>
+                <span className="font-semibold text-slate-100">Past Conversation</span>
               </div>
             </div>
 
-            <div className="flex-1 space-y-4 overflow-y-auto p-4">
+            <div className="flex-1 space-y-4 overflow-y-auto p-4 bg-white/[0.02]">
               {selectedConversation.messages.map((message) => (
                 <div
                   key={message.id}
@@ -185,8 +198,8 @@ export default function ChatPage() {
                   <div
                     className={`max-w-[85%] rounded-2xl px-4 py-3 md:max-w-[70%] ${
                       message.role === 'user'
-                        ? 'rounded-br-md bg-muted text-foreground'
-                        : 'rounded-bl-md bg-primary text-primary-foreground'
+                        ? 'rounded-tr-sm bg-gradient-to-r from-[#3b82f6] to-[#8b5cf6] text-white'
+                        : 'rounded-tl-sm border border-white/10 bg-white/5 text-slate-200'
                     }`}
                   >
                     <div className="whitespace-pre-wrap text-sm leading-relaxed">
@@ -197,27 +210,27 @@ export default function ChatPage() {
               ))}
             </div>
 
-            <div className="border-t border-border bg-card p-4 flex justify-center shrink-0">
-              <p className="text-sm text-muted-foreground">This is a past conversation. Click &quot;New Chat&quot; to start a new one.</p>
+            <div className="flex shrink-0 justify-center border-t border-white/10 bg-slate-900/80 p-4 backdrop-blur-xl">
+              <p className="text-sm text-slate-400">This is a past conversation. Click &quot;New Chat&quot; to start a new one.</p>
             </div>
           </div>
         ) : (
-          <div className="flex flex-1 flex-col h-full overflow-hidden relative z-10">
-            <div className="flex items-center gap-3 border-b border-border bg-card p-4 lg:hidden shrink-0">
+          <div className="relative z-10 flex h-full flex-1 flex-col overflow-hidden">
+            <div className="flex items-center gap-3 border-b border-white/10 bg-white/5 p-4 backdrop-blur-xl lg:hidden shrink-0">
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={handleOpenSidebar}
-                className="text-foreground"
+                className="text-slate-100"
               >
                 <Menu className="h-5 w-5" />
                 <span className="sr-only">Open sidebar</span>
               </Button>
               <div className="flex items-center gap-2">
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary">
-                  <span className="text-sm font-semibold text-primary-foreground">F1</span>
+                <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-[#3b82f6] to-[#8b5cf6]">
+                  <span className="text-sm font-semibold text-white">F1</span>
                 </div>
-                <span className="font-semibold text-foreground">F1 Tax Assistant</span>
+                <span className="font-semibold text-slate-100">F1 Tax Assistant</span>
               </div>
             </div>
 
@@ -233,15 +246,15 @@ export default function ChatPage() {
       </div>
 
       <div
-        className={`fixed inset-y-0 right-0 z-50 w-[380px] transform bg-card shadow-2xl transition-transform duration-300 ease-in-out lg:relative lg:border-l lg:border-border lg:shadow-none ${
+        className={`fixed inset-y-0 right-0 z-50 w-[380px] transform border-l border-white/10 bg-slate-900/95 shadow-2xl backdrop-blur-xl transition-transform duration-300 ease-in-out lg:relative lg:shadow-none ${
           checklistOpen ? 'translate-x-0' : 'translate-x-full lg:hidden'
         }`}
       >
-        <div className="flex h-16 items-center justify-between border-b border-border px-4">
-          <h2 className="font-semibold text-foreground">My Checklist</h2>
+        <div className="flex h-16 items-center justify-between border-b border-white/10 px-4">
+          <h2 className="font-semibold text-slate-100">My Checklist</h2>
           <button
             onClick={() => setChecklistOpen(false)}
-            className="rounded-md p-2 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+            className="rounded-md p-2 text-slate-400 transition-colors hover:bg-white/10 hover:text-slate-100"
           >
             <X className="h-5 w-5" />
           </button>
