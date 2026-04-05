@@ -1,5 +1,37 @@
 import { Link } from 'react-router-dom'
 
+const privacySections = [
+  {
+    title: 'What We Collect',
+    description:
+      'We collect your email address and name when you sign in with Google. We also store your questionnaire answers to generate your personalized tax checklist. We do not collect any sensitive financial data like your Social Security Number or bank details.',
+  },
+  {
+    title: 'How We Use Your Data',
+    description:
+      'Your data is used solely to provide you with a personalized tax checklist and AI chat experience. We do not sell your data to any third parties. We do not use your data for advertising purposes.',
+  },
+  {
+    title: 'Google OAuth',
+    description:
+      'We use Google Sign-In for authentication. When you sign in, Google shares your name and email with us. We do not access your Gmail, Google Drive, or any other Google services.',
+  },
+  {
+    title: 'Data Storage',
+    description:
+      'Your data is securely stored using Supabase, a trusted cloud database provider. All data is encrypted in transit and at rest.',
+  },
+  {
+    title: 'Your Rights',
+    description:
+      'You can request deletion of your account and all associated data at any time by emailing us at work.kiran01@gmail.com. We will process your request within 7 business days.',
+  },
+  {
+    title: 'Contact',
+    description: 'For any privacy-related questions, contact us at work.kiran01@gmail.com',
+  },
+]
+
 export default function PrivacyPage() {
   return (
     <main className="relative min-h-screen overflow-hidden bg-[#0f172a] text-slate-100">
@@ -26,63 +58,18 @@ export default function PrivacyPage() {
             LAST UPDATED: JANUARY 2026
           </p>
           <h1 className="text-4xl font-extrabold tracking-tight text-white sm:text-5xl">Privacy Policy</h1>
+          <p className="mt-4 text-base leading-7 text-slate-300 sm:text-lg">
+            F1 Tax Helper is committed to protecting your privacy. This policy explains what data we collect and how
+            we use it.
+          </p>
 
-          <div className="mt-8 space-y-8 text-sm leading-7 text-slate-300 sm:text-base">
-            <section>
-              <h2 className="text-xl font-semibold text-white">What We Collect</h2>
-              <p className="mt-2">
-                We collect account details you provide (such as your email address when signing in with Google), basic
-                usage data, and tax-preparation responses you enter into our questionnaires. We only request
-                information needed to provide and improve the service.
-              </p>
-            </section>
-
-            <section>
-              <h2 className="text-xl font-semibold text-white">How We Use It</h2>
-              <p className="mt-2">
-                We use your information to authenticate your account, generate personalized tax checklists, support chat
-                functionality, and maintain platform security. We may also use aggregated, de-identified usage metrics
-                to improve product quality and user experience.
-              </p>
-            </section>
-
-            <section>
-              <h2 className="text-xl font-semibold text-white">Data Security</h2>
-              <p className="mt-2">
-                We apply administrative and technical safeguards designed to protect your information from unauthorized
-                access, disclosure, or misuse. While no online system is completely risk-free, we continuously review
-                our controls and limit access to sensitive data.
-              </p>
-            </section>
-
-            <section>
-              <h2 className="text-xl font-semibold text-white">Third Party Services</h2>
-              <p className="mt-2">
-                We rely on trusted providers including Google OAuth for authentication and Supabase for backend
-                infrastructure. These providers process data according to their own privacy policies and security
-                practices.
-              </p>
-            </section>
-
-            <section>
-              <h2 className="text-xl font-semibold text-white">Your Rights</h2>
-              <p className="mt-2">
-                You may request access, correction, or deletion of your personal information, subject to applicable law.
-                You may also choose to stop using the service at any time by discontinuing access to your account.
-              </p>
-            </section>
-
-            <section>
-              <h2 className="text-xl font-semibold text-white">Contact Us</h2>
-              <p className="mt-2">
-                For privacy-related questions, contact us at
-                {' '}
-                <a className="text-blue-300 hover:text-blue-200" href="mailto:work.kiran01@gmail.com">
-                  work.kiran01@gmail.com
-                </a>
-                .
-              </p>
-            </section>
+          <div className="mt-8 space-y-4">
+            {privacySections.map((section) => (
+              <section key={section.title} className="rounded-3xl border border-white/20 bg-white/5 p-6 backdrop-blur-xl">
+                <h2 className="text-xl font-semibold text-white">{section.title}</h2>
+                <p className="mt-2 text-sm leading-7 text-slate-300 sm:text-base">{section.description}</p>
+              </section>
+            ))}
           </div>
 
           <Link to="/" className="mt-10 inline-flex text-sm font-medium text-blue-300 transition-colors hover:text-blue-200">

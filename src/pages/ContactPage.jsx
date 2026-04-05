@@ -26,31 +26,38 @@ export default function ContactPage() {
             SUPPORT
           </p>
           <h1 className="text-4xl font-extrabold tracking-tight text-white sm:text-5xl">Get in Touch</h1>
-          <p className="mt-4 text-base text-slate-300">
-            Have a question about your taxes or the app? We&apos;re happy to help.
+          <p className="mt-4 text-base text-slate-300 sm:text-lg">
+            Have a question about your taxes or the app? We&apos;re here to help.
           </p>
 
           <div className="mt-8 grid gap-4 sm:grid-cols-2">
-            <article className="rounded-2xl border border-white/15 bg-slate-900/40 p-5">
-              <p className="text-2xl" aria-hidden="true">
+            <article className="rounded-3xl border border-white/20 bg-white/5 p-6 backdrop-blur-xl">
+              <p className="text-4xl" aria-hidden="true">
                 📧
               </p>
-              <h2 className="mt-3 text-lg font-semibold text-white">Email</h2>
-              <a className="mt-1 inline-flex text-blue-300 hover:text-blue-200" href="mailto:work.kiran01@gmail.com">
+              <h2 className="mt-4 text-lg font-semibold text-white">Email Us</h2>
+              <a className="mt-1 inline-flex text-blue-300 transition-colors hover:text-blue-200" href="mailto:work.kiran01@gmail.com">
                 work.kiran01@gmail.com
               </a>
+              <p className="mt-2 text-sm text-slate-300">For general questions, bug reports, or feedback</p>
             </article>
 
-            <article className="rounded-2xl border border-white/15 bg-slate-900/40 p-5">
-              <p className="text-2xl" aria-hidden="true">
-                💬
+            <article className="rounded-3xl border border-white/20 bg-white/5 p-6 backdrop-blur-xl">
+              <p className="text-4xl" aria-hidden="true">
+                ⏱️
               </p>
-              <h2 className="mt-3 text-lg font-semibold text-white">Response time</h2>
-              <p className="mt-1 text-slate-300">We typically respond within 24-48 hours</p>
+              <h2 className="mt-4 text-lg font-semibold text-white">Response Time</h2>
+              <p className="mt-1 text-slate-200">Within 24-48 hours</p>
+              <p className="mt-2 text-sm text-slate-300">We read every message and do our best to respond quickly</p>
             </article>
           </div>
 
-          <Link to="/" className="mt-10 inline-flex text-sm font-medium text-blue-300 transition-colors hover:text-blue-200">
+          <p className="mt-8 text-sm leading-7 text-slate-400">
+            F1 Tax Helper is an independent project built to help international students. We appreciate your patience
+            and support.
+          </p>
+
+          <Link to="/" className="mt-8 inline-flex text-sm font-medium text-blue-300 transition-colors hover:text-blue-200">
             ← Back to Home
           </Link>
         </div>
