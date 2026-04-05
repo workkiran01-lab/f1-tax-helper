@@ -61,6 +61,11 @@ export default function WelcomePage() {
     navigate('/questionnaire')
   }
 
+  const handleSignOut = async () => {
+    await supabase.auth.signOut()
+    navigate('/', { replace: true })
+  }
+
   return (
     <div className="relative flex min-h-screen flex-col overflow-hidden bg-[#0f172a] text-slate-100">
       <div className="pointer-events-none absolute inset-0">
