@@ -205,10 +205,10 @@ export function ChatMain({ initialContext, navigationKey, onOpenChecklist }) {
           </span>
           <button
             onClick={onOpenChecklist}
-            className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-white/20 bg-white/5 px-4 py-2 text-sm text-slate-300 transition-all hover:bg-white/10"
+            className="hidden items-center gap-2 rounded-xl border border-white/20 bg-white/5 px-3 py-2 text-sm text-slate-100 transition-all hover:bg-white/10 md:flex"
           >
             <ClipboardList className="h-4 w-4" />
-            📋 My Checklist
+            My Checklist
           </button>
         </div>
       </div>

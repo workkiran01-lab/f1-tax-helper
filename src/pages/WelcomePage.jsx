@@ -82,21 +82,6 @@ export default function WelcomePage() {
             </div>
             <span className="text-base font-semibold tracking-wide text-slate-100 sm:text-lg">F1 Tax Helper</span>
           </Link>
-          <div className="flex items-center gap-2">
-            <Link
-              to="/"
-              className="inline-flex min-h-11 items-center justify-center rounded-xl border border-white/20 bg-white/5 px-4 text-sm font-medium text-slate-200 transition-colors hover:bg-white/10"
-            >
-              ← Back
-            </Link>
-            <button
-              type="button"
-              onClick={handleSignOut}
-              className="inline-flex min-h-11 items-center justify-center rounded-xl border border-red-500/30 px-4 text-sm font-medium text-red-400 transition-colors hover:bg-red-500/10"
-            >
-              Sign Out
-            </button>
-          </div>
         </div>
       </header>
       <main className="relative z-10 mx-auto flex w-full max-w-2xl flex-1 items-center px-4 py-10 sm:px-6">
