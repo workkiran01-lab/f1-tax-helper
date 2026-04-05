@@ -76,6 +76,134 @@ export default function HomePage() {
               </span>
             </Link>
           </div>
+
+          <div className="mt-6 flex flex-wrap gap-3">
+            {['🎓 Built for F1 Students', '🌍 20+ Treaty Countries', '⚡ Free to Get Started'].map((stat) => (
+              <span
+                key={stat}
+                className="inline-flex rounded-full border border-white/20 bg-white/10 px-4 py-1.5 text-sm text-slate-300"
+              >
+                {stat}
+              </span>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="relative z-10 mx-auto w-full max-w-6xl px-4 pb-10 sm:px-6">
+        <div className="rounded-3xl border border-white/20 bg-white/5 p-8 shadow-2xl shadow-blue-950/40 backdrop-blur-xl sm:p-12">
+          <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
+            Everything you need to file with confidence
+          </h2>
+          <div className="mt-8 grid gap-4 md:grid-cols-3">
+            <article className="rounded-2xl border border-white/15 border-t-2 border-t-blue-500 bg-slate-900/40 p-5">
+              <div className="inline-flex rounded-xl bg-gradient-to-br from-blue-500/30 to-blue-500/10 p-3">
+                <p className="text-2xl" aria-hidden="true">
+                  🗂️
+                </p>
+              </div>
+              <h3 className="mt-3 text-lg font-semibold text-white">Step-by-Step Guidance</h3>
+              <p className="mt-2 text-sm leading-6 text-slate-300">
+                Answer a few questions and get a personalized tax checklist built for F1 visa holders
+              </p>
+            </article>
+
+            <article className="rounded-2xl border border-white/15 border-t-2 border-t-violet-500 bg-slate-900/40 p-5">
+              <div className="inline-flex rounded-xl bg-gradient-to-br from-violet-500/30 to-violet-500/10 p-3">
+                <p className="text-2xl" aria-hidden="true">
+                  🤖
+                </p>
+              </div>
+              <h3 className="mt-3 text-lg font-semibold text-white">AI Tax Assistant</h3>
+              <p className="mt-2 text-sm leading-6 text-slate-300">
+                Chat with our AI to get instant answers about deductions, treaties, and filing deadlines
+              </p>
+            </article>
+
+            <article className="rounded-2xl border border-white/15 border-t-2 border-t-cyan-500 bg-slate-900/40 p-5">
+              <div className="inline-flex rounded-xl bg-gradient-to-br from-cyan-500/30 to-cyan-500/10 p-3">
+                <p className="text-2xl" aria-hidden="true">
+                  📄
+                </p>
+              </div>
+              <h3 className="mt-3 text-lg font-semibold text-white">Tax Treaty Support</h3>
+              <p className="mt-2 text-sm leading-6 text-slate-300">
+                We automatically check if your country has a U.S. tax treaty that could reduce what you owe
+              </p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section className="relative z-10 mx-auto w-full max-w-6xl px-4 pb-10 sm:px-6">
+        <div className="rounded-3xl border border-white/20 bg-white/5 p-8 shadow-2xl shadow-blue-950/40 backdrop-blur-xl sm:p-12">
+          <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">File your taxes in 3 simple steps</h2>
+          <div className="mt-8 grid gap-4 md:grid-cols-3">
+            <article className="relative rounded-2xl border border-white/15 bg-slate-900/40 p-5">
+              <p className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-[#3b82f6] to-[#8b5cf6] text-sm font-semibold text-white">
+                1
+              </p>
+              <span className="absolute right-0 top-9 hidden h-px w-8 translate-x-1/2 border-t border-dashed border-white/30 md:block" />
+              <h3 className="mt-3 text-lg font-semibold text-white">Answer a few questions</h3>
+              <p className="mt-2 text-sm leading-6 text-slate-300">
+                Tell us about your income, visa status, and home country
+              </p>
+            </article>
+
+            <article className="relative rounded-2xl border border-white/15 bg-slate-900/40 p-5">
+              <p className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-[#3b82f6] to-[#8b5cf6] text-sm font-semibold text-white">
+                2
+              </p>
+              <span className="absolute right-0 top-9 hidden h-px w-8 translate-x-1/2 border-t border-dashed border-white/30 md:block" />
+              <h3 className="mt-3 text-lg font-semibold text-white">Get your personalized checklist</h3>
+              <p className="mt-2 text-sm leading-6 text-slate-300">
+                We generate a custom list of forms and documents you need
+              </p>
+            </article>
+
+            <article className="rounded-2xl border border-white/15 bg-slate-900/40 p-5">
+              <p className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-[#3b82f6] to-[#8b5cf6] text-sm font-semibold text-white">
+                3
+              </p>
+              <h3 className="mt-3 text-lg font-semibold text-white">File with confidence</h3>
+              <p className="mt-2 text-sm leading-6 text-slate-300">
+                Follow your checklist and use our AI chat for any questions
+              </p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section className="relative z-10 mx-auto w-full max-w-6xl px-4 pb-10 sm:px-6">
+        <div className="rounded-3xl border border-white/20 bg-white/5 p-8 shadow-2xl shadow-blue-950/40 backdrop-blur-xl sm:p-12">
+          <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
+            Trusted by international students
+          </h2>
+          <div className="mt-8 grid gap-4 md:grid-cols-3">
+            <article className="rounded-2xl border border-white/15 bg-slate-900/40 p-5">
+              <p className="text-sm leading-6 text-slate-200">
+                “Finally a tool that actually understands F1 tax rules. Saved me hours of confusion.”
+              </p>
+              <p className="mt-4 text-sm font-medium text-white">Priya S., Indian student at MIT</p>
+              <p className="mt-2 text-xs text-amber-300">⭐⭐⭐⭐⭐</p>
+            </article>
+
+            <article className="rounded-2xl border border-white/15 bg-slate-900/40 p-5">
+              <p className="text-sm leading-6 text-slate-200">
+                “The tax treaty checker alone is worth it. Didn&apos;t even know I qualified for an exemption.”
+              </p>
+              <p className="mt-4 text-sm font-medium text-white">Jinho K., Korean student at UCLA</p>
+              <p className="mt-2 text-xs text-amber-300">⭐⭐⭐⭐⭐</p>
+            </article>
+
+            <article className="rounded-2xl border border-white/15 bg-slate-900/40 p-5">
+              <p className="text-sm leading-6 text-slate-200">
+                “Used this for my first U.S. tax filing. The checklist made it so simple.”
+              </p>
+              <p className="mt-4 text-sm font-medium text-white">Lucas M., Brazilian student at NYU</p>
+              <p className="mt-2 text-xs text-amber-300">⭐⭐⭐⭐⭐</p>
+            </article>
+          </div>
         </div>
       </section>
 

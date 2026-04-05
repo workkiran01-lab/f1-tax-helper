@@ -11,6 +11,9 @@ import Disclaimer from './pages/Disclaimer'
 import ComingSoon from './pages/ComingSoon'
 import LoginPage from './pages/LoginPage'
 import AuthCallbackPage from './pages/AuthCallbackPage'
+import PrivacyPage from './pages/PrivacyPage'
+import TermsPage from './pages/TermsPage'
+import ContactPage from './pages/ContactPage'
 import useAuth from './hooks/useAuth'
 
 function FullScreenSpinner() {
@@ -87,6 +90,9 @@ function AppRoutes() {
       <Route path="/privacy-policy" element={<PrivacyPolicy />} />
       <Route path="/terms-of-service" element={<TermsOfService />} />
       <Route path="/disclaimer" element={<Disclaimer />} />
+      <Route path="/privacy" element={<PrivacyPage />} />
+      <Route path="/terms" element={<TermsPage />} />
+      <Route path="/contact" element={<ContactPage />} />
       <Route path="/tax-guide" element={<ComingSoon title="Tax Guide" />} />
       <Route path="/faq" element={<ComingSoon title="FAQ" />} />
       <Route path="/blog" element={<ComingSoon title="Blog" />} />
