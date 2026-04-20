@@ -14,6 +14,7 @@ import AuthCallbackPage from './pages/AuthCallbackPage'
 import PrivacyPage from './pages/PrivacyPage'
 import TermsPage from './pages/TermsPage'
 import ContactPage from './pages/ContactPage'
+import Form8843Page from './pages/Form8843Page'
 import useAuth from './hooks/useAuth'
 
 function FullScreenSpinner() {
@@ -87,6 +88,7 @@ function AppRoutes() {
           </ProtectedRoute>
         }
       />
+      <Route path="/form-8843" element={<Form8843Page />} />
       <Route path="/privacy-policy" element={<PrivacyPolicy />} />
       <Route path="/terms-of-service" element={<TermsOfService />} />
       <Route path="/disclaimer" element={<Disclaimer />} />

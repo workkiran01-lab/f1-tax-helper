@@ -1,86 +1,113 @@
-import { Link } from 'react-router-dom'
+import { LegalLayout } from '../components/legal/LegalLayout'
 
-const termsSections = [
-  {
-    title: 'Acceptance of Terms',
-    description:
-      'By accessing or using F1 Tax Helper, you agree to be bound by these Terms of Service. If you do not agree, please do not use the app.',
-  },
-  {
-    title: 'Not Legal or Tax Advice',
-    description:
-      'F1 Tax Helper provides general tax information for educational purposes only. We are not a licensed tax advisor, CPA, or attorney. Nothing in this app constitutes legal or tax advice. For your specific situation, please consult a qualified tax professional.',
-  },
-  {
-    title: 'Use of Service',
-    description:
-      'You agree to use F1 Tax Helper only for lawful purposes. You must not misuse the service, attempt to hack or reverse engineer it, or use it to harm others.',
-  },
-  {
-    title: 'Accuracy of Information',
-    description:
-      'We strive to keep our tax information accurate and up to date. However, tax laws change frequently. Always verify information with the IRS website or a qualified tax professional before filing.',
-  },
-  {
-    title: 'Limitation of Liability',
-    description:
-      'F1 Tax Helper and its creators are not liable for any errors, omissions, or outcomes resulting from the use of this app. Use of this service is at your own risk.',
-  },
-  {
-    title: 'Changes to Terms',
-    description:
-      'We may update these terms from time to time. We will notify users of significant changes via email. Continued use of the app after changes constitutes acceptance of the new terms.',
-  },
-  {
-    title: 'Contact',
-    description: 'For questions about these terms, email us at work.kiran01@gmail.com',
-  },
-]
+// SEO meta description: "F1 Tax Helper Terms of Service — read the terms governing
+// your use of our free tax guidance tool for F-1 international students."
+
+const TERMS_CONTENT = {
+  title: 'Terms of Service',
+  lastUpdated: 'April 2026',
+  intro:
+    'Please read these Terms of Service carefully before using F1 Tax Helper. By accessing or using this service you agree to be bound by these terms.',
+  sections: [
+    {
+      id: 'acceptance-of-terms',
+      title: 'Acceptance of Terms',
+      content:
+        // Paste Termly "Acceptance of Terms" section here.
+        `By creating an account or using any part of F1 Tax Helper, you confirm that you have read, understood, and agree to these Terms of Service and our Privacy Policy.
+
+If you are using the service on behalf of an organization, you represent that you have authority to bind that organization to these terms.
+
+If you do not agree to these terms, please do not access or use F1 Tax Helper.`,
+    },
+    {
+      id: 'use-of-service',
+      title: 'Use of Service',
+      content:
+        // Paste Termly "Use of Service" section here.
+        `F1 Tax Helper grants you a limited, non-exclusive, non-transferable, revocable license to access and use the service for personal, non-commercial purposes.
+
+You agree not to:
+• Use the service for any unlawful purpose or in violation of any applicable law.
+• Attempt to reverse engineer, decompile, or extract source code from the service.
+• Introduce malware, bots, or automated scripts that disrupt service operation.
+• Misrepresent your identity or impersonate another person.
+• Resell, sublicense, or commercially exploit any part of the service.
+
+We reserve the right to suspend or terminate accounts that violate these terms.`,
+    },
+    {
+      id: 'no-professional-tax-advice',
+      title: 'No Professional Tax Advice',
+      content:
+        // Paste Termly "No Professional Tax Advice / Disclaimer" section here.
+        `F1 Tax Helper provides general tax information and educational guidance for F-1 international students. THIS IS NOT PROFESSIONAL TAX ADVICE.
+
+IRS Disclaimer: The information provided by F1 Tax Helper is for general informational purposes only and does not constitute legal, tax, or financial advice. Nothing in this service creates a tax-professional-client relationship. The IRS requires that tax advice be provided only by qualified professionals, including licensed CPAs, enrolled agents, and tax attorneys.
+
+Tax laws change frequently and vary based on individual circumstances, tax treaty eligibility, state of residence, and other factors. Always verify information with the IRS website (irs.gov) or consult a qualified tax professional before filing your return.
+
+Use of this service does not guarantee accuracy of any tax filing or outcome.`,
+    },
+    {
+      id: 'intellectual-property',
+      title: 'Intellectual Property',
+      content:
+        // Paste Termly "Intellectual Property" section here.
+        `All content, features, and functionality of F1 Tax Helper — including but not limited to text, graphics, logos, icons, and software — are the exclusive property of F1 Tax Helper and are protected by applicable intellectual property laws.
+
+You may not copy, reproduce, distribute, modify, or create derivative works of any part of the service without our prior written consent.
+
+Any feedback, suggestions, or ideas you provide regarding the service may be used by us without obligation to you.`,
+    },
+    {
+      id: 'limitation-of-liability',
+      title: 'Limitation of Liability',
+      content:
+        // Paste Termly "Limitation of Liability" section here.
+        `To the maximum extent permitted by applicable law, F1 Tax Helper and its creators, affiliates, and service providers shall not be liable for any indirect, incidental, special, consequential, or punitive damages arising from your use of, or inability to use, the service.
+
+This includes, without limitation:
+• Errors or inaccuracies in tax information provided.
+• Any tax filing errors or penalties resulting from reliance on this service.
+• Unauthorized access to or alteration of your data.
+• Interruptions or cessation of the service.
+
+Our total liability to you for any claim arising from your use of the service shall not exceed the amount you paid us in the twelve months preceding the claim (or $0 if you used the free tier).`,
+    },
+    {
+      id: 'changes-to-terms',
+      title: 'Changes to Terms',
+      content:
+        // Paste Termly "Changes to Terms" section here.
+        `We may update these Terms of Service from time to time to reflect changes in our practices, technology, or applicable law.
+
+When we make material changes, we will:
+• Update the "Last Updated" date at the top of this page.
+• Send a notification to your registered email address.
+
+Your continued use of F1 Tax Helper after changes become effective constitutes your acceptance of the revised terms. If you do not agree to the updated terms, you must stop using the service.`,
+    },
+    {
+      id: 'contact-us',
+      title: 'Contact Us',
+      content:
+        `If you have questions about these Terms of Service, please contact us:
+
+Email: work.kiran01@gmail.com
+
+We aim to respond to all inquiries within 5 business days.`,
+    },
+  ],
+}
 
 export default function TermsPage() {
   return (
-    <main className="relative min-h-screen overflow-hidden bg-[#0f172a] text-slate-100">
-      <div className="pointer-events-none absolute inset-0">
-        <div className="absolute -left-24 top-16 h-72 w-72 rounded-full bg-blue-500/20 blur-3xl animate-pulse [animation-duration:9s]" />
-        <div className="absolute -right-20 top-36 h-80 w-80 rounded-full bg-violet-500/20 blur-3xl animate-pulse [animation-duration:11s]" />
-        <div className="absolute bottom-0 left-1/2 h-96 w-96 -translate-x-1/2 rounded-full bg-cyan-500/10 blur-3xl animate-pulse [animation-duration:13s]" />
-      </div>
-
-      <header className="sticky top-0 z-20 border-b border-white/10 bg-slate-900/50 backdrop-blur-xl">
-        <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-4 sm:px-6">
-          <Link to="/" className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-violet-500 text-sm font-bold text-white shadow-lg shadow-blue-500/30">
-              F1
-            </div>
-            <span className="text-base font-semibold tracking-wide text-slate-100 sm:text-lg">F1 Tax Helper</span>
-          </Link>
-        </div>
-      </header>
-
-      <section className="relative z-10 mx-auto w-full max-w-4xl px-4 py-12 sm:px-6 sm:py-16">
-        <div className="rounded-3xl border border-white/20 bg-white/5 p-8 shadow-2xl shadow-blue-950/40 backdrop-blur-xl sm:p-12">
-          <p className="mb-6 inline-flex rounded-full border border-white/20 bg-white/10 px-4 py-1.5 text-xs font-medium uppercase tracking-[0.18em] text-blue-100/90">
-            EFFECTIVE: JANUARY 2026
-          </p>
-          <h1 className="text-4xl font-extrabold tracking-tight text-white sm:text-5xl">Terms of Service</h1>
-          <p className="mt-4 text-base leading-7 text-slate-300 sm:text-lg">
-            By using F1 Tax Helper, you agree to these terms. Please read them carefully.
-          </p>
-
-          <div className="mt-8 space-y-4">
-            {termsSections.map((section) => (
-              <section key={section.title} className="rounded-3xl border border-white/20 bg-white/5 p-6 backdrop-blur-xl">
-                <h2 className="text-xl font-semibold text-white">{section.title}</h2>
-                <p className="mt-2 text-sm leading-7 text-slate-300 sm:text-base">{section.description}</p>
-              </section>
-            ))}
-          </div>
-
-          <Link to="/" className="mt-10 inline-flex text-sm font-medium text-blue-300 transition-colors hover:text-blue-200">
-            ← Back to Home
-          </Link>
-        </div>
-      </section>
-    </main>
+    <LegalLayout
+      title={TERMS_CONTENT.title}
+      lastUpdated={TERMS_CONTENT.lastUpdated}
+      intro={TERMS_CONTENT.intro}
+      sections={TERMS_CONTENT.sections}
+    />
   )
 }

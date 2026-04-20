@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState, useRef } from 'react'
+import { Link } from 'react-router-dom'
 import { Bot, ClipboardList } from 'lucide-react'
+import { IRSDisclaimer } from './IRSDisclaimer'
 
 function buildWelcomeMessage(initialContext) {
   if (initialContext?.answers) {
@@ -254,6 +256,7 @@ export function ChatMain({ initialContext, navigationKey, onOpenChecklist }) {
                   })}
                 </div>
               </div>
+              {message.role === 'assistant' && <IRSDisclaimer />}
               <p className="mt-1 px-1 text-xs text-slate-500">{timestamp}</p>
             </div>
           </div>
@@ -306,6 +309,17 @@ export function ChatMain({ initialContext, navigationKey, onOpenChecklist }) {
         </div>
         <p className="mt-2 text-center text-xs text-slate-500">
           AI responses are for informational purposes only. Consult a tax professional for advice.
+        </p>
+        <p className="mt-1 text-center text-xs text-slate-600">
+          By using F1 Tax Helper you agree to our{' '}
+          <Link to="/terms" className="underline transition-colors hover:text-slate-400">
+            Terms
+          </Link>{' '}
+          and{' '}
+          <Link to="/privacy" className="underline transition-colors hover:text-slate-400">
+            Privacy Policy
+          </Link>
+          .
         </p>
       </div>
     </div>

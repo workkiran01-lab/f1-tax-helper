@@ -69,7 +69,7 @@ export function Footer() {
             <ul className="space-y-3">
               <li>
                 <Link
-                  to="/privacy-policy"
+                  to="/privacy"
                   className="text-sm text-muted-foreground transition-colors hover:text-foreground"
                 >
                   Privacy Policy
@@ -77,7 +77,7 @@ export function Footer() {
               </li>
               <li>
                 <Link
-                  to="/terms-of-service"
+                  to="/terms"
                   className="text-sm text-muted-foreground transition-colors hover:text-foreground"
                 >
                   Terms of Service
