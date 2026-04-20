@@ -1,4 +1,5 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { Link, useNavigate } from 'react-router-dom'
 import { Plus, MessageSquare, Settings, X } from 'lucide-react'
 import useAuth from '../../hooks/useAuth'
@@ -57,6 +58,8 @@ export function ChatSidebar({ conversations = [], onSelect, onNewChat }) {
   const [showProModal, setShowProModal] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
   const [waitlistEmail, setWaitlistEmail] = useState(user?.email || '')
+  const [waitlistVisa, setWaitlistVisa] = useState('')
+  const [proWaitlistJoined, setProWaitlistJoined] = useState(false)
   const [emailNotifications, setEmailNotifications] = useState(true)
   const [deadlineReminders, setDeadlineReminders] = useState(true)
   const [darkMode, setDarkMode] = useState(initDarkMode)
@@ -74,6 +77,14 @@ export function ChatSidebar({ conversations = [], onSelect, onNewChat }) {
     await supabase.auth.signOut()
     navigate('/', { replace: true })
   }
+
+  useEffect(() => {
+    const handleEsc = (e) => {
+      if (e.key === 'Escape') setShowSettings(false)
+    }
+    window.addEventListener('keydown', handleEsc)
+    return () => window.removeEventListener('keydown', handleEsc)
+  }, [])
 
   const handleDarkModeToggle = () => {
     const next = !darkMode
@@ -165,8 +176,8 @@ export function ChatSidebar({ conversations = [], onSelect, onNewChat }) {
         </div>
       </div>
 
-      {/* Pro modal */}
-      {showProModal && (
+      {/* Pro modal — portalled to body to escape the sidebar's transform containing block */}
+      {showProModal && createPortal(
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
           <div className="relative w-full max-w-md rounded-3xl border border-white/20 bg-slate-900/95 p-8">
             <button
@@ -189,128 +200,171 @@ export function ChatSidebar({ conversations = [], onSelect, onNewChat }) {
               <li>✅ Download ready-to-file PDF forms</li>
               <li>✅ Human CPA review add-on</li>
             </ul>
-            <p className="mt-5 bg-gradient-to-r from-[#3b82f6] to-[#8b5cf6] bg-clip-text text-lg font-semibold text-transparent">
-              Starting at $9.99/month
+            <p className="mt-4 text-xs font-medium text-blue-300">
+              Early bird pricing for waitlist members
             </p>
-            <div className="mt-4 flex gap-2">
-              <input
-                type="email"
-                value={waitlistEmail}
-                onChange={(e) => setWaitlistEmail(e.target.value)}
-                className="flex-1 rounded-xl border border-white/20 bg-white/5 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none"
-                placeholder="Enter email"
-              />
-              <button className="rounded-xl bg-gradient-to-r from-[#3b82f6] to-[#8b5cf6] px-4 py-2 text-sm font-semibold text-white">
-                Notify Me
-              </button>
-            </div>
-            <p className="mt-2 text-xs text-slate-500">Join the waitlist. No spam, ever.</p>
+            {proWaitlistJoined ? (
+              <div className="mt-5 rounded-2xl border border-green-500/20 bg-green-500/10 px-4 py-4 text-center">
+                <p className="text-sm font-semibold text-green-400">
+                  You&apos;re on the list!
+                </p>
+                <p className="mt-1 text-xs text-green-400/70">
+                  We&apos;ll email you when 1040-NR filing goes live.
+                </p>
+              </div>
+            ) : (
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault()
+                  const email = waitlistEmail.trim()
+                  if (!email) return
+                  localStorage.setItem('waitlist_email', email)
+                  if (waitlistVisa) localStorage.setItem('waitlist_visa', waitlistVisa)
+                  setProWaitlistJoined(true)
+                }}
+                className="mt-5 space-y-3"
+              >
+                <input
+                  type="email"
+                  required
+                  value={waitlistEmail}
+                  onChange={(e) => setWaitlistEmail(e.target.value)}
+                  className="w-full rounded-xl border border-white/20 bg-white/5 px-3 py-2.5 text-sm text-slate-100 placeholder:text-slate-500 focus:border-blue-500/50 focus:outline-none"
+                  placeholder="your@email.com"
+                />
+                <select
+                  value={waitlistVisa}
+                  onChange={(e) => setWaitlistVisa(e.target.value)}
+                  className="w-full rounded-xl border border-white/20 bg-[#0f172a] px-3 py-2.5 text-sm text-slate-100 focus:border-blue-500/50 focus:outline-none"
+                >
+                  <option value="" disabled>Visa Type (optional)</option>
+                  <option value="F-1">F-1</option>
+                  <option value="J-1">J-1</option>
+                  <option value="OPT">OPT</option>
+                  <option value="CPT">CPT</option>
+                  <option value="Other">Other</option>
+                </select>
+                <button
+                  type="submit"
+                  className="w-full rounded-xl bg-gradient-to-r from-[#3b82f6] to-[#8b5cf6] py-2.5 text-sm font-semibold text-white shadow-md transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg"
+                >
+                  Notify Me When Pro Launches
+                </button>
+                <p className="text-center text-xs text-slate-500">No spam, ever. Unsubscribe anytime.</p>
+              </form>
+            )}
           </div>
-        </div>
+        </div>,
+        document.body,
       )}
 
-      {/* Settings panel — always rendered, slides in/out via transform */}
-      <div
-        className={`fixed inset-0 z-40 bg-black/50 transition-opacity duration-300 ${
-          showSettings ? 'opacity-100' : 'pointer-events-none opacity-0'
-        }`}
-        onClick={() => setShowSettings(false)}
-        aria-hidden
-      />
-      <div
-        className={`fixed right-0 top-0 z-50 flex h-full w-72 flex-col border-l border-white/10 bg-slate-900/95 p-5 backdrop-blur-xl transition-transform duration-300 ease-in-out ${
-          showSettings ? 'translate-x-0' : 'translate-x-full'
-        }`}
-      >
-        <div className="mb-4 flex items-center justify-between">
-          <h3 className="text-lg font-semibold text-slate-100">Settings</h3>
-          <button
-            type="button"
+      {/* Settings panel — portalled to body to escape the sidebar's transform containing block */}
+      {createPortal(
+        <>
+          <div
+            className={`fixed inset-0 z-40 bg-black/50 transition-opacity duration-300 ${
+              showSettings ? 'opacity-100' : 'pointer-events-none opacity-0'
+            }`}
             onClick={() => setShowSettings(false)}
-            className="rounded-md p-1 text-slate-300 hover:bg-white/10"
+            aria-hidden
+          />
+          <div
+            className={`fixed right-0 top-0 z-50 flex h-full w-72 flex-col border-l border-white/10 bg-slate-900/95 p-5 backdrop-blur-xl transition-transform duration-300 ease-in-out ${
+              showSettings ? 'translate-x-0' : 'translate-x-full'
+            }`}
           >
-            <X className="h-4 w-4" />
-          </button>
-        </div>
-        <div className="space-y-5 overflow-y-auto">
-          <section>
-            <h4 className="text-xs font-semibold uppercase tracking-wide text-slate-500">Account</h4>
-            <div className="mt-2 rounded-2xl border border-white/10 bg-white/5 p-3">
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-[#3b82f6] to-[#8b5cf6] text-sm font-semibold text-white">
-                  {initial}
-                </div>
-                <div>
-                  <p className="text-sm text-slate-100">{displayName}</p>
-                  <p className="text-xs text-slate-400">{user?.email}</p>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          <section>
-            <h4 className="text-xs font-semibold uppercase tracking-wide text-slate-500">Preferences</h4>
-            <div className="mt-2 space-y-2 rounded-2xl border border-white/10 bg-white/5 p-3 text-sm">
-              <label className="flex cursor-pointer items-center justify-between text-slate-300">
-                Email notifications
-                <input
-                  type="checkbox"
-                  checked={emailNotifications}
-                  onChange={() => setEmailNotifications((v) => !v)}
-                />
-              </label>
-              <label className="flex cursor-pointer items-center justify-between text-slate-300">
-                Tax deadline reminders
-                <input
-                  type="checkbox"
-                  checked={deadlineReminders}
-                  onChange={() => setDeadlineReminders((v) => !v)}
-                />
-              </label>
-              <label className="flex cursor-pointer items-center justify-between text-slate-300">
-                Dark mode
-                <input
-                  type="checkbox"
-                  checked={darkMode}
-                  onChange={handleDarkModeToggle}
-                />
-              </label>
-            </div>
-          </section>
-
-          <section>
-            <h4 className="text-xs font-semibold uppercase tracking-wide text-slate-500">About</h4>
-            <div className="mt-2 rounded-2xl border border-white/10 bg-white/5 p-3 text-sm text-slate-300">
-              <p>F1 Tax Helper v1.0</p>
-              <div className="mt-2 flex flex-col gap-1 text-blue-300">
-                <Link to="/privacy" onClick={() => setShowSettings(false)}>Privacy Policy</Link>
-                <Link to="/terms" onClick={() => setShowSettings(false)}>Terms</Link>
-                <Link to="/contact" onClick={() => setShowSettings(false)}>Contact</Link>
-              </div>
-            </div>
-          </section>
-
-          <section>
-            <h4 className="text-xs font-semibold uppercase tracking-wide text-slate-500">Danger Zone</h4>
-            <div className="mt-2 space-y-2">
+            <div className="mb-4 flex items-center justify-between">
+              <h3 className="text-lg font-semibold text-slate-100">Settings</h3>
               <button
                 type="button"
-                onClick={handleSignOut}
-                className="w-full rounded-xl border border-red-500/30 py-2 text-sm text-red-400 transition-colors hover:bg-red-500/10"
+                onClick={() => setShowSettings(false)}
+                className="rounded-md p-1 text-slate-300 hover:bg-white/10"
               >
-                Sign Out
-              </button>
-              <button
-                type="button"
-                onClick={handleDeleteAccount}
-                className="w-full rounded-xl border border-red-500/30 py-2 text-sm text-red-400 transition-colors hover:bg-red-500/10"
-              >
-                Delete Account
+                <X className="h-4 w-4" />
               </button>
             </div>
-          </section>
-        </div>
-      </div>
+            <div className="space-y-5 overflow-y-auto">
+              <section>
+                <h4 className="text-xs font-semibold uppercase tracking-wide text-slate-500">Account</h4>
+                <div className="mt-2 rounded-2xl border border-white/10 bg-white/5 p-3">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-[#3b82f6] to-[#8b5cf6] text-sm font-semibold text-white">
+                      {initial}
+                    </div>
+                    <div>
+                      <p className="text-sm text-slate-100">{displayName}</p>
+                      <p className="text-xs text-slate-400">{user?.email}</p>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              <section>
+                <h4 className="text-xs font-semibold uppercase tracking-wide text-slate-500">Preferences</h4>
+                <div className="mt-2 space-y-2 rounded-2xl border border-white/10 bg-white/5 p-3 text-sm">
+                  <label className="flex cursor-pointer items-center justify-between text-slate-300">
+                    Email notifications
+                    <input
+                      type="checkbox"
+                      checked={emailNotifications}
+                      onChange={() => setEmailNotifications((v) => !v)}
+                    />
+                  </label>
+                  <label className="flex cursor-pointer items-center justify-between text-slate-300">
+                    Tax deadline reminders
+                    <input
+                      type="checkbox"
+                      checked={deadlineReminders}
+                      onChange={() => setDeadlineReminders((v) => !v)}
+                    />
+                  </label>
+                  <label className="flex cursor-pointer items-center justify-between text-slate-300">
+                    Dark mode
+                    <input
+                      type="checkbox"
+                      checked={darkMode}
+                      onChange={handleDarkModeToggle}
+                    />
+                  </label>
+                </div>
+              </section>
+
+              <section>
+                <h4 className="text-xs font-semibold uppercase tracking-wide text-slate-500">About</h4>
+                <div className="mt-2 rounded-2xl border border-white/10 bg-white/5 p-3 text-sm text-slate-300">
+                  <p>F1 Tax Helper v1.0</p>
+                  <div className="mt-2 flex flex-col gap-1 text-blue-300">
+                    <Link to="/privacy" onClick={() => setShowSettings(false)}>Privacy Policy</Link>
+                    <Link to="/terms" onClick={() => setShowSettings(false)}>Terms</Link>
+                    <Link to="/contact" onClick={() => setShowSettings(false)}>Contact</Link>
+                  </div>
+                </div>
+              </section>
+
+              <section>
+                <h4 className="text-xs font-semibold uppercase tracking-wide text-slate-500">Danger Zone</h4>
+                <div className="mt-2 space-y-2">
+                  <button
+                    type="button"
+                    onClick={handleSignOut}
+                    className="w-full rounded-xl border border-red-500/30 py-2 text-sm text-red-400 transition-colors hover:bg-red-500/10"
+                  >
+                    Sign Out
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleDeleteAccount}
+                    className="w-full rounded-xl border border-red-500/30 py-2 text-sm text-red-400 transition-colors hover:bg-red-500/10"
+                  >
+                    Delete Account
+                  </button>
+                </div>
+              </section>
+            </div>
+          </div>
+        </>,
+        document.body,
+      )}
     </>
   )
 }

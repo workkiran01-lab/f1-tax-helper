@@ -1,6 +1,6 @@
+import { lazy, Suspense } from 'react'
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import HomePage from './pages/HomePage'
-import ChatPage from './pages/ChatPage'
 import QuestionnairePage from './pages/QuestionnairePage'
 import ChecklistPage from './pages/ChecklistPage'
 import ResultsPage from './pages/ResultsPage'
@@ -14,9 +14,23 @@ import AuthCallbackPage from './pages/AuthCallbackPage'
 import PrivacyPage from './pages/PrivacyPage'
 import TermsPage from './pages/TermsPage'
 import ContactPage from './pages/ContactPage'
-import Form8843Page from './pages/Form8843Page'
-import AboutPage from './pages/AboutPage'
 import useAuth from './hooks/useAuth'
+
+const ChatPage     = lazy(() => import('./pages/ChatPage'))
+const Form8843Page = lazy(() => import('./pages/Form8843Page'))
+const AboutPage    = lazy(() => import('./pages/AboutPage'))
+
+function LazySuspense({ children }) {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-[#0f172a] flex items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-white/20 border-t-white" />
+      </div>
+    }>
+      {children}
+    </Suspense>
+  )
+}
 
 function FullScreenSpinner() {
   return (
@@ -61,7 +75,7 @@ function AppRoutes() {
         path="/chat"
         element={
           <ProtectedRoute>
-            <ChatPage />
+            <LazySuspense><ChatPage /></LazySuspense>
           </ProtectedRoute>
         }
       />
@@ -89,8 +103,8 @@ function AppRoutes() {
           </ProtectedRoute>
         }
       />
-      <Route path="/form-8843" element={<Form8843Page />} />
-      <Route path="/about" element={<AboutPage />} />
+      <Route path="/form-8843" element={<LazySuspense><Form8843Page /></LazySuspense>} />
+      <Route path="/about" element={<LazySuspense><AboutPage /></LazySuspense>} />
       <Route path="/privacy-policy" element={<PrivacyPolicy />} />
       <Route path="/terms-of-service" element={<TermsOfService />} />
       <Route path="/disclaimer" element={<Disclaimer />} />

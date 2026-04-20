@@ -298,9 +298,9 @@ export default function Form8843Page() {
 
   // ── Field setters — clear error on change ─────────────────────────────────
 
-  const set = (f) => (e) => {
-    setFormData((p) => ({ ...p, [f]: e.target.value }))
-    if (errors[f]) setErrors((p) => ({ ...p, [f]: undefined }))
+  const set = (field) => (e) => {
+    setFormData((prev) => ({ ...prev, [field]: e.target.value }))
+    setErrors((prev) => ({ ...prev, [field]: undefined }))
   }
 
   const setUpper = (f) => (e) => {
