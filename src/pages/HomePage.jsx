@@ -56,6 +56,8 @@ export default function HomePage() {
   const navigate = useNavigate()
   const { user } = useAuth()
   const [waitlistEmail, setWaitlistEmail] = useState('')
+  const [waitlistVisa, setWaitlistVisa] = useState('')
+  const [waitlistSchool, setWaitlistSchool] = useState('')
   const [waitlistJoined, setWaitlistJoined] = useState(false)
 
   useEffect(() => {
@@ -74,6 +76,8 @@ export default function HomePage() {
     const trimmed = waitlistEmail.trim()
     if (!trimmed) return
     localStorage.setItem('waitlist_email', trimmed)
+    if (waitlistVisa)   localStorage.setItem('waitlist_visa',   waitlistVisa)
+    if (waitlistSchool) localStorage.setItem('waitlist_school', waitlistSchool.trim())
     setWaitlistJoined(true)
   }
 
@@ -264,12 +268,12 @@ export default function HomePage() {
             </p>
             {waitlistJoined ? (
               <p className="mt-6 text-sm font-medium text-green-400">
-                ✓ You're on the list — we'll be in touch!
+                ✓ You're on the list! We'll notify you when Pro launches.
               </p>
             ) : (
               <form
                 onSubmit={handleWaitlist}
-                className="mt-6 flex w-full flex-col items-center gap-3 sm:flex-row sm:justify-center"
+                className="mt-6 flex w-full flex-col items-center gap-3 sm:max-w-md sm:mx-auto"
               >
                 <input
                   type="email"
@@ -277,11 +281,29 @@ export default function HomePage() {
                   value={waitlistEmail}
                   onChange={(e) => setWaitlistEmail(e.target.value)}
                   placeholder="your@email.com"
-                  className="w-full rounded-xl border border-white/20 bg-white/5 px-4 py-2.5 text-sm text-slate-100 placeholder:text-slate-500 focus:border-blue-500/50 focus:outline-none sm:w-72"
+                  className="w-full rounded-xl border border-white/20 bg-white/5 px-4 py-2.5 text-sm text-slate-100 placeholder:text-slate-500 focus:border-blue-500/50 focus:outline-none"
+                />
+                <select
+                  value={waitlistVisa}
+                  onChange={(e) => setWaitlistVisa(e.target.value)}
+                  className="w-full rounded-xl border border-white/20 bg-[#0f172a] px-4 py-2.5 text-sm text-slate-100 focus:border-blue-500/50 focus:outline-none"
+                >
+                  <option value="" disabled>Visa Type (optional)</option>
+                  <option value="F-1">F-1</option>
+                  <option value="J-1">J-1</option>
+                  <option value="OPT">OPT</option>
+                  <option value="Other">Other</option>
+                </select>
+                <input
+                  type="text"
+                  value={waitlistSchool}
+                  onChange={(e) => setWaitlistSchool(e.target.value)}
+                  placeholder="School Name (optional)"
+                  className="w-full rounded-xl border border-white/20 bg-white/5 px-4 py-2.5 text-sm text-slate-100 placeholder:text-slate-500 focus:border-blue-500/50 focus:outline-none"
                 />
                 <button
                   type="submit"
-                  className="w-full rounded-xl bg-gradient-to-r from-blue-500 to-violet-500 px-6 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-600/20 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-violet-500/30 sm:w-auto"
+                  className="w-full rounded-xl bg-gradient-to-r from-blue-500 to-violet-500 px-6 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-600/20 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-violet-500/30"
                 >
                   Join Waitlist
                 </button>

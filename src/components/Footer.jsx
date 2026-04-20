@@ -29,6 +29,14 @@ export function Footer() {
             <ul className="space-y-3">
               <li>
                 <Link
+                  to="/about"
+                  className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+                >
+                  About
+                </Link>
+              </li>
+              <li>
+                <Link
                   to="/tax-guide"
                   className="text-sm text-muted-foreground transition-colors hover:text-foreground"
                 >
@@ -97,6 +105,14 @@ export function Footer() {
                   className="text-sm text-muted-foreground transition-colors hover:text-foreground"
                 >
                   Contact Us
+                </a>
+              </li>
+              <li>
+                <a
+                  href="mailto:work.kiran01@gmail.com"
+                  className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+                >
+                  Help
                 </a>
               </li>
             </ul>

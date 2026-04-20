@@ -174,31 +174,158 @@ function SummaryCard({ title, icon, rows, onEdit }) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Success screen (shown after PDF downloads)
+// ─────────────────────────────────────────────────────────────────────────────
+
+function SuccessScreen({ taxYear, onReset, onDownloadAgain }) {
+  const [copied, setCopied] = useState(false)
+  const irsAddress = `Department of the Treasury\nInternal Revenue Service Center\nAustin, TX 73301-0215`
+
+  function copyAddress() {
+    navigator.clipboard.writeText(irsAddress).then(() => {
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    })
+  }
+
+  return (
+    <div className="step-enter mx-auto max-w-2xl space-y-6 py-8">
+      {/* Checkmark */}
+      <div className="flex flex-col items-center gap-3 text-center">
+        <div className="flex h-20 w-20 items-center justify-center rounded-full border-4 border-green-500/30 bg-green-500/10">
+          <svg className="h-10 w-10 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+          </svg>
+        </div>
+        <h1 className="text-2xl font-extrabold tracking-tight text-white sm:text-3xl">
+          Your Form 8843 is ready!
+        </h1>
+        <p className="text-sm text-slate-400">
+          Your completed Form 8843 for tax year {taxYear || '2025'} has been downloaded to your device.
+        </p>
+      </div>
+
+      {/* What's next */}
+      <h2 className="text-sm font-semibold uppercase tracking-widest text-slate-500">What's next?</h2>
+
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        {/* Card 1 */}
+        <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
+          <div className="mb-2 text-2xl">✍️</div>
+          <h3 className="text-sm font-semibold text-white">Sign & Date Your Form</h3>
+          <p className="mt-1.5 text-xs leading-5 text-slate-400">
+            Sign the bottom of page 1 before filing. The IRS will reject unsigned forms.
+          </p>
+        </div>
+
+        {/* Card 2 */}
+        <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
+          <div className="mb-2 text-2xl">📬</div>
+          <h3 className="mb-2 text-sm font-semibold text-white">Mail to the IRS</h3>
+          <p className="mb-2 text-xs text-slate-400">If filing separately (no income), mail to:</p>
+          <div className="rounded-lg border border-white/10 bg-white/5 px-3 py-2 font-mono text-[11px] leading-5 text-slate-300 whitespace-pre">
+            {irsAddress}
+          </div>
+          <button
+            type="button"
+            onClick={copyAddress}
+            className="mt-2 w-full rounded-lg border border-white/20 bg-white/5 py-1.5 text-xs font-medium text-slate-300 transition-colors hover:bg-white/10"
+          >
+            {copied ? '✓ Copied!' : 'Copy Address'}
+          </button>
+        </div>
+
+        {/* Card 3 */}
+        <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
+          <div className="mb-2 text-2xl">📅</div>
+          <h3 className="text-sm font-semibold text-white">Filing Deadline</h3>
+          <p className="mt-1.5 text-xs leading-5 text-slate-400">
+            Form 8843 is due by{' '}
+            <span className="font-semibold text-slate-200">June 15, 2026</span>{' '}
+            (or April 15 if you have US income).
+          </p>
+        </div>
+      </div>
+
+      {/* Privacy note */}
+      <p className="rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-center text-xs leading-5 text-slate-500">
+        🔒 Your data was not stored on our servers. It existed only in your browser session.
+      </p>
+
+      {/* Action buttons */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:justify-center">
+        <button
+          type="button"
+          onClick={onDownloadAgain}
+          className="rounded-xl border border-white/20 bg-white/5 px-6 py-2.5 text-sm font-medium text-slate-100 transition-colors hover:bg-white/10"
+        >
+          Download Again
+        </button>
+        <Link
+          to="/"
+          className="rounded-xl bg-gradient-to-r from-blue-500 to-violet-500 px-6 py-2.5 text-center text-sm font-semibold text-white shadow-md shadow-blue-600/20 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg"
+        >
+          Go to Home
+        </Link>
+      </div>
+
+      <button type="button" onClick={onReset} className="block w-full text-center text-xs text-slate-600 underline hover:text-slate-400">
+        Fill out another form
+      </button>
+    </div>
+  )
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Main page
 // ─────────────────────────────────────────────────────────────────────────────
 
 export default function Form8843Page() {
-  const [step, setStep]                       = useState(0)
-  const [showReview, setShowReview]           = useState(false)
-  const [formData, setFormData]               = useState(getInitialData)
+  const [step, setStep]                           = useState(0)
+  const [showReview, setShowReview]               = useState(false)
+  const [formData, setFormData]                   = useState(getInitialData)
   const [showRestoreBanner, setShowRestoreBanner] = useState(hasSavedProgress)
-  const [errors, setErrors]                   = useState({})
-  const [generating, setGenerating]           = useState(false)
-  const [success, setSuccess]                 = useState(false)
-  const [genError, setGenError]               = useState('')
+  const [errors, setErrors]                       = useState({})
+  const [generating, setGenerating]               = useState(false)
+  const [success, setSuccess]                     = useState(false)
+  const [genError, setGenError]                   = useState('')
+  const [lastFilledBytes, setLastFilledBytes]     = useState(null)
 
   // Auto-save on every field change
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(formData))
   }, [formData])
 
-  // ── Field setters ──────────────────────────────────────────────────────────
+  // ── Field setters — clear error on change ─────────────────────────────────
 
-  const set      = (f) => (e) => setFormData((p) => ({ ...p, [f]: e.target.value }))
-  const setUpper = (f) => (e) => setFormData((p) => ({ ...p, [f]: e.target.value.toUpperCase().replace(/[^A-Z]/g, '').slice(0, 2) }))
-  const setZip   = (f) => (e) => setFormData((p) => ({ ...p, [f]: e.target.value.replace(/\D/g, '').slice(0, 5) }))
-  const setPhone = (f) => (e) => setFormData((p) => ({ ...p, [f]: formatPhone(e.target.value) }))
-  const setDate  = (f) => (e) => setFormData((p) => ({ ...p, [f]: formatDate(e.target.value) }))
+  const set = (f) => (e) => {
+    setFormData((p) => ({ ...p, [f]: e.target.value }))
+    if (errors[f]) setErrors((p) => ({ ...p, [f]: undefined }))
+  }
+
+  const setUpper = (f) => (e) => {
+    const v = e.target.value.toUpperCase().replace(/[^A-Z]/g, '').slice(0, 2)
+    setFormData((p) => ({ ...p, [f]: v }))
+    if (errors[f]) setErrors((p) => ({ ...p, [f]: undefined }))
+  }
+
+  const setZip = (f) => (e) => {
+    const v = e.target.value.replace(/\D/g, '').slice(0, 5)
+    setFormData((p) => ({ ...p, [f]: v }))
+    if (errors[f]) setErrors((p) => ({ ...p, [f]: undefined }))
+  }
+
+  const setPhone = (f) => (e) => {
+    const v = formatPhone(e.target.value)
+    setFormData((p) => ({ ...p, [f]: v }))
+    if (errors[f]) setErrors((p) => ({ ...p, [f]: undefined }))
+  }
+
+  const setDate = (f) => (e) => {
+    const v = formatDate(e.target.value)
+    setFormData((p) => ({ ...p, [f]: v }))
+    if (errors[f]) setErrors((p) => ({ ...p, [f]: undefined }))
+  }
 
   // ── Validation ─────────────────────────────────────────────────────────────
 
@@ -314,27 +441,45 @@ export default function Form8843Page() {
 
   // ── Generate ───────────────────────────────────────────────────────────────
 
+  async function generatePDF() {
+    const res = await fetch('/form8843.pdf')
+    if (!res.ok) throw new Error('Could not load base PDF.')
+    const pdfBytes = await res.arrayBuffer()
+    const filled   = await fillForm8843(pdfBytes, formData)
+    setLastFilledBytes(filled)
+    return filled
+  }
+
+  function triggerDownload(bytes) {
+    const blob = new Blob([bytes], { type: 'application/pdf' })
+    const url  = URL.createObjectURL(blob)
+    const a    = document.createElement('a')
+    a.href     = url
+    a.download = `Form_8843_${formData.taxYear || '2025'}.pdf`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
   async function handleGenerate() {
     setGenerating(true)
     setGenError('')
     try {
-      const res = await fetch('/form8843.pdf')
-      if (!res.ok) throw new Error('Could not load base PDF.')
-      const pdfBytes = await res.arrayBuffer()
-      const filled   = await fillForm8843(pdfBytes, formData)
-      const blob     = new Blob([filled], { type: 'application/pdf' })
-      const url      = URL.createObjectURL(blob)
-      const a        = document.createElement('a')
-      a.href         = url
-      a.download     = `Form_8843_${formData.taxYear || '2025'}.pdf`
-      a.click()
-      URL.revokeObjectURL(url)
+      const filled = await generatePDF()
+      triggerDownload(filled)
       setSuccess(true)
       localStorage.removeItem(STORAGE_KEY)
     } catch (err) {
       setGenError(err.message || 'Failed to generate PDF. Please try again.')
     } finally {
       setGenerating(false)
+    }
+  }
+
+  function handleDownloadAgain() {
+    if (lastFilledBytes) {
+      triggerDownload(lastFilledBytes)
+    } else {
+      generatePDF().then(triggerDownload).catch(() => {})
     }
   }
 
@@ -351,6 +496,7 @@ export default function Form8843Page() {
     setSuccess(false)
     setErrors({})
     setGenError('')
+    setLastFilledBytes(null)
     localStorage.removeItem(STORAGE_KEY)
   }
 
@@ -365,6 +511,25 @@ export default function Form8843Page() {
   // ── Render ─────────────────────────────────────────────────────────────────
 
   const progressPct = showReview ? 100 : ((step + 1) / 4) * 100
+
+  // Full-page success screen
+  if (success) {
+    return (
+      <div className="relative min-h-screen bg-[#0f172a] text-slate-100">
+        <div className="pointer-events-none fixed inset-0 overflow-hidden">
+          <div className="absolute -left-32 top-20  h-96 w-96 rounded-full bg-blue-600/15   blur-3xl" />
+          <div className="absolute -right-24 top-40 h-96 w-96 rounded-full bg-violet-600/15 blur-3xl" />
+        </div>
+        <div className="relative z-10 px-4 sm:px-8">
+          <SuccessScreen
+            taxYear={formData.taxYear}
+            onReset={handleReset}
+            onDownloadAgain={handleDownloadAgain}
+          />
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="relative min-h-screen bg-[#0f172a] text-slate-100">
@@ -489,6 +654,18 @@ export default function Form8843Page() {
             </div>
           </header>
 
+          {/* Data safety badge */}
+          <div className="border-b border-green-500/10 bg-green-500/5 px-4 py-2 sm:px-8">
+            <div className="flex items-center gap-2">
+              <svg className="h-3.5 w-3.5 shrink-0 text-green-400" viewBox="0 0 24 24" fill="currentColor">
+                <path fillRule="evenodd" d="M12 1.5a5.25 5.25 0 00-5.25 5.25v3a3 3 0 00-3 3v6.75a3 3 0 003 3h10.5a3 3 0 003-3v-6.75a3 3 0 00-3-3v-3A5.25 5.25 0 0012 1.5zm-3.75 8.25v-3a3.75 3.75 0 117.5 0v3h-7.5z" clipRule="evenodd" />
+              </svg>
+              <p className="text-xs text-green-400">
+                Your data never leaves your browser. We don't store any information you enter here.
+              </p>
+            </div>
+          </div>
+
           {/* Restore banner */}
           {showRestoreBanner && (
             <div className="border-b border-blue-500/20 bg-blue-500/10 px-4 py-2.5 sm:px-8">
@@ -529,7 +706,7 @@ export default function Form8843Page() {
                 )}
               </div>
 
-              {/* Mobile step bar */}
+              {/* Mobile step bar — hidden on lg (sidebar handles it there) */}
               <div className="mb-6 lg:hidden">
                 <div className="flex gap-1">
                   {STEP_META.map((m, i) => (
@@ -575,6 +752,7 @@ export default function Form8843Page() {
                           onChange={(e) => {
                             const v = e.target.value.replace(/[^a-zA-Z]/g, '').slice(0, 1).toUpperCase()
                             setFormData((p) => ({ ...p, middleInitial: v }))
+                            if (errors.middleInitial) setErrors((p) => ({ ...p, middleInitial: undefined }))
                           }}
                           error={errors.middleInitial}
                           required={false}
@@ -790,83 +968,59 @@ export default function Form8843Page() {
 
                   {/* Generate area */}
                   <div className="pt-2">
-                    {success ? (
-                      <div className="rounded-2xl border border-green-500/20 bg-green-500/10 p-6 text-center">
-                        <div className="mb-2 text-3xl">✅</div>
-                        <p className="text-base font-semibold text-green-400">Downloaded!</p>
-                        <p className="mt-1 text-sm text-green-400/70">Remember to sign and date your form before filing.</p>
-                        <div className="mt-5 rounded-xl border border-white/10 bg-white/5 p-4 text-left">
-                          <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-slate-500">What's next?</p>
-                          <ol className="space-y-1.5 text-xs leading-5 text-slate-400">
-                            <li>1. Sign and date the form in ink.</li>
-                            <li>2. Keep a copy for your records.</li>
-                            <li>3. Mail to the IRS at the address for your state (see Form 8843 instructions).</li>
-                            <li>4. Due by June 15 for students with no US income — no payment required.</li>
-                          </ol>
-                        </div>
-                        <button type="button" onClick={handleReset} className="mt-4 text-xs text-slate-500 underline hover:text-slate-300">
-                          Fill out another form
-                        </button>
-                      </div>
-                    ) : (
-                      <>
-                        <button
-                          type="button"
-                          onClick={handleGenerate}
-                          disabled={generating}
-                          className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-blue-500 to-violet-500 py-4 text-sm font-semibold text-white shadow-lg shadow-blue-600/30 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-violet-500/40 disabled:cursor-not-allowed disabled:opacity-70"
-                        >
-                          {generating ? (
-                            <>
-                              <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
-                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
-                              </svg>
-                              Generating your Form 8843…
-                            </>
-                          ) : 'Generate & Download Form 8843 →'}
-                        </button>
+                    <button
+                      type="button"
+                      onClick={handleGenerate}
+                      disabled={generating}
+                      className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-blue-500 to-violet-500 py-4 text-sm font-semibold text-white shadow-lg shadow-blue-600/30 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-violet-500/40 disabled:cursor-not-allowed disabled:opacity-70"
+                    >
+                      {generating ? (
+                        <>
+                          <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                          </svg>
+                          Generating your Form 8843…
+                        </>
+                      ) : 'Generate & Download Form 8843 →'}
+                    </button>
 
-                        {genError && <p className="mt-2 text-center text-xs text-red-400">{genError}</p>}
+                    {genError && <p className="mt-2 text-center text-xs text-red-400">{genError}</p>}
 
-                        <div className="mt-3 rounded-xl border border-yellow-500/20 bg-yellow-500/10 px-4 py-3">
-                          <p className="text-xs leading-5 text-yellow-400">
-                            ⚠️ Review all information carefully. Errors on Form 8843 can affect your immigration status.
-                          </p>
-                        </div>
-                        <p className="mt-2 text-center text-xs text-slate-600">
-                          Your form will be downloaded as a PDF. Sign and date it before filing.
-                        </p>
-                      </>
-                    )}
+                    <div className="mt-3 rounded-xl border border-yellow-500/20 bg-yellow-500/10 px-4 py-3">
+                      <p className="text-xs leading-5 text-yellow-400">
+                        ⚠️ Review all information carefully. Errors on Form 8843 can affect your immigration status.
+                      </p>
+                    </div>
+                    <p className="mt-2 text-center text-xs text-slate-600">
+                      Your form will be downloaded as a PDF. Sign and date it before filing.
+                    </p>
                   </div>
                 </div>
               )}
 
               {/* Navigation buttons */}
-              {!success && (
-                <div className="mt-8 flex items-center justify-between">
-                  {step > 0 || showReview ? (
-                    <button
-                      type="button"
-                      onClick={handleBack}
-                      className="rounded-xl border border-white/20 bg-white/5 px-5 py-2.5 text-sm font-medium text-slate-100 transition-colors hover:bg-white/10"
-                    >
-                      ← Back
-                    </button>
-                  ) : <div />}
+              <div className="mt-8 flex items-center justify-between">
+                {step > 0 || showReview ? (
+                  <button
+                    type="button"
+                    onClick={handleBack}
+                    className="rounded-xl border border-white/20 bg-white/5 px-5 py-2.5 text-sm font-medium text-slate-100 transition-colors hover:bg-white/10"
+                  >
+                    ← Back
+                  </button>
+                ) : <div />}
 
-                  {!showReview && (
-                    <button
-                      type="button"
-                      onClick={handleNext}
-                      className="rounded-xl bg-gradient-to-r from-blue-500 to-violet-500 px-6 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-600/20 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg"
-                    >
-                      {step === 3 ? 'Review →' : 'Next →'}
-                    </button>
-                  )}
-                </div>
-              )}
+                {!showReview && (
+                  <button
+                    type="button"
+                    onClick={handleNext}
+                    className="rounded-xl bg-gradient-to-r from-blue-500 to-violet-500 px-6 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-600/20 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg"
+                  >
+                    {step === 3 ? 'Review →' : 'Next →'}
+                  </button>
+                )}
+              </div>
 
             </div>
           </main>
