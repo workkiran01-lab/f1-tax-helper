@@ -6,25 +6,28 @@ import { fillForm8843 } from '../utils/form8843Fields'
 // Constants
 // ─────────────────────────────────────────────────────────────────────────────
 
-const STORAGE_KEY = 'f1_form8843_v2'
+const STORAGE_KEY = 'f1_form8843_v3'
 
 const STEP_META = [
-  { label: 'Your Information', sub: 'Personal details & US address', section: 'Part I' },
-  { label: 'Your School',      sub: 'Academic institution',          section: 'Part III, Line 9' },
-  { label: 'Your DSO',         sub: 'Designated School Official',    section: 'Part III, Line 10' },
-  { label: 'Visa & Dates',     sub: 'Visa type and entry dates',     section: 'Part I' },
+  { label: 'Your Information', sub: 'Name, citizenship & passport',    section: 'Header + Part I' },
+  { label: 'Your Address',     sub: 'US mailing address',              section: 'Header' },
+  { label: 'Your School',      sub: 'Academic institution',            section: 'Part III, Line 9' },
+  { label: 'Your DSO',         sub: 'Designated School Official',      section: 'Part III, Line 10' },
+  { label: 'Visa & Presence',  sub: 'Entry date, days & status',       section: 'Part I + Part III' },
 ]
 
 const LABELS = {
   firstName:            'First Name',
   middleInitial:        'Middle Initial',
   lastName:             'Last Name',
+  countryOfCitizenship: 'Country of Citizenship',
+  passportCountry:      'Passport Issuing Country',
+  passportNumber:       'Passport Number',
   usStreet:             'US Street Address',
   usCity:               'City',
   usState:              'State',
   usZip:                'ZIP Code',
-  countryOfCitizenship: 'Country of Citizenship',
-  taxYear:              'Tax Year',
+  foreignAddress:       'Address in Country of Residence',
   schoolName:           'School / University Name',
   schoolStreet:         'School Street Address',
   schoolCity:           'School City',
@@ -37,15 +40,20 @@ const LABELS = {
   dsoState:             'DSO Office State',
   dsoZip:               'DSO Office ZIP',
   dsoPhone:             'DSO Phone Number',
-  firstEntryDate:       'Date of First U.S. Entry',
   currentEntryDate:     'Date of Most Recent U.S. Entry',
+  daysIn2025:           'Days Present in U.S. in 2025',
+  daysIn2024:           'Days Present in U.S. in 2024',
+  daysIn2023:           'Days Present in U.S. in 2023',
+  daysToExclude:        'Exempt Days to Exclude (F-1)',
+  line14Explanation:    'Explanation (Line 14)',
 }
 
 const REQUIRED_BY_STEP = {
-  0: ['firstName', 'lastName', 'usStreet', 'usCity', 'usState', 'usZip', 'countryOfCitizenship'],
-  1: ['schoolName', 'schoolStreet', 'schoolCity', 'schoolState', 'schoolZip', 'schoolPhone'],
-  2: ['dsoName', 'dsoPhone'],
-  3: ['firstEntryDate', 'currentEntryDate'],
+  0: ['firstName', 'lastName', 'countryOfCitizenship'],
+  1: ['usStreet', 'usCity', 'usState', 'usZip'],
+  2: ['schoolName', 'schoolStreet', 'schoolCity', 'schoolState', 'schoolZip', 'schoolPhone'],
+  3: ['dsoName', 'dsoPhone'],
+  4: ['currentEntryDate'],
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -55,11 +63,15 @@ const REQUIRED_BY_STEP = {
 function blankData() {
   return {
     firstName: '', middleInitial: '', lastName: '',
+    countryOfCitizenship: '', taxYear: '2025',
+    passportCountry: '', passportNumber: '',
     usStreet: '', usCity: '', usState: '', usZip: '',
-    countryOfCitizenship: '', taxYear: '2025', visaType: 'F-1',
-    firstEntryDate: '', currentEntryDate: '',
+    foreignAddress: '',
     schoolName: '', schoolStreet: '', schoolCity: '', schoolState: '', schoolZip: '', schoolPhone: '',
     dsoName: '', dsoStreet: '', dsoCity: '', dsoState: '', dsoZip: '', dsoPhone: '',
+    currentEntryDate: '',
+    daysIn2025: '', daysIn2024: '', daysIn2023: '', daysToExclude: '',
+    line12Answer: '', line13Answer: '', line14Explanation: '',
   }
 }
 
@@ -106,13 +118,13 @@ function formatDate(raw) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Sub-components (at module scope to prevent remounting on re-render)
+// Sub-components
 // ─────────────────────────────────────────────────────────────────────────────
 
 const inputBase =
   'w-full rounded-xl border border-white/20 bg-white/5 px-4 py-3 text-sm text-slate-100 placeholder:text-slate-500 focus:border-blue-500/50 focus:outline-none transition-colors'
 
-function Field({ name, placeholder, type = 'text', readOnly = false, value, onChange, error, required, helper, maxLength }) {
+function Field({ name, placeholder, type = 'text', value, onChange, error, required, helper, maxLength }) {
   return (
     <div>
       <label className="mb-1.5 block text-xs font-medium text-slate-400">
@@ -124,12 +136,37 @@ function Field({ name, placeholder, type = 'text', readOnly = false, value, onCh
         value={value}
         onChange={onChange}
         placeholder={placeholder}
-        readOnly={readOnly}
         maxLength={maxLength}
-        className={`${inputBase} ${readOnly ? 'cursor-not-allowed opacity-50' : ''} ${
-          error ? 'border-red-500/60 focus:border-red-500/60' : ''
-        }`}
+        className={`${inputBase} ${error ? 'border-red-500/60 focus:border-red-500/60' : ''}`}
       />
+      {error  && <p className="mt-1 text-xs text-red-400">{error}</p>}
+      {!error && helper && <p className="mt-1 text-xs text-slate-500">{helper}</p>}
+    </div>
+  )
+}
+
+function YesNoField({ label, name, value, onChange, error, required, helper }) {
+  return (
+    <div>
+      <label className="mb-2 block text-xs font-medium text-slate-400">
+        {label}
+        {required && <span className="ml-1 text-red-400">*</span>}
+      </label>
+      <div className="flex gap-6">
+        {['yes', 'no'].map((opt) => (
+          <label key={opt} className="flex cursor-pointer items-center gap-2">
+            <input
+              type="radio"
+              name={name}
+              value={opt}
+              checked={value === opt}
+              onChange={() => onChange(opt)}
+              className="h-4 w-4 accent-blue-500"
+            />
+            <span className="text-sm text-slate-200 capitalize">{opt}</span>
+          </label>
+        ))}
+      </div>
       {error  && <p className="mt-1 text-xs text-red-400">{error}</p>}
       {!error && helper && <p className="mt-1 text-xs text-slate-500">{helper}</p>}
     </div>
@@ -162,10 +199,10 @@ function SummaryCard({ title, icon, rows, onEdit }) {
         </button>
       </div>
       <dl className="space-y-2">
-        {rows.map(([label, value]) => (
+        {rows.map(([label, val]) => (
           <div key={label}>
             <dt className="text-xs text-slate-500">{label}</dt>
-            <dd className="mt-0.5 break-words text-xs font-medium text-slate-200">{value || '—'}</dd>
+            <dd className="mt-0.5 break-words text-xs font-medium text-slate-200">{val || '—'}</dd>
           </div>
         ))}
       </dl>
@@ -174,7 +211,7 @@ function SummaryCard({ title, icon, rows, onEdit }) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Success screen (shown after PDF downloads)
+// Success screen
 // ─────────────────────────────────────────────────────────────────────────────
 
 function SuccessScreen({ taxYear, onReset, onDownloadAgain }) {
@@ -190,7 +227,6 @@ function SuccessScreen({ taxYear, onReset, onDownloadAgain }) {
 
   return (
     <div className="step-enter mx-auto max-w-2xl space-y-6 py-8">
-      {/* Checkmark */}
       <div className="flex flex-col items-center gap-3 text-center">
         <div className="flex h-20 w-20 items-center justify-center rounded-full border-4 border-green-500/30 bg-green-500/10">
           <svg className="h-10 w-10 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
@@ -205,11 +241,9 @@ function SuccessScreen({ taxYear, onReset, onDownloadAgain }) {
         </p>
       </div>
 
-      {/* What's next */}
       <h2 className="text-sm font-semibold uppercase tracking-widest text-slate-500">What's next?</h2>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        {/* Card 1 */}
         <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
           <div className="mb-2 text-2xl">✍️</div>
           <h3 className="text-sm font-semibold text-white">Sign & Date Your Form</h3>
@@ -218,7 +252,6 @@ function SuccessScreen({ taxYear, onReset, onDownloadAgain }) {
           </p>
         </div>
 
-        {/* Card 2 */}
         <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
           <div className="mb-2 text-2xl">📬</div>
           <h3 className="mb-2 text-sm font-semibold text-white">Mail to the IRS</h3>
@@ -235,7 +268,6 @@ function SuccessScreen({ taxYear, onReset, onDownloadAgain }) {
           </button>
         </div>
 
-        {/* Card 3 */}
         <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
           <div className="mb-2 text-2xl">📅</div>
           <h3 className="text-sm font-semibold text-white">Filing Deadline</h3>
@@ -247,12 +279,10 @@ function SuccessScreen({ taxYear, onReset, onDownloadAgain }) {
         </div>
       </div>
 
-      {/* Privacy note */}
       <p className="rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-center text-xs leading-5 text-slate-500">
         🔒 Your data was not stored on our servers. It existed only in your browser session.
       </p>
 
-      {/* Action buttons */}
       <div className="flex flex-col gap-3 sm:flex-row sm:justify-center">
         <button
           type="button"
@@ -291,12 +321,11 @@ export default function Form8843Page() {
   const [genError, setGenError]                   = useState('')
   const [lastFilledBytes, setLastFilledBytes]     = useState(null)
 
-  // Auto-save on every field change
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(formData))
   }, [formData])
 
-  // ── Field setters — clear error on change ─────────────────────────────────
+  // ── Field setters ─────────────────────────────────────────────────────────
 
   const set = (field) => (e) => {
     setFormData((prev) => ({ ...prev, [field]: e.target.value }))
@@ -327,7 +356,18 @@ export default function Form8843Page() {
     if (errors[f]) setErrors((p) => ({ ...p, [f]: undefined }))
   }
 
-  // ── Validation ─────────────────────────────────────────────────────────────
+  const setDays = (f) => (e) => {
+    const v = e.target.value.replace(/\D/g, '').slice(0, 3)
+    setFormData((p) => ({ ...p, [f]: v }))
+    if (errors[f]) setErrors((p) => ({ ...p, [f]: undefined }))
+  }
+
+  const setRadio = (f, v) => {
+    setFormData((p) => ({ ...p, [f]: v }))
+    setErrors((p) => ({ ...p, [f]: undefined }))
+  }
+
+  // ── Validation ────────────────────────────────────────────────────────────
 
   function validate(stepIndex) {
     const next = {}
@@ -345,6 +385,11 @@ export default function Form8843Page() {
       else if (formData.lastName.length > 25)      next.lastName = 'Max 25 characters'
       else if (!letters.test(formData.lastName))   next.lastName = 'Letters only (hyphens and apostrophes allowed)'
 
+      if (!formData.countryOfCitizenship.trim())   next.countryOfCitizenship = 'Required'
+      else if (!letters.test(formData.countryOfCitizenship)) next.countryOfCitizenship = 'Letters only'
+    }
+
+    if (stepIndex === 1) {
       if (!formData.usStreet.trim())               next.usStreet = 'Required'
       else if (formData.usStreet.length > 35)      next.usStreet = 'Max 35 characters'
 
@@ -356,12 +401,9 @@ export default function Form8843Page() {
 
       if (!formData.usZip)                         next.usZip = 'Required'
       else if (!/^\d{5}$/.test(formData.usZip))   next.usZip = 'Must be exactly 5 digits'
-
-      if (!formData.countryOfCitizenship.trim())   next.countryOfCitizenship = 'Required'
-      else if (!letters.test(formData.countryOfCitizenship)) next.countryOfCitizenship = 'Letters only'
     }
 
-    if (stepIndex === 1) {
+    if (stepIndex === 2) {
       if (!formData.schoolName.trim())             next.schoolName = 'Required'
       else if (formData.schoolName.length > 60)    next.schoolName = 'Max 60 characters'
 
@@ -372,7 +414,7 @@ export default function Form8843Page() {
       else if (formData.schoolCity.length > 22)    next.schoolCity = 'Max 22 characters'
 
       if (!formData.schoolState)                   next.schoolState = 'Required'
-      else if (!/^[A-Z]{2}$/.test(formData.schoolState)) next.schoolState = '2-letter state code (e.g. CA)'
+      else if (!/^[A-Z]{2}$/.test(formData.schoolState)) next.schoolState = '2-letter state code'
 
       if (!formData.schoolZip)                     next.schoolZip = 'Required'
       else if (!/^\d{5}$/.test(formData.schoolZip)) next.schoolZip = 'Must be exactly 5 digits'
@@ -382,7 +424,7 @@ export default function Form8843Page() {
         next.schoolPhone = 'Enter full 10-digit number, e.g. (310) 825-4321'
     }
 
-    if (stepIndex === 2) {
+    if (stepIndex === 3) {
       if (!formData.dsoName.trim())                next.dsoName = 'Required'
       else if (formData.dsoName.length > 50)       next.dsoName = 'Max 50 characters'
 
@@ -391,9 +433,8 @@ export default function Form8843Page() {
         next.dsoPhone = 'Enter full 10-digit number, e.g. (310) 825-0000'
     }
 
-    if (stepIndex === 3) {
+    if (stepIndex === 4) {
       const today   = new Date(); today.setHours(0, 0, 0, 0)
-      const minDate = new Date(2019, 0, 1)
       const parse   = (str) => {
         if (!/^\d{2}\/\d{2}\/\d{4}$/.test(str)) return null
         const [m, d, y] = str.split('/').map(Number)
@@ -401,29 +442,36 @@ export default function Form8843Page() {
         return dt.getFullYear() === y && dt.getMonth() === m - 1 && dt.getDate() === d ? dt : null
       }
 
-      const firstDate = parse(formData.firstEntryDate)
-      if (!formData.firstEntryDate.trim())         next.firstEntryDate = 'Required'
-      else if (!firstDate)                         next.firstEntryDate = 'Enter a valid date as MM/DD/YYYY'
-      else if (firstDate < minDate)                next.firstEntryDate = 'Date must be 01/01/2019 or later'
-      else if (firstDate > today)                  next.firstEntryDate = 'Date cannot be in the future'
-
       const curDate = parse(formData.currentEntryDate)
       if (!formData.currentEntryDate.trim())       next.currentEntryDate = 'Required'
       else if (!curDate)                           next.currentEntryDate = 'Enter a valid date as MM/DD/YYYY'
       else if (curDate > today)                    next.currentEntryDate = 'Date cannot be in the future'
-      else if (firstDate && !next.firstEntryDate && curDate < firstDate)
-        next.currentEntryDate = 'Must be on or after your first U.S. entry date'
+
+      const validateDays = (f, label) => {
+        if (!formData[f]?.trim()) return
+        const n = parseInt(formData[f], 10)
+        if (isNaN(n) || n < 0 || n > 366) next[f] = `${label} must be 0–366`
+      }
+      validateDays('daysIn2025', 'Days')
+      validateDays('daysIn2024', 'Days')
+      validateDays('daysIn2023', 'Days')
+      validateDays('daysToExclude', 'Days')
+
+      if (!formData.line12Answer) next.line12Answer = 'Please select Yes or No'
+      if (!formData.line13Answer) next.line13Answer = 'Please select Yes or No'
+      if (formData.line13Answer === 'yes' && !formData.line14Explanation?.trim())
+        next.line14Explanation = 'Required when Line 13 is Yes'
     }
 
     setErrors(next)
     return Object.keys(next).length === 0
   }
 
-  // ── Navigation ─────────────────────────────────────────────────────────────
+  // ── Navigation ────────────────────────────────────────────────────────────
 
   function handleNext() {
     if (!validate(step)) return
-    if (step === 3) { setShowReview(true) }
+    if (step === 4) { setShowReview(true) }
     else            { setStep((s) => s + 1); setErrors({}) }
   }
 
@@ -439,7 +487,7 @@ export default function Form8843Page() {
     setStep(n)
   }
 
-  // ── Generate ───────────────────────────────────────────────────────────────
+  // ── Generate ──────────────────────────────────────────────────────────────
 
   async function generatePDF() {
     const res = await fetch('/form8843.pdf')
@@ -500,7 +548,6 @@ export default function Form8843Page() {
     localStorage.removeItem(STORAGE_KEY)
   }
 
-  // fp() builds the 4 common props for a named field
   const fp = (name) => ({
     value:    formData[name] ?? '',
     onChange: set(name),
@@ -508,11 +555,11 @@ export default function Form8843Page() {
     required: REQUIRED_BY_STEP[step]?.includes(name) ?? false,
   })
 
-  // ── Render ─────────────────────────────────────────────────────────────────
+  // ── Render ────────────────────────────────────────────────────────────────
 
-  const progressPct = showReview ? 100 : ((step + 1) / 4) * 100
+  const TOTAL_STEPS = STEP_META.length
+  const progressPct = showReview ? 100 : ((step + 1) / TOTAL_STEPS) * 100
 
-  // Full-page success screen
   if (success) {
     return (
       <div className="relative min-h-screen bg-[#0f172a] text-slate-100">
@@ -541,7 +588,6 @@ export default function Form8843Page() {
         .step-enter { animation: slideIn 0.22s ease-out; }
       `}</style>
 
-      {/* Background blobs */}
       <div className="pointer-events-none fixed inset-0 overflow-hidden">
         <div className="absolute -left-32 top-20  h-96 w-96 rounded-full bg-blue-600/15   blur-3xl" />
         <div className="absolute -right-24 top-40 h-96 w-96 rounded-full bg-violet-600/15 blur-3xl" />
@@ -550,9 +596,8 @@ export default function Form8843Page() {
 
       <div className="relative z-10 flex min-h-screen">
 
-        {/* ── LEFT SIDEBAR (desktop only) ───────────────────────────────── */}
+        {/* ── LEFT SIDEBAR (desktop) ────────────────────────────────────────── */}
         <aside className="hidden lg:flex w-72 flex-shrink-0 flex-col border-r border-white/10 bg-white/[0.02] px-6 py-8">
-          {/* Logo */}
           <Link to="/" className="mb-10 flex items-center gap-3">
             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-violet-500 text-sm font-bold text-white shadow-lg shadow-blue-500/30">
               F1
@@ -560,12 +605,10 @@ export default function Form8843Page() {
             <span className="text-base font-semibold text-slate-100">F1 Tax Helper</span>
           </Link>
 
-          {/* Form title */}
           <p className="mb-4 text-xs font-semibold uppercase tracking-widest text-slate-500">
             Form 8843 — Tax Year 2025
           </p>
 
-          {/* Step indicators */}
           <div className="space-y-1">
             {STEP_META.map((meta, i) => {
               const isDone    = showReview || i < step
@@ -578,7 +621,7 @@ export default function Form8843Page() {
                   }`}
                 >
                   <div className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] font-bold ${
-                    isDone    ? 'bg-green-500/20 text-green-400'
+                    isDone      ? 'bg-green-500/20 text-green-400'
                     : isCurrent ? 'bg-gradient-to-br from-blue-500 to-violet-500 text-white'
                     : 'bg-white/10 text-slate-500'
                   }`}>
@@ -594,7 +637,6 @@ export default function Form8843Page() {
               )
             })}
 
-            {/* Review step */}
             <div className={`flex items-start gap-3 rounded-xl p-3 transition-colors ${showReview ? 'bg-white/10' : 'opacity-35'}`}>
               <div className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] font-bold ${
                 showReview ? 'bg-gradient-to-br from-blue-500 to-violet-500 text-white' : 'bg-white/10 text-slate-500'
@@ -610,7 +652,6 @@ export default function Form8843Page() {
             </div>
           </div>
 
-          {/* IRS notice */}
           <div className="mt-auto rounded-xl border border-yellow-500/20 bg-yellow-500/10 p-4">
             <p className="text-[11px] leading-5 text-yellow-400/80">
               Form 8843 is an informational statement — not a tax return. F-1 students with no US income must still file it by the tax deadline.
@@ -618,7 +659,7 @@ export default function Form8843Page() {
           </div>
         </aside>
 
-        {/* ── MAIN CONTENT ──────────────────────────────────────────────── */}
+        {/* ── MAIN CONTENT ────────────────────────────────────────────────── */}
         <div className="flex flex-1 flex-col overflow-hidden">
 
           {/* Topbar */}
@@ -645,7 +686,6 @@ export default function Form8843Page() {
               </div>
             </div>
 
-            {/* Progress bar */}
             <div className="h-1 w-full bg-white/5">
               <div
                 className="h-full bg-gradient-to-r from-blue-500 to-violet-500 transition-all duration-500"
@@ -706,7 +746,7 @@ export default function Form8843Page() {
                 )}
               </div>
 
-              {/* Mobile step bar — hidden on lg (sidebar handles it there) */}
+              {/* Mobile step bar */}
               <div className="mb-6 lg:hidden">
                 <div className="flex gap-1">
                   {STEP_META.map((m, i) => (
@@ -731,7 +771,7 @@ export default function Form8843Page() {
                 </div>
               </div>
 
-              {/* ── STEP 0: Your Information ───────────────────────────── */}
+              {/* ── STEP 0: Your Information ─────────────────────────────────── */}
               {step === 0 && !showReview && (
                 <div key="step0" className="step-enter space-y-5">
                   <div className="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-xl">
@@ -763,9 +803,44 @@ export default function Form8843Page() {
                         helper="As shown on your passport"
                         {...fp('lastName')}
                       />
+                      <Field
+                        name="countryOfCitizenship" placeholder="e.g. India"
+                        helper="Country that issued your passport"
+                        {...fp('countryOfCitizenship')}
+                      />
+                      <div>
+                        <label className="mb-1.5 block text-xs font-medium text-slate-400">Tax Year</label>
+                        <div className="inline-flex h-11 items-center rounded-xl border border-blue-500/30 bg-blue-500/10 px-4">
+                          <span className="text-sm font-bold text-blue-300">2025</span>
+                        </div>
+                      </div>
                     </div>
                   </div>
 
+                  <div className="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-xl">
+                    <h2 className="mb-1 text-sm font-semibold text-white">Passport Details</h2>
+                    <p className="mb-4 text-xs text-slate-500">Optional — fills Lines 3a and 3b of Form 8843</p>
+                    <div className="space-y-4">
+                      <Field
+                        name="passportCountry" placeholder="e.g. India"
+                        helper="Country that issued your passport"
+                        value={formData.passportCountry} onChange={set('passportCountry')}
+                        error={errors.passportCountry} required={false}
+                      />
+                      <Field
+                        name="passportNumber" placeholder="e.g. A1234567"
+                        helper="As shown on the bio-data page of your passport"
+                        value={formData.passportNumber} onChange={set('passportNumber')}
+                        error={errors.passportNumber} required={false}
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* ── STEP 1: Your Address ──────────────────────────────────────── */}
+              {step === 1 && !showReview && (
+                <div key="step1" className="step-enter space-y-5">
                   <div className="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-xl">
                     <h2 className="mb-4 text-sm font-semibold text-white">US Mailing Address</h2>
                     <div className="space-y-4">
@@ -787,25 +862,33 @@ export default function Form8843Page() {
                           helper="5-digit ZIP"
                         />
                       </div>
-                      <Field
-                        name="countryOfCitizenship" placeholder="e.g. India"
-                        helper="Country that issued your passport"
-                        {...fp('countryOfCitizenship')}
+                    </div>
+                  </div>
+
+                  <div className="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-xl">
+                    <h2 className="mb-1 text-sm font-semibold text-white">Foreign Address</h2>
+                    <p className="mb-4 text-xs text-slate-500">Optional — your address in your home country (Line 7 of Form 8843)</p>
+                    <div>
+                      <label className="mb-1.5 block text-xs font-medium text-slate-400">
+                        {LABELS.foreignAddress}
+                      </label>
+                      <textarea
+                        value={formData.foreignAddress}
+                        onChange={set('foreignAddress')}
+                        placeholder="e.g. 45 Park Street, Mumbai 400001, India"
+                        rows={3}
+                        maxLength={200}
+                        className="w-full rounded-xl border border-white/20 bg-white/5 px-4 py-3 text-sm text-slate-100 placeholder:text-slate-500 focus:border-blue-500/50 focus:outline-none transition-colors resize-none"
                       />
-                      <div>
-                        <label className="mb-1.5 block text-xs font-medium text-slate-400">Tax Year</label>
-                        <div className="inline-flex h-11 items-center rounded-xl border border-blue-500/30 bg-blue-500/10 px-4">
-                          <span className="text-sm font-bold text-blue-300">2025</span>
-                        </div>
-                      </div>
+                      <p className="mt-1 text-xs text-slate-500">Street, city, country</p>
                     </div>
                   </div>
                 </div>
               )}
 
-              {/* ── STEP 1: Your School ────────────────────────────────── */}
-              {step === 1 && !showReview && (
-                <div key="step1" className="step-enter space-y-5">
+              {/* ── STEP 2: Your School ───────────────────────────────────────── */}
+              {step === 2 && !showReview && (
+                <div key="step2" className="step-enter space-y-5">
                   <InfoBanner>
                     F-1 students complete Part III of Form 8843. Enter your school's official information exactly as it appears on your I-20.
                   </InfoBanner>
@@ -844,9 +927,9 @@ export default function Form8843Page() {
                 </div>
               )}
 
-              {/* ── STEP 2: Your DSO ───────────────────────────────────── */}
-              {step === 2 && !showReview && (
-                <div key="step2" className="step-enter space-y-5">
+              {/* ── STEP 3: Your DSO ──────────────────────────────────────────── */}
+              {step === 3 && !showReview && (
+                <div key="step3" className="step-enter space-y-5">
                   <InfoBanner>
                     Your DSO (Designated School Official) is listed on your I-20 document. Enter their contact information as it appears there.
                   </InfoBanner>
@@ -899,11 +982,11 @@ export default function Form8843Page() {
                 </div>
               )}
 
-              {/* ── STEP 3: Visa & Dates ───────────────────────────────── */}
-              {step === 3 && !showReview && (
-                <div key="step3" className="step-enter space-y-5">
+              {/* ── STEP 4: Visa & Presence ───────────────────────────────────── */}
+              {step === 4 && !showReview && (
+                <div key="step4" className="step-enter space-y-5">
                   <div className="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-xl">
-                    <h2 className="mb-4 text-sm font-semibold text-white">Visa Information</h2>
+                    <h2 className="mb-4 text-sm font-semibold text-white">Visa & Entry</h2>
                     <div className="space-y-4">
                       <div>
                         <label className="mb-1.5 block text-xs font-medium text-slate-400">Visa Type</label>
@@ -912,21 +995,82 @@ export default function Form8843Page() {
                         </div>
                       </div>
                       <Field
-                        name="firstEntryDate" placeholder="MM/DD/YYYY"
-                        helper="Found on your I-94 at cbp.dhs.gov — your very first entry to the US ever"
-                        {...fp('firstEntryDate')} onChange={setDate('firstEntryDate')}
-                      />
-                      <Field
                         name="currentEntryDate" placeholder="MM/DD/YYYY"
-                        helper="Your most recent entry to the US"
+                        helper="Your most recent U.S. entry — check your I-94 at cbp.dhs.gov"
                         {...fp('currentEntryDate')} onChange={setDate('currentEntryDate')}
                       />
+                    </div>
+                  </div>
+
+                  <div className="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-xl">
+                    <h2 className="mb-1 text-sm font-semibold text-white">Days Present in the U.S.</h2>
+                    <p className="mb-4 text-xs text-slate-500">Optional — Part I, Line 4. F-1 students are typically exempt and leave these blank.</p>
+                    <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                      {['daysIn2025', 'daysIn2024', 'daysIn2023', 'daysToExclude'].map((f) => (
+                        <div key={f}>
+                          <label className="mb-1.5 block text-xs font-medium text-slate-400">
+                            {f === 'daysToExclude' ? 'Exempt Days' : LABELS[f].replace('Days Present in U.S. in ', '')}
+                          </label>
+                          <input
+                            type="text"
+                            inputMode="numeric"
+                            value={formData[f]}
+                            onChange={setDays(f)}
+                            placeholder="0"
+                            maxLength={3}
+                            className={`${inputBase} ${errors[f] ? 'border-red-500/60' : ''}`}
+                          />
+                          {errors[f] && <p className="mt-1 text-xs text-red-400">{errors[f]}</p>}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-xl">
+                    <h2 className="mb-1 text-sm font-semibold text-white">Status Questions</h2>
+                    <p className="mb-4 text-xs text-slate-500">Part III, Lines 12–14. Most F-1 students answer No to both.</p>
+                    <div className="space-y-5">
+                      <YesNoField
+                        name="line12Answer"
+                        label="Line 12: Have you previously applied to be a lawful permanent resident of the United States, or ever filed Form I-508?"
+                        value={formData.line12Answer}
+                        onChange={(v) => setRadio('line12Answer', v)}
+                        error={errors.line12Answer}
+                        required
+                        helper="Answer Yes only if you have applied for a green card"
+                      />
+                      <YesNoField
+                        name="line13Answer"
+                        label="Line 13: Have you ever been exempt from counting days of presence in the U.S. as a student, teacher, or trainee before the current year?"
+                        value={formData.line13Answer}
+                        onChange={(v) => setRadio('line13Answer', v)}
+                        error={errors.line13Answer}
+                        required
+                        helper="Answer Yes if you previously claimed exempt status on an earlier Form 8843"
+                      />
+                      {formData.line13Answer === 'yes' && (
+                        <div>
+                          <label className="mb-1.5 block text-xs font-medium text-slate-400">
+                            {LABELS.line14Explanation}
+                            <span className="ml-1 text-red-400">*</span>
+                          </label>
+                          <textarea
+                            value={formData.line14Explanation}
+                            onChange={set('line14Explanation')}
+                            placeholder="Explain the years and visa types for your prior exempt status..."
+                            rows={3}
+                            maxLength={300}
+                            className={`w-full rounded-xl border border-white/20 bg-white/5 px-4 py-3 text-sm text-slate-100 placeholder:text-slate-500 focus:border-blue-500/50 focus:outline-none transition-colors resize-none ${errors.line14Explanation ? 'border-red-500/60' : ''}`}
+                          />
+                          {errors.line14Explanation && <p className="mt-1 text-xs text-red-400">{errors.line14Explanation}</p>}
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
               )}
 
-              {/* ── REVIEW SCREEN ──────────────────────────────────────── */}
+              {/* ── REVIEW SCREEN ─────────────────────────────────────────────── */}
               {showReview && (
                 <div key="review" className="step-enter space-y-4">
                   <p className="text-sm text-slate-400">
@@ -938,15 +1082,25 @@ export default function Form8843Page() {
                     onEdit={() => goToStep(0)}
                     rows={[
                       ['Full Name', `${formData.firstName}${formData.middleInitial ? ' ' + formData.middleInitial + '.' : ''} ${formData.lastName}`.trim()],
-                      ['US Address', [formData.usStreet, formData.usCity, `${formData.usState} ${formData.usZip}`].filter(Boolean).join(', ')],
                       ['Country of Citizenship', formData.countryOfCitizenship],
+                      ['Passport Country', formData.passportCountry || '—'],
+                      ['Passport Number', formData.passportNumber || '—'],
                       ['Tax Year', formData.taxYear || '2025'],
                     ]}
                   />
 
                   <SummaryCard
-                    title="School Information" icon="🏫"
+                    title="Address" icon="🏠"
                     onEdit={() => goToStep(1)}
+                    rows={[
+                      ['US Address', [formData.usStreet, formData.usCity, `${formData.usState} ${formData.usZip}`].filter(Boolean).join(', ')],
+                      ['Foreign Address', formData.foreignAddress || '—'],
+                    ]}
+                  />
+
+                  <SummaryCard
+                    title="School Information" icon="🏫"
+                    onEdit={() => goToStep(2)}
                     rows={[
                       ['School Name', formData.schoolName],
                       ['School Address', [formData.schoolStreet, formData.schoolCity, `${formData.schoolState} ${formData.schoolZip}`].filter(Boolean).join(', ')],
@@ -955,18 +1109,31 @@ export default function Form8843Page() {
                   />
 
                   <SummaryCard
-                    title="DSO & Visa" icon="📋"
-                    onEdit={() => goToStep(2)}
+                    title="DSO Information" icon="📋"
+                    onEdit={() => goToStep(3)}
                     rows={[
                       ['DSO Name', formData.dsoName],
                       ['DSO Phone', formData.dsoPhone],
-                      ['Visa Type', 'F-1 Student Visa'],
-                      ['First U.S. Entry', formData.firstEntryDate],
-                      ['Most Recent Entry', formData.currentEntryDate],
+                      ['DSO Address', [formData.dsoStreet, formData.dsoCity, `${formData.dsoState} ${formData.dsoZip}`].filter(Boolean).join(', ') || '—'],
                     ]}
                   />
 
-                  {/* Generate area */}
+                  <SummaryCard
+                    title="Visa & Presence" icon="✈️"
+                    onEdit={() => goToStep(4)}
+                    rows={[
+                      ['Visa Type', 'F-1 Student'],
+                      ['Most Recent U.S. Entry', formData.currentEntryDate],
+                      ['Days Present 2025', formData.daysIn2025 || '—'],
+                      ['Days Present 2024', formData.daysIn2024 || '—'],
+                      ['Days Present 2023', formData.daysIn2023 || '—'],
+                      ['Exempt Days', formData.daysToExclude || '—'],
+                      ['Line 12 (Green card application)', formData.line12Answer?.toUpperCase() || '—'],
+                      ['Line 13 (Prior exempt status)', formData.line13Answer?.toUpperCase() || '—'],
+                      ...(formData.line13Answer === 'yes' ? [['Line 14 Explanation', formData.line14Explanation]] : []),
+                    ]}
+                  />
+
                   <div className="pt-2">
                     <button
                       type="button"
@@ -1017,7 +1184,7 @@ export default function Form8843Page() {
                     onClick={handleNext}
                     className="rounded-xl bg-gradient-to-r from-blue-500 to-violet-500 px-6 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-600/20 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg"
                   >
-                    {step === 3 ? 'Review →' : 'Next →'}
+                    {step === 4 ? 'Review →' : 'Next →'}
                   </button>
                 )}
               </div>
