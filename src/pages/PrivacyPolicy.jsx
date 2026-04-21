@@ -20,10 +20,10 @@ export default function PrivacyPolicy() {
           For specific questions about how your data is handled, please contact
           us at{' '}
           <a
-            href="mailto:work.kiran01@gmail.com"
+            href="mailto:support@f1taxhelper.com"
             className="text-primary underline underline-offset-2"
           >
-            work.kiran01@gmail.com
+            support@f1taxhelper.com
           </a>
           .
         </p>

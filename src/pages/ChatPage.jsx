@@ -59,59 +59,29 @@ export default function ChatPage() {
     if (window.innerWidth < 1024) setSidebarOpen(false)
   }, [])
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      // We only want to save the active conversation, so if a past one is selected, do nothing
-      if (document.getElementById('past-conversation-view')) return
+  const handleMessagesChange = useCallback((msgs) => {
+    if (selectedConversation) return
+    const firstUser = msgs.find(m => m.role === 'user')
+    const lastMsg = msgs[msgs.length - 1]
+    if (!firstUser || lastMsg?.role !== 'assistant' || !lastMsg.content) return
 
-      const chatContainer = document.querySelector('.flex-1.space-y-4.overflow-y-auto.p-4')
-      if (!chatContainer) return
-      
-      const messageNodes = chatContainer.querySelectorAll('.flex.justify-start, .flex.justify-end')
-      if (!messageNodes || messageNodes.length === 0) return
-
-      const activeMsgs = Array.from(messageNodes).map((node, i) => {
-        const role = node.classList.contains('justify-end') ? 'user' : 'assistant'
-        const contentNode = node.querySelector('.whitespace-pre-wrap')
-        return {
-          id: i + 1,
-          role,
-          content: contentNode ? contentNode.innerText : ''
-        }
-      }).filter(m => m.content)
-
-      if (activeMsgs.length > 0) {
-        const firstUser = activeMsgs.find(m => m.role === 'user')
-        const lastMsg = activeMsgs[activeMsgs.length - 1]
-
-        // Only save when the AI has responded
-        if (firstUser && lastMsg.role === 'assistant') {
-          const currentConvs = loadConversations()
-          const id = sessionId.current
-          const title = firstUser.content.slice(0, 30)
-
-          const existingIdx = currentConvs.findIndex(c => c.id === id)
-          const newConv = {
-            id,
-            title,
-            timestamp: existingIdx >= 0 ? currentConvs[existingIdx].timestamp : Date.now(),
-            messages: activeMsgs
-          }
-
-          if (existingIdx >= 0) {
-            currentConvs[existingIdx] = newConv
-          } else {
-            currentConvs.unshift(newConv)
-          }
-
-          localStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(currentConvs))
-          setConversations(currentConvs)
-        }
+    const id = sessionId.current
+    const title = firstUser.content.slice(0, 40)
+    setConversations(prev => {
+      const existingIdx = prev.findIndex(c => c.id === id)
+      const newConv = {
+        id,
+        title,
+        timestamp: existingIdx >= 0 ? prev[existingIdx].timestamp : Date.now(),
+        messages: msgs,
       }
-    }, 1000)
-
-    return () => clearInterval(interval)
-  }, [])
+      const next = existingIdx >= 0
+        ? prev.map((c, i) => i === existingIdx ? newConv : c)
+        : [newConv, ...prev]
+      localStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(next))
+      return next
+    })
+  }, [selectedConversation])
 
   return (
     <div className="relative flex h-screen flex-col overflow-hidden bg-[#0f172a] text-slate-100">
@@ -124,7 +94,7 @@ export default function ChatPage() {
       <header className="sticky top-0 z-20 border-b border-white/10 bg-slate-900/50 backdrop-blur-xl">
         <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-4 sm:px-6">
           <button
-            onClick={() => navigate('/results')}
+            onClick={() => navigate('/questionnaire')}
             className="text-sm font-medium text-slate-300 transition-colors hover:text-slate-100"
           >
             ← Back to my results
@@ -239,6 +209,7 @@ export default function ChatPage() {
                 initialContext={initialContext}
                 navigationKey={navKey}
                 onOpenChecklist={() => setChecklistOpen(true)}
+                onMessagesChange={handleMessagesChange}
               />
             </div>
           </div>

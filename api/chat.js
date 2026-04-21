@@ -1,5 +1,22 @@
 export const config = { runtime: 'edge' }
 
+// Simple in-memory rate limiter: 20 requests per user per 60 seconds
+const rateLimitMap = new Map()
+const RATE_LIMIT = 20
+const RATE_WINDOW_MS = 60_000
+
+function isRateLimited(key) {
+  const now = Date.now()
+  const entry = rateLimitMap.get(key) ?? { count: 0, windowStart: now }
+  if (now - entry.windowStart > RATE_WINDOW_MS) {
+    rateLimitMap.set(key, { count: 1, windowStart: now })
+    return false
+  }
+  if (entry.count >= RATE_LIMIT) return true
+  rateLimitMap.set(key, { count: entry.count + 1, windowStart: entry.windowStart })
+  return false
+}
+
 const SYSTEM_PROMPT = `You are Alex, a friendly F-1 tax assistant who helps international students understand US taxes.
 
 Speak like a helpful, knowledgeable friend — not a formal tax advisor.
@@ -36,6 +53,14 @@ export default async function handler(req) {
     return new Response('Method Not Allowed', { status: 405 })
   }
 
+  const ip = req.headers.get('x-forwarded-for')?.split(',')[0].trim() ?? 'unknown'
+  if (isRateLimited(ip)) {
+    return new Response(JSON.stringify({ error: 'Too many requests. Please wait a moment.' }), {
+      status: 429,
+      headers: { 'Content-Type': 'application/json', 'Retry-After': '60' },
+    })
+  }
+
   // Reject requests from unknown origins (browser always sends Origin on cross-origin requests)
   const origin = req.headers.get('origin')
   if (origin && !/^https?:\/\/(localhost(:\d+)?|[^/]*\.vercel\.app|f1taxhelper\.com)$/.test(origin)) {
@@ -46,6 +71,10 @@ export default async function handler(req) {
   try {
     const body = await req.json()
     if (!Array.isArray(body.messages)) throw new Error('invalid')
+    if (body.messages.length > 50) throw new Error('too many messages')
+    for (const m of body.messages) {
+      if (typeof m.content !== 'string' || m.content.length > 4000) throw new Error('message too long')
+    }
     messages = body.messages
   } catch {
     return new Response(JSON.stringify({ error: 'Invalid request body' }), {

@@ -224,10 +224,21 @@ const TREATY_COUNTRIES = {
 export default function QuestionnairePage() {
   const navigate = useNavigate()
   const { user } = useAuth()
-  const [currentStep, setCurrentStep] = useState(1)
+  const STORAGE_KEY = 'f1-questionnaire-progress'
+
+  const loadSaved = () => {
+    try {
+      const raw = sessionStorage.getItem(STORAGE_KEY)
+      return raw ? JSON.parse(raw) : null
+    } catch { return null }
+  }
+
+  const saved = loadSaved()
+
+  const [currentStep, setCurrentStep] = useState(saved?.currentStep ?? 1)
   const [isTransitioning, setIsTransitioning] = useState(false)
-  const [stopped, setStopped] = useState(false)
-  const [answers, setAnswers] = useState({
+  const [stopped, setStopped] = useState(saved?.stopped ?? false)
+  const [answers, setAnswers] = useState(saved?.answers ?? {
     isF1Visa: null,
     hasUSIncome: null,
     incomeTypes: [],
@@ -237,11 +248,30 @@ export default function QuestionnairePage() {
   })
 
   // Flags for personalized results
-  const [needsW2Flow, setNeedsW2Flow] = useState(false)
-  const [needs1042SFlow, setNeeds1042SFlow] = useState(false)
-  const [needs1099Flow, setNeeds1099Flow] = useState(false)
-  const [needsInvestmentFlow, setNeedsInvestmentFlow] = useState(false)
-  const [needsResidencyCheck, setNeedsResidencyCheck] = useState(false)
+  const [needsW2Flow, setNeedsW2Flow] = useState(saved?.needsW2Flow ?? false)
+  const [needs1042SFlow, setNeeds1042SFlow] = useState(saved?.needs1042SFlow ?? false)
+  const [needs1099Flow, setNeeds1099Flow] = useState(saved?.needs1099Flow ?? false)
+  const [needsInvestmentFlow, setNeedsInvestmentFlow] = useState(saved?.needsInvestmentFlow ?? false)
+  const [needsResidencyCheck, setNeedsResidencyCheck] = useState(saved?.needsResidencyCheck ?? false)
+
+  useEffect(() => {
+    sessionStorage.setItem(STORAGE_KEY, JSON.stringify({
+      currentStep, stopped, answers,
+      needsW2Flow, needs1042SFlow, needs1099Flow, needsInvestmentFlow, needsResidencyCheck,
+    }))
+  }, [currentStep, stopped, answers, needsW2Flow, needs1042SFlow, needs1099Flow, needsInvestmentFlow, needsResidencyCheck])
+
+  const handleStartOver = useCallback(() => {
+    sessionStorage.removeItem(STORAGE_KEY)
+    setCurrentStep(1)
+    setStopped(false)
+    setAnswers({ isF1Visa: null, hasUSIncome: null, incomeTypes: [], yearsInUS: null, country: null, residencyStatus: null })
+    setNeedsW2Flow(false)
+    setNeeds1042SFlow(false)
+    setNeeds1099Flow(false)
+    setNeedsInvestmentFlow(false)
+    setNeedsResidencyCheck(false)
+  }, [])
 
 
   const goToNextStep = useCallback(() => {
@@ -397,6 +427,7 @@ export default function QuestionnairePage() {
         },
       })
 
+      sessionStorage.removeItem(STORAGE_KEY)
       navigate('/results', {
         replace: true,
         state: { answers, actionItems },
@@ -474,7 +505,17 @@ export default function QuestionnairePage() {
                     <span className="text-sm text-slate-400">
                       Question {currentStep} of {totalSteps}
                     </span>
-                    <span className="text-sm text-slate-400">{progressPercentage}%</span>
+                    <div className="flex items-center gap-3">
+                      {currentStep > 1 && (
+                        <button
+                          onClick={handleStartOver}
+                          className="text-xs text-slate-500 underline underline-offset-2 transition-colors hover:text-slate-300"
+                        >
+                          Start over
+                        </button>
+                      )}
+                      <span className="text-sm text-slate-400">{progressPercentage}%</span>
+                    </div>
                   </div>
                   <div className="h-2 overflow-hidden rounded-full bg-white/10">
                     <div

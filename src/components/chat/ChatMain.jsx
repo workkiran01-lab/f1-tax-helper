@@ -1,7 +1,9 @@
-import { useEffect, useMemo, useState, useRef } from 'react'
+import { useEffect, useMemo, useState, useRef, useCallback } from 'react'
 import { Link } from 'react-router-dom'
-import { Bot, ClipboardList } from 'lucide-react'
+import { Bot, ClipboardList, Copy, Check } from 'lucide-react'
 import { IRSDisclaimer } from './IRSDisclaimer'
+
+const MAX_INPUT = 2000
 
 function buildWelcomeMessage(initialContext) {
   if (initialContext?.answers) {
@@ -34,7 +36,7 @@ const suggestedQuestions = [
   'What is the filing deadline?',
 ]
 
-export function ChatMain({ initialContext, navigationKey, onOpenChecklist }) {
+export function ChatMain({ initialContext, navigationKey, onOpenChecklist, onMessagesChange }) {
   const welcome = useMemo(
     () => buildWelcomeMessage(initialContext),
     [initialContext],
@@ -42,11 +44,23 @@ export function ChatMain({ initialContext, navigationKey, onOpenChecklist }) {
   const [messages, setMessages] = useState([welcome])
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+  const [copiedId, setCopiedId] = useState(null)
   const messagesEndRef = useRef(null)
+
+  const copyMessage = useCallback((id, content) => {
+    navigator.clipboard.writeText(content).then(() => {
+      setCopiedId(id)
+      setTimeout(() => setCopiedId(null), 2000)
+    })
+  }, [])
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
+
+  useEffect(() => {
+    onMessagesChange?.(messages)
+  }, [messages, onMessagesChange])
 
   useEffect(() => {
     setMessages([welcome])
@@ -192,7 +206,7 @@ export function ChatMain({ initialContext, navigationKey, onOpenChecklist }) {
                 </div>
               )}
               <div
-                className={`w-full rounded-2xl px-4 py-3 ${
+                className={`group/bubble relative w-full rounded-2xl px-4 py-3 ${
                   message.role === 'user'
                     ? 'rounded-tr-sm bg-gradient-to-r from-[#3b82f6] to-[#8b5cf6] text-white'
                     : 'rounded-tl-sm border border-white/10 bg-white/5 text-slate-200'
@@ -217,6 +231,15 @@ export function ChatMain({ initialContext, navigationKey, onOpenChecklist }) {
                     )
                   })}
                 </div>
+                {message.role === 'assistant' && message.content && (
+                  <button
+                    onClick={() => copyMessage(message.id, message.content)}
+                    className="absolute right-2 top-2 rounded-md p-1 text-slate-500 opacity-0 transition-opacity group-hover/bubble:opacity-100 hover:bg-white/10 hover:text-slate-300"
+                    aria-label="Copy message"
+                  >
+                    {copiedId === message.id ? <Check className="h-3.5 w-3.5 text-green-400" /> : <Copy className="h-3.5 w-3.5" />}
+                  </button>
+                )}
               </div>
               {message.role === 'assistant' && <IRSDisclaimer />}
               <p className="mt-1 px-1 text-xs text-slate-500">{timestamp}</p>
@@ -250,15 +273,23 @@ export function ChatMain({ initialContext, navigationKey, onOpenChecklist }) {
           ))}
         </div>
         <div className="flex items-center gap-2">
-          <input
-            type="text"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && !isLoading && handleSend()}
-            placeholder="Ask about tax treaties, deductions, deadlines..."
-            disabled={isLoading}
-            className="flex-1 rounded-2xl border border-white/20 bg-white/5 px-4 py-3 text-slate-100 placeholder:text-slate-500 focus:outline-none focus:border-blue-500/50 disabled:opacity-50"
-          />
+          <div className="relative flex-1">
+            <input
+              type="text"
+              value={input}
+              onChange={(e) => setInput(e.target.value.slice(0, MAX_INPUT))}
+              onKeyDown={(e) => e.key === 'Enter' && !isLoading && handleSend()}
+              placeholder="Ask about tax treaties, deductions, deadlines..."
+              disabled={isLoading}
+              maxLength={MAX_INPUT}
+              className="w-full rounded-2xl border border-white/20 bg-white/5 px-4 py-3 pr-16 text-slate-100 placeholder:text-slate-500 focus:outline-none focus:border-blue-500/50 disabled:opacity-50"
+            />
+            {input.length > 0 && (
+              <span className={`absolute right-3 top-1/2 -translate-y-1/2 text-xs tabular-nums ${input.length > MAX_INPUT * 0.9 ? 'text-amber-400' : 'text-slate-600'}`}>
+                {MAX_INPUT - input.length}
+              </span>
+            )}
+          </div>
           <button
             type="button"
             onClick={handleSend}
