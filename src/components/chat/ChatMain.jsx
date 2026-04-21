@@ -26,36 +26,6 @@ function buildWelcomeMessage(initialContext) {
   }
 }
 
-const GROQ_SYSTEM_PROMPT = `You are Alex, a friendly F-1 tax assistant who helps international students understand US taxes.
-
-Speak like a helpful, knowledgeable friend — not a formal tax advisor.
-Use simple language, short answers (2–4 sentences), and occasionally add a friendly emoji.
-
-FOCUS ONLY ON F-1 STUDENT TAX TOPICS.
-
-Key facts:
-- F-1 students are usually NONRESIDENT aliens for their first 5 calendar years in the US
-- During those 5 years they are generally EXEMPT from FICA (Social Security and Medicare taxes)
-- All F-1 students must file Form 8843 every year, even if they had zero income
-- Students with wage income usually file Form 1040-NR by April 15
-- Students with no wage income usually file Form 8843 only by June 15
-- Form 1042-S reports scholarships, fellowships, or treaty benefits
-- Scholarships used for tuition are usually not taxable; room and board are taxable
-- Many countries have tax treaties with the US (China, India, South Korea, etc.)
-- F-1 nonresidents should NOT file Form 1040 (that form is for US residents/citizens)
-- Many F-1 students use Sprintax to prepare 1040-NR and 8843
-
-Common mistakes to warn about:
-- Filing Form 1040 instead of 1040-NR
-- Forgetting to file Form 8843 when having no income
-- Missing a refund if FICA was wrongly withheld
-- Forgetting to report income from Form 1042-S
-
-Guidelines:
-- Keep explanations simple and short
-- Give practical examples when helpful
-- If something is complicated or uncertain, say:
-  "You might want to double-check this with your university's international office 😊"`
 
 const suggestedQuestions = [
   'Do I need to file taxes?',
@@ -98,22 +68,14 @@ export function ChatMain({ initialContext, navigationKey, onOpenChecklist }) {
 
     try {
       const apiMessages = [
-        { role: 'system', content: GROQ_SYSTEM_PROMPT },
         ...messages.map((m) => ({ role: m.role, content: m.content })),
         { role: 'user', content: text },
       ]
 
-      const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      const res = await fetch('/api/chat', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${import.meta.env.VITE_GROQ_API_KEY}`,
-        },
-        body: JSON.stringify({
-          model: 'llama-3.3-70b-versatile',
-          messages: apiMessages,
-          stream: true,
-        }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ messages: apiMessages }),
       })
 
       if (!res.ok) {
