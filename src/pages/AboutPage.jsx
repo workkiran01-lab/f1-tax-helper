@@ -30,7 +30,7 @@ For our chat feature, we only store your conversation to provide AI responses.`,
     {
       id: 'contact',
       title: 'Contact',
-      content: `Questions or feedback? Email us at work.kiran01@gmail.com
+      content: `Questions or feedback? Email us at f1taxhelper01@gmail.com
 
 We typically respond within 2 business days.`,
     },

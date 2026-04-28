@@ -5,8 +5,6 @@ import QuestionnairePage from './pages/QuestionnairePage'
 import ChecklistPage from './pages/ChecklistPage'
 import ResultsPage from './pages/ResultsPage'
 import WelcomePage from './pages/WelcomePage'
-import PrivacyPolicy from './pages/PrivacyPolicy'
-import TermsOfService from './pages/TermsOfService'
 import Disclaimer from './pages/Disclaimer'
 import ComingSoon from './pages/ComingSoon'
 import LoginPage from './pages/LoginPage'
@@ -14,6 +12,7 @@ import AuthCallbackPage from './pages/AuthCallbackPage'
 import PrivacyPage from './pages/PrivacyPage'
 import TermsPage from './pages/TermsPage'
 import ContactPage from './pages/ContactPage'
+import NotFoundPage from './pages/NotFoundPage'
 import useAuth from './hooks/useAuth'
 
 const ChatPage     = lazy(() => import('./pages/ChatPage'))
@@ -105,8 +104,6 @@ function AppRoutes() {
       />
       <Route path="/form-8843" element={<LazySuspense><Form8843Page /></LazySuspense>} />
       <Route path="/about" element={<LazySuspense><AboutPage /></LazySuspense>} />
-      <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-      <Route path="/terms-of-service" element={<TermsOfService />} />
       <Route path="/disclaimer" element={<Disclaimer />} />
       <Route path="/privacy" element={<PrivacyPage />} />
       <Route path="/terms" element={<TermsPage />} />
@@ -115,6 +112,7 @@ function AppRoutes() {
       <Route path="/faq" element={<ComingSoon title="FAQ" />} />
       <Route path="/blog" element={<ComingSoon title="Blog" />} />
       <Route path="/tax-treaties" element={<ComingSoon title="Tax Treaties" />} />
+      <Route path="*" element={<NotFoundPage />} />
     </Routes>
   )
 }

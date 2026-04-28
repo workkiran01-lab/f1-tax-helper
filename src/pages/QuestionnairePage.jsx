@@ -221,10 +221,11 @@ const TREATY_COUNTRIES = {
   "Japan": { article: "Article 20", wageCap: null, scholarshipExempt: true, form8833Required: true },
 };
 
+const STORAGE_KEY = 'f1-questionnaire-progress'
+
 export default function QuestionnairePage() {
   const navigate = useNavigate()
   const { user } = useAuth()
-  const STORAGE_KEY = 'f1-questionnaire-progress'
 
   const loadSaved = () => {
     try {

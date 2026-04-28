@@ -21,3 +21,9 @@ yarn-error.log*
 # OS
 .DS_Store
 Thumbs.db
+.vercel
+
+# Local dev artifacts
+.claude/
+f1-tax-helper/
+public/test_filled.pdf

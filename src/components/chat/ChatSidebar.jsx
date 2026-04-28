@@ -74,6 +74,10 @@ export function ChatSidebar({ conversations = [], onSelect, onNewChat }) {
   }
 
   const handleDeleteAccount = async () => {
+    const confirmed = window.confirm(
+      'This will sign you out. To fully delete your account, email f1taxhelper01@gmail.com with your registered email address.'
+    )
+    if (!confirmed) return
     await supabase.auth.signOut()
     navigate('/', { replace: true })
   }
@@ -356,7 +360,7 @@ export function ChatSidebar({ conversations = [], onSelect, onNewChat }) {
                     onClick={handleDeleteAccount}
                     className="w-full rounded-xl border border-red-500/30 py-2 text-sm text-red-400 transition-colors hover:bg-red-500/10"
                   >
-                    Delete Account
+                    Delete Account (contact support)
                   </button>
                 </div>
               </section>

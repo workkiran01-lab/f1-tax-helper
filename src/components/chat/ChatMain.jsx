@@ -88,7 +88,7 @@ export function ChatMain({ initialContext, navigationKey, onOpenChecklist, onMes
 
       const res = await fetch('/api/chat', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'X-App-Token': import.meta.env.VITE_APP_SECRET },
         body: JSON.stringify({ messages: apiMessages }),
       })
 

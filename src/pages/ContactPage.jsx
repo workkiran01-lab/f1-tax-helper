@@ -36,8 +36,8 @@ export default function ContactPage() {
                 📧
               </p>
               <h2 className="mt-4 text-lg font-semibold text-white">Email Us</h2>
-              <a className="mt-1 inline-flex text-blue-300 transition-colors hover:text-blue-200" href="mailto:work.kiran01@gmail.com">
-                work.kiran01@gmail.com
+              <a className="mt-1 inline-flex text-blue-300 transition-colors hover:text-blue-200" href="mailto:f1taxhelper01@gmail.com">
+                f1taxhelper01@gmail.com
               </a>
               <p className="mt-2 text-sm text-slate-300">For general questions, bug reports, or feedback</p>
             </article>

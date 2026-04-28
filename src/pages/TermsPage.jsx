@@ -94,7 +94,7 @@ Your continued use of F1 Tax Helper after changes become effective constitutes y
       content:
         `If you have questions about these Terms of Service, please contact us:
 
-Email: work.kiran01@gmail.com
+Email: f1taxhelper01@gmail.com
 
 We aim to respond to all inquiries within 5 business days.`,
     },

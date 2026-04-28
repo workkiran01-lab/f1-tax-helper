@@ -71,7 +71,7 @@ We only share the minimum data necessary with each provider to operate the servi
 • Deletion: request that we delete your account and all associated data.
 • Portability: request your data in a machine-readable format.
 
-To exercise any of these rights, email us at work.kiran01@gmail.com. We will respond within 7 business days. We do not discriminate against users who exercise their privacy rights.`,
+To exercise any of these rights, email us at f1taxhelper01@gmail.com. We will respond within 7 business days. We do not discriminate against users who exercise their privacy rights.`,
     },
     {
       id: 'contact-us',
@@ -79,7 +79,7 @@ To exercise any of these rights, email us at work.kiran01@gmail.com. We will res
       content:
         `If you have any questions or concerns about this Privacy Policy, please contact us:
 
-Email: work.kiran01@gmail.com
+Email: f1taxhelper01@gmail.com
 
 We aim to respond to all privacy inquiries within 5 business days.`,
     },

@@ -20,23 +20,18 @@ export default function ChecklistPage() {
     () => SECTIONS.flatMap((section) => section.items.map((item) => item.id)),
     [],
   )
-  const [checked, setChecked] = useState(() => {
-    const docsSet = new Set(documents || [])
-
-    const isPreChecked = (id) => {
-      if (id === 'w2') return docsSet.has('W-2')
-      if (id === '1042s') return docsSet.has('1042-S foreign income')
-      if (id === '1098t') return docsSet.has('1098-T tuition statement')
-      if (id === 'ssn-itin') {
-        return (
-          docsSet.has('Social Security Number') || docsSet.has('ITIN number')
-        )
-      }
-      return false
-    }
-
-    return Object.fromEntries(allItemIds.map((id) => [id, isPreChecked(id)]))
-  })
+  const isPreChecked = (id) => {
+    if (!answers) return false
+    const types = answers.incomeTypes || []
+    if (id === 'w2') return types.includes('w2')
+    if (id === '1042s') return types.includes('1042s')
+    if (id === '1099') return types.includes('1099')
+    if (id === 'ssn-itin') return Boolean(answers.hasUSIncome)
+    return false
+  }
+  const [checked, setChecked] = useState(() =>
+    Object.fromEntries(allItemIds.map((id) => [id, isPreChecked(id)]))
+  )
   const [openDetails, setOpenDetails] = useState({})
 
   const total = allItemIds.length

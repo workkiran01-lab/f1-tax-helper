@@ -1,20 +1,16 @@
 export const config = { runtime: 'edge' }
 
-// Simple in-memory rate limiter: 20 requests per user per 60 seconds
-const rateLimitMap = new Map()
-const RATE_LIMIT = 20
-const RATE_WINDOW_MS = 60_000
+import { Redis } from '@upstash/redis/edge'
 
-function isRateLimited(key) {
-  const now = Date.now()
-  const entry = rateLimitMap.get(key) ?? { count: 0, windowStart: now }
-  if (now - entry.windowStart > RATE_WINDOW_MS) {
-    rateLimitMap.set(key, { count: 1, windowStart: now })
-    return false
-  }
-  if (entry.count >= RATE_LIMIT) return true
-  rateLimitMap.set(key, { count: entry.count + 1, windowStart: entry.windowStart })
-  return false
+const redis = new Redis({
+  url: process.env.UPSTASH_REDIS_REST_URL,
+  token: process.env.UPSTASH_REDIS_REST_TOKEN,
+})
+
+async function isRateLimited(key) {
+  const requests = await redis.incr(key)
+  if (requests === 1) await redis.expire(key, 60)
+  return requests > 20
 }
 
 const SYSTEM_PROMPT = `You are Alex, a friendly F-1 tax assistant who helps international students understand US taxes.
@@ -54,11 +50,16 @@ export default async function handler(req) {
   }
 
   const ip = req.headers.get('x-forwarded-for')?.split(',')[0].trim() ?? 'unknown'
-  if (isRateLimited(ip)) {
+  if (await isRateLimited(`rl:${ip}`)) {
     return new Response(JSON.stringify({ error: 'Too many requests. Please wait a moment.' }), {
       status: 429,
       headers: { 'Content-Type': 'application/json', 'Retry-After': '60' },
     })
+  }
+
+  const appToken = req.headers.get('x-app-token')
+  if (appToken !== process.env.APP_SECRET) {
+    return new Response('Unauthorized', { status: 401 })
   }
 
   // Reject requests from unknown origins (browser always sends Origin on cross-origin requests)
@@ -74,6 +75,15 @@ export default async function handler(req) {
     if (body.messages.length > 50) throw new Error('too many messages')
     for (const m of body.messages) {
       if (typeof m.content !== 'string' || m.content.length > 4000) throw new Error('message too long')
+    }
+    const injectionPatterns = [/ignore previous/i, /system:/i, /you are now/i, /disregard/i, /forget your instructions/i]
+    for (const m of body.messages) {
+      if (injectionPatterns.some(p => p.test(m.content))) {
+        return new Response(JSON.stringify({ error: 'Invalid message content' }), {
+          status: 400,
+          headers: { 'Content-Type': 'application/json' },
+        })
+      }
     }
     messages = body.messages
   } catch {
