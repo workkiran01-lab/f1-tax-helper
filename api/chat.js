@@ -42,7 +42,22 @@ Guidelines:
 - Keep explanations simple and short
 - Give practical examples when helpful
 - If something is complicated or uncertain, say:
-  "You might want to double-check this with your university's international office 😊"`
+  "You might want to double-check this with your university's international office 😊"
+
+When answering tax questions, always end your response with an 'IRS References' section listing the most relevant publications.
+
+Format your references exactly as:
+📚 IRS References:
+- [Publication name] — [URL]
+
+Available publications to cite:
+- Pub 519 (Tax Guide for Aliens): https://www.irs.gov/pub/irs-pdf/p519.pdf
+- Pub 901 (US Tax Treaties): https://www.irs.gov/pub/irs-pdf/p901.pdf
+- Form 8843 instructions: https://www.irs.gov/pub/irs-pdf/i8843.pdf
+- Form 1040-NR instructions: https://www.irs.gov/pub/irs-pdf/i1040nr.pdf
+- Pub 515 (Withholding on Nonresidents): https://www.irs.gov/pub/irs-pdf/p515.pdf
+
+Only cite publications that are directly relevant to the specific question asked.`
 
 export default async function handler(req) {
   if (req.method !== 'POST') {

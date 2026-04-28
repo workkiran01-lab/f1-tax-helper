@@ -25,24 +25,28 @@ const PRICING = [
     cta: 'Get Started Free',
     ctaTo: '/form-8843',
     popular: false,
+    comingSoon: false,
+    note: null,
   },
   {
     name: 'Student',
     price: '$29',
     description: 'Everything most F-1 students need.',
     features: ['1040-NR preparation', 'Form 8843 download', 'Treaty benefits check', 'AI chat assistant'],
-    cta: 'Get Student Plan',
-    ctaTo: '/login',
+    cta: 'Join Waitlist →',
     popular: true,
+    comingSoon: true,
+    note: '* 1040-NR requires SSN/ITIN. We generate a draft for you to review with a tax professional.',
   },
   {
     name: 'Premium',
     price: '$49',
     description: 'For complex situations and past years.',
     features: ['Everything in Student', 'State tax return', 'Prior year filing', 'Audit defense guide'],
-    cta: 'Get Premium',
-    ctaTo: '/login',
+    cta: 'Join Waitlist →',
     popular: false,
+    comingSoon: true,
+    note: '* State returns vary by state requirements.',
   },
 ]
 
@@ -83,6 +87,10 @@ export default function HomePage() {
 
   const scrollToHowItWorks = () => {
     document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth' })
+  }
+
+  const scrollToWaitlist = () => {
+    document.getElementById('waitlist')?.scrollIntoView({ behavior: 'smooth' })
   }
 
   return (
@@ -145,10 +153,16 @@ export default function HomePage() {
             >
               Get My Free Form 8843 →
             </Link>
+            <Link
+              to="/status-checker"
+              className="w-full rounded-2xl border border-white/20 bg-white/5 px-7 py-3.5 text-sm font-semibold text-slate-100 transition-all duration-300 hover:bg-white/10 sm:w-auto"
+            >
+              Check My Status →
+            </Link>
             <button
               type="button"
               onClick={scrollToHowItWorks}
-              className="w-full rounded-2xl border border-white/20 bg-white/5 px-7 py-3.5 text-sm font-semibold text-slate-100 transition-all duration-300 hover:bg-white/10 sm:w-auto"
+              className="w-full rounded-2xl border border-white/10 bg-transparent px-7 py-3.5 text-sm font-medium text-slate-400 transition-all duration-300 hover:text-slate-200 sm:w-auto"
             >
               See How It Works ↓
             </button>
@@ -206,13 +220,13 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* ── PRICING ── */}
+        {/* ── PRICING + WAITLIST ── */}
         <section className="mx-auto max-w-5xl px-4 pb-24 sm:px-6">
           <h2 className="mb-2 text-center text-2xl font-extrabold tracking-tight text-white sm:text-3xl">
             Simple Pricing
           </h2>
           <p className="mb-10 text-center text-sm text-slate-400">
-            Start free. Upgrade when you need more.
+            Free tier available now. Paid plans launching soon — join the waitlist for early access.
           </p>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
             {PRICING.map((plan) => (
@@ -230,11 +244,16 @@ export default function HomePage() {
                   </span>
                 )}
                 <div className="mb-4">
+                  {plan.comingSoon && (
+                    <span className="mb-2 inline-block rounded-full border border-amber-500/30 bg-amber-500/20 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-400">
+                      Coming Soon
+                    </span>
+                  )}
                   <p className="text-sm font-medium text-slate-400">{plan.name}</p>
                   <p className="mt-1 text-3xl font-extrabold text-white">{plan.price}</p>
                   <p className="mt-1 text-xs text-slate-500">{plan.description}</p>
                 </div>
-                <ul className="mb-6 flex-1 space-y-2">
+                <ul className="mb-4 flex-1 space-y-2">
                   {plan.features.map((f) => (
                     <li key={f} className="flex items-center gap-2 text-xs text-slate-300">
                       <span className="text-blue-400">✓</span>
@@ -242,38 +261,52 @@ export default function HomePage() {
                     </li>
                   ))}
                 </ul>
-                <Link
-                  to={plan.ctaTo}
-                  className={`block w-full rounded-xl py-2.5 text-center text-sm font-semibold transition-all duration-200 ${
-                    plan.popular
-                      ? 'bg-gradient-to-r from-blue-500 to-violet-500 text-white shadow-md shadow-blue-600/20 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-violet-500/30'
-                      : 'border border-white/20 bg-white/5 text-slate-100 hover:bg-white/10'
-                  }`}
-                >
-                  {plan.cta}
-                </Link>
+                {plan.note && (
+                  <p className="mb-4 text-[11px] italic leading-4 text-slate-500">{plan.note}</p>
+                )}
+                {plan.comingSoon ? (
+                  <button
+                    type="button"
+                    onClick={scrollToWaitlist}
+                    className={`block w-full rounded-xl py-2.5 text-center text-sm font-semibold transition-all duration-200 ${
+                      plan.popular
+                        ? 'bg-gradient-to-r from-blue-500 to-violet-500 text-white shadow-md shadow-blue-600/20 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-violet-500/30'
+                        : 'border border-white/20 bg-white/5 text-slate-100 hover:bg-white/10'
+                    }`}
+                  >
+                    {plan.cta}
+                  </button>
+                ) : (
+                  <Link
+                    to={plan.ctaTo}
+                    className="block w-full rounded-xl border border-white/20 bg-white/5 py-2.5 text-center text-sm font-semibold text-slate-100 transition-all duration-200 hover:bg-white/10"
+                  >
+                    {plan.cta}
+                  </Link>
+                )}
               </div>
             ))}
           </div>
-        </section>
 
-        {/* ── WAITLIST BANNER ── */}
-        <section className="mx-auto max-w-5xl px-4 pb-24 sm:px-6">
-          <div className="rounded-2xl border border-white/10 bg-gradient-to-r from-blue-500/20 to-violet-500/20 px-6 py-10 text-center backdrop-blur-xl sm:px-12">
-            <h2 className="text-xl font-extrabold tracking-tight text-white sm:text-2xl">
-              Pro features launching soon
-            </h2>
+          {/* ── WAITLIST (merged into pricing) ── */}
+          <div id="waitlist" className="mt-10 scroll-mt-20 rounded-2xl border border-white/10 bg-gradient-to-r from-blue-500/20 to-violet-500/20 px-6 py-10 text-center backdrop-blur-xl sm:px-12">
+            <p className="mb-1 inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-blue-200">
+              Early Access Waitlist
+            </p>
+            <h3 className="mt-3 text-xl font-extrabold tracking-tight text-white sm:text-2xl">
+              Be First When Paid Plans Launch
+            </h3>
             <p className="mt-2 text-sm text-slate-300">
-              Join the waitlist for early access and a launch discount.
+              Join the waitlist for early access and a launch discount on Student and Premium plans.
             </p>
             {waitlistJoined ? (
               <p className="mt-6 text-sm font-medium text-green-400">
-                ✓ You're on the list! We'll notify you when Pro launches.
+                ✓ You're on the list! We'll notify you when paid plans launch.
               </p>
             ) : (
               <form
                 onSubmit={handleWaitlist}
-                className="mt-6 flex w-full flex-col items-center gap-3 sm:max-w-md sm:mx-auto"
+                className="mt-6 flex w-full flex-col items-center gap-3 sm:mx-auto sm:max-w-md"
               >
                 <input
                   type="email"
@@ -307,6 +340,7 @@ export default function HomePage() {
                 >
                   Join Waitlist
                 </button>
+                <p className="text-xs text-slate-500">No spam, ever. Unsubscribe anytime.</p>
               </form>
             )}
           </div>

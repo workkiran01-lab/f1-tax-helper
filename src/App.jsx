@@ -13,6 +13,7 @@ import PrivacyPage from './pages/PrivacyPage'
 import TermsPage from './pages/TermsPage'
 import ContactPage from './pages/ContactPage'
 import NotFoundPage from './pages/NotFoundPage'
+import StatusCheckerPage from './pages/StatusCheckerPage'
 import useAuth from './hooks/useAuth'
 
 const ChatPage     = lazy(() => import('./pages/ChatPage'))
@@ -102,6 +103,7 @@ function AppRoutes() {
           </ProtectedRoute>
         }
       />
+      <Route path="/status-checker" element={<StatusCheckerPage />} />
       <Route path="/form-8843" element={<LazySuspense><Form8843Page /></LazySuspense>} />
       <Route path="/about" element={<LazySuspense><AboutPage /></LazySuspense>} />
       <Route path="/disclaimer" element={<Disclaimer />} />
