@@ -79,9 +79,9 @@ export default function HomePage() {
     e.preventDefault()
     const trimmed = waitlistEmail.trim()
     if (!trimmed) return
-    localStorage.setItem('waitlist_email', trimmed)
-    if (waitlistVisa)   localStorage.setItem('waitlist_visa',   waitlistVisa)
-    if (waitlistSchool) localStorage.setItem('waitlist_school', waitlistSchool.trim())
+    try { localStorage.setItem('waitlist_email', trimmed) } catch {}
+    if (waitlistVisa)   try { localStorage.setItem('waitlist_visa',   waitlistVisa) } catch {}
+    if (waitlistSchool) try { localStorage.setItem('waitlist_school', waitlistSchool.trim()) } catch {}
     setWaitlistJoined(true)
   }
 

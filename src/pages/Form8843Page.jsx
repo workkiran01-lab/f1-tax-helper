@@ -322,7 +322,7 @@ export default function Form8843Page() {
   const [lastFilledBytes, setLastFilledBytes]     = useState(null)
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(formData))
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(formData)) } catch {}
   }, [formData])
 
   // ── Field setters ─────────────────────────────────────────────────────────
@@ -678,7 +678,7 @@ export default function Form8843Page() {
                 <span className="hidden text-xs text-slate-600 sm:block">Tax Year 2025 · Form 8843</span>
                 <button
                   type="button"
-                  onClick={() => localStorage.setItem(STORAGE_KEY, JSON.stringify(formData))}
+                  onClick={() => { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(formData)) } catch {} }}
                   className="rounded-lg border border-white/20 bg-white/5 px-3 py-1.5 text-xs font-medium text-slate-300 transition-colors hover:bg-white/10"
                 >
                   Save Progress

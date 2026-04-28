@@ -142,7 +142,7 @@ export default function StatusCheckerPage() {
       setTimeout(() => setStep((s) => s + 1), 180)
     } else {
       const res = computeResult(next)
-      localStorage.setItem('f1_status_result', JSON.stringify(res))
+      try { localStorage.setItem('f1_status_result', JSON.stringify(res)) } catch {}
       setResult(res)
     }
   }

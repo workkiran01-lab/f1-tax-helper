@@ -141,7 +141,7 @@ export default function ChecklistPage() {
   })
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(checked))
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(checked)) } catch {}
   }, [checked])
 
   const toggle = (id) => setChecked((prev) => ({ ...prev, [id]: !prev[id] }))

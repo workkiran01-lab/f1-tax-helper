@@ -93,7 +93,7 @@ export function ChatSidebar({ conversations = [], onSelect, onNewChat }) {
   const handleDarkModeToggle = () => {
     const next = !darkMode
     setDarkMode(next)
-    localStorage.setItem('theme', next ? 'dark' : 'light')
+    try { localStorage.setItem('theme', next ? 'dark' : 'light') } catch {}
     if (next) document.documentElement.classList.add('dark')
     else document.documentElement.classList.remove('dark')
   }
@@ -222,8 +222,8 @@ export function ChatSidebar({ conversations = [], onSelect, onNewChat }) {
                   e.preventDefault()
                   const email = waitlistEmail.trim()
                   if (!email) return
-                  localStorage.setItem('waitlist_email', email)
-                  if (waitlistVisa) localStorage.setItem('waitlist_visa', waitlistVisa)
+                  try { localStorage.setItem('waitlist_email', email) } catch {}
+                  if (waitlistVisa) try { localStorage.setItem('waitlist_visa', waitlistVisa) } catch {}
                   setProWaitlistJoined(true)
                 }}
                 className="mt-5 space-y-3"
