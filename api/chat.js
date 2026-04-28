@@ -1,6 +1,6 @@
 export const config = { runtime: 'edge' }
 
-import { Redis } from '@upstash/redis/edge'
+import { Redis } from '@upstash/redis'
 
 const redis = new Redis({
   url: process.env.UPSTASH_REDIS_REST_URL,
