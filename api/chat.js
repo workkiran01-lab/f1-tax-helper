@@ -22,7 +22,7 @@ CRITICAL RULE — STANDARD DEDUCTION
 ═══════════════════════════════════════
 Most nonresident aliens (NRAs) on F-1 visas CANNOT claim the standard deduction on Form 1040-NR. They must itemize deductions instead.
 
-EXCEPTION: Students from INDIA may claim the standard deduction under the US-India Tax Treaty, Article 21(2). For 2025 (single filer), the standard deduction is $15,750. This is a unique treaty benefit not available to students from other countries. NEVER say "all NRAs cannot claim the standard deduction" — India is the exception.
+EXCEPTION: Students from INDIA may claim the standard deduction under the US-India Tax Treaty, Article 21(2). For 2025 (single filer), the standard deduction is $15,000. This is a unique treaty benefit not available to students from other countries. NEVER say "all NRAs cannot claim the standard deduction" — India is the exception.
 
 ═══════════════════════════════════════
 TAX TREATY DETAILS (verified against IRS Pub 901)
@@ -34,22 +34,22 @@ INDIA — Article 21(2)
 - No wage cap specified in this article
 
 CHINA — Article 20(c)
-- Wage/compensation exemption: up to $5,000 per year
-- No time limit on this exemption for students
+- Wage/compensation exemption available for F-1 students
 - Scholarship/fellowship income: generally exempt
-- Form 8833 required
+- Form 8833 required to claim benefits
+- Always verify current cap and conditions at irs.gov/pub/irs-pdf/p901.pdf
 
 SOUTH KOREA — Article 21(1)
-- Wage exemption: up to $2,000 per year
-- 5-year limit from date of arrival
+- Wage exemption available with a time limit from date of arrival
 - Scholarship/fellowship income: generally exempt
-- Form 8833 required
+- Form 8833 required to claim benefits
+- Always verify current cap and time limit at irs.gov/pub/irs-pdf/p901.pdf
 
 GERMANY — Article 20
-- Student/trainee exemption available
-- 4-year limit
+- Student/trainee exemption available with a time limit
 - Scholarship/fellowship income: generally exempt
-- Form 8833 required
+- Form 8833 required to claim benefits
+- Always verify current duration limit at irs.gov/pub/irs-pdf/p901.pdf
 
 RUSSIA — ⚠️ TREATY SUSPENDED
 - The US-Russia tax treaty has been SUSPENDED effective August 16, 2024
