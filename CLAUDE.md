@@ -1,5 +1,35 @@
 # F1 Tax Helper — Claude Code guide
 
+## Active phase: Phase 2 — Core Product
+
+## Completed so far:
+- Privacy, Terms, Disclaimer pages (LegalLayout.jsx)
+- Landing page (HomePage.jsx) with pricing, waitlist
+- Welcome page with user onboarding
+- Form 8843 PDF generator (Form8843Page.jsx)
+- IRS disclaimer on chat responses
+- Security headers in vercel.json
+- Sentry error monitoring
+- Settings panel fixed with createPortal
+- About page
+- F1 Status Checker wizard (StatusCheckerPage.jsx) — 5-question NRA/RA determination
+- Personalized document checklist (ChecklistPage.jsx) — loads from localStorage
+- IRS citations added to AI system prompt
+- Redis-backed rate limiting (Upstash)
+- Dead code removed (Layout.jsx, PrivacyPolicy.jsx, TermsOfService.jsx)
+- 404 page (NotFoundPage.jsx)
+- Sentry ErrorBoundary in main.jsx
+
+## Known stack facts:
+- Vite + React (NOT Next.js)
+- React Router for routing
+- Supabase for auth
+- Groq for AI chat
+- pdf-lib for PDF generation
+- Tailwind CSS
+
+---
+
 ## Stack
 
 ### dependencies
@@ -66,17 +96,17 @@
 - [src/pages/QuestionnairePage.jsx](src/pages/QuestionnairePage.jsx) — multi-step questionnaire (6 steps); saves/restores progress to `sessionStorage` under key `'f1-questionnaire-progress'`; resolves treaty data from `TREATY_COUNTRIES` object; saves final results to Supabase user metadata and navigates to `/results`; protected route
 - [src/pages/Form8843Page.jsx](src/pages/Form8843Page.jsx) — 5-step wizard for filling and downloading Form 8843 PDF; persists draft to `localStorage` under key `'f1_form8843_v3'`; reads name seed from `localStorage` key `'f1_user_name'`; calls `fillForm8843` from `src/utils/form8843Fields.js`; **not** a protected route
 
-### src/pages/ — not read, describe before editing
-- [src/pages/HomePage.jsx](src/pages/HomePage.jsx) — not read, describe before editing
+### src/pages/ — read before editing
+- [src/pages/HomePage.jsx](src/pages/HomePage.jsx) — landing page; PRICING array with Free/Student/Premium; waitlist form merged into pricing section; hero has "Get My Free Form 8843" + "Check My Status →" CTAs; no separate waitlist banner
+- [src/pages/StatusCheckerPage.jsx](src/pages/StatusCheckerPage.jsx) — **public** 5-question wizard; computes NRA vs Possibly Resident Alien; saves result to `localStorage` key `'f1_status_result'`; result screen links to `/checklist` and `/form-8843`
+- [src/pages/ChecklistPage.jsx](src/pages/ChecklistPage.jsx) — **protected**; loads `f1_status_result` from localStorage (falls back to questionnaire `location.state`); shows personalized filing/identity/deadline sections; checkbox state saved to `localStorage` key `'f1_checklist_state'`; "Download My Checklist" generates `.txt` via Blob
+- [src/pages/NotFoundPage.jsx](src/pages/NotFoundPage.jsx) — dark 404 page; matched by `path="*"` catchall in `App.jsx`
 - [src/pages/LoginPage.jsx](src/pages/LoginPage.jsx) — not read, describe before editing
 - [src/pages/AuthCallbackPage.jsx](src/pages/AuthCallbackPage.jsx) — not read, describe before editing
 - [src/pages/WelcomePage.jsx](src/pages/WelcomePage.jsx) — not read, describe before editing
 - [src/pages/ChatPage.jsx](src/pages/ChatPage.jsx) — not read, describe before editing
-- [src/pages/ChecklistPage.jsx](src/pages/ChecklistPage.jsx) — not read, describe before editing
 - [src/pages/ResultsPage.jsx](src/pages/ResultsPage.jsx) — not read, describe before editing
 - [src/pages/AboutPage.jsx](src/pages/AboutPage.jsx) — not read, describe before editing
-- [src/pages/PrivacyPolicy.jsx](src/pages/PrivacyPolicy.jsx) — not read, describe before editing
-- [src/pages/TermsOfService.jsx](src/pages/TermsOfService.jsx) — not read, describe before editing
 - [src/pages/Disclaimer.jsx](src/pages/Disclaimer.jsx) — not read, describe before editing
 - [src/pages/PrivacyPage.jsx](src/pages/PrivacyPage.jsx) — not read, describe before editing
 - [src/pages/TermsPage.jsx](src/pages/TermsPage.jsx) — not read, describe before editing
@@ -98,7 +128,6 @@
 - [src/components/chat/ChatChecklistPanel.jsx](src/components/chat/ChatChecklistPanel.jsx) — not read, describe before editing
 - [src/components/chat/IRSDisclaimer.jsx](src/components/chat/IRSDisclaimer.jsx) — not read, describe before editing
 - [src/components/legal/LegalLayout.jsx](src/components/legal/LegalLayout.jsx) — not read, describe before editing
-- [src/layout/Layout.jsx](src/layout/Layout.jsx) — not read, describe before editing
 
 ---
 
@@ -121,6 +150,8 @@
 - Form 8843 draft: `localStorage`, key `'f1_form8843_v3'`
 - Name seed for Form 8843 pre-fill: `localStorage`, key `'f1_user_name'`
 - Completed questionnaire results: Supabase user metadata (written from `QuestionnairePage`, line ~370)
+- Status checker result: `localStorage`, key `'f1_status_result'` (written by `StatusCheckerPage`)
+- Checklist checkbox state: `localStorage`, key `'f1_checklist_state'` (written by `ChecklistPage`)
 
 **API pattern**
 - The only backend endpoint is `api/chat.js` (Vercel Edge). Frontend POSTs `{ messages: [...] }` to `/api/chat`. The response is a raw SSE stream proxied from Groq. No other API routes exist.
@@ -131,8 +162,9 @@
 - PDF field names are documented in the comment block at the top of `src/utils/form8843Fields.js` and were verified April 2026.
 
 **Route protection**
-- `ProtectedRoute` wraps children in `App.jsx`. Unauthenticated users see `<FullScreenSpinner>` during loading, then are redirected to `/login`. Only `/`, `/login`, `/auth/callback`, `/form-8843`, `/about`, and static legal/info pages are public.
-- `/form-8843` is intentionally **not** protected (no `ProtectedRoute` wrapper in `App.jsx`).
+- `ProtectedRoute` wraps children in `App.jsx`. Unauthenticated users see `<FullScreenSpinner>` during loading, then are redirected to `/login`. Only `/`, `/login`, `/auth/callback`, `/status-checker`, `/form-8843`, `/about`, and static legal/info pages are public.
+- `/form-8843` and `/status-checker` are intentionally **not** protected (no `ProtectedRoute` wrapper in `App.jsx`).
+- `/checklist` **is** protected — requires login.
 
 **Lazy loading**
 - `ChatPage`, `Form8843Page`, and `AboutPage` are lazy-loaded via `React.lazy`. The fallback is `<LazySuspense>` (dark-bg spinner defined in `App.jsx`). All other pages are eagerly imported.
@@ -170,17 +202,13 @@
 
 ## Known issues (what you observed)
 
-1. **Duplicate legal page routes** — `App.jsx` registers both `/privacy-policy` (→ `PrivacyPolicy`) and `/privacy` (→ `PrivacyPage`), and both `/terms-of-service` (→ `TermsOfService`) and `/terms` (→ `TermsPage`). Four distinct components for two logical pages. Likely dead routes — verify which are linked before removing.
+1. **Hardcoded dark background in lazy fallback** — `App.jsx` line 27: `bg-[#0f172a]` is used in `LazySuspense` but the design token system uses `bg-background` (which resolves to near-white). The spinner appears on a dark background inconsistent with the rest of the app theme.
 
-2. **Hardcoded dark background in lazy fallback** — `App.jsx` line 27: `bg-[#0f172a]` is used in `LazySuspense` but the design token system uses `bg-background` (which resolves to near-white). The spinner appears on a dark background inconsistent with the rest of the app theme.
+2. **`TREATY_COUNTRIES` key "UK" won't match** — The `COUNTRIES` array in `QuestionnairePage.jsx` likely contains "United Kingdom" (not verified). If the full list uses "United Kingdom", the treaty lookup `TREATY_COUNTRIES[answers.country]` will always miss for UK users. Verify the exact string in `COUNTRIES`.
 
-3. **`TREATY_COUNTRIES` key "UK" won't match** — The `COUNTRIES` array in `QuestionnairePage.jsx` likely contains "United Kingdom" (not verified — the file was read only to line 80 where the list was still in alphabetical order and not yet at U). If the full list uses "United Kingdom", the treaty lookup `TREATY_COUNTRIES[answers.country]` will always miss for UK users. Verify the exact string in `COUNTRIES`.
+3. **`localStorage` key `'f1_user_name'` origin unknown** — `Form8843Page.jsx` reads `localStorage.getItem('f1_user_name')` to pre-populate the name fields, but no file among those read writes this key. The write location is unverified — if it was removed or never implemented, the pre-fill silently no-ops.
 
-4. **`localStorage` key `'f1_user_name'` origin unknown** — `Form8843Page.jsx` reads `localStorage.getItem('f1_user_name')` to pre-populate the name fields, but no file among those read writes this key. The write location is unverified — if it was removed or never implemented, the pre-fill silently no-ops.
-
-5. **`cn.js` has no deduplication** — `src/utils/cn.js` is a plain filter+join. Conflicting Tailwind classes (e.g., `text-sm text-lg`) are both emitted; last-write-wins behavior expected from `tailwind-merge` is absent. Not a bug per se, but callers must not rely on override semantics.
-
-6. **In-memory rate limiter resets on cold start** — `api/chat.js` uses a module-level `Map` for rate limiting. Vercel Edge functions may be re-instantiated per-request in some regions, resetting the counter. The rate limit is best-effort, not guaranteed.
+4. **`cn.js` has no deduplication** — `src/utils/cn.js` is a plain filter+join. Conflicting Tailwind classes (e.g., `text-sm text-lg`) are both emitted; last-write-wins behavior expected from `tailwind-merge` is absent. Not a bug per se, but callers must not rely on override semantics.
 
 ---
 
