@@ -100,6 +100,14 @@ export function Footer() {
                 </Link>
               </li>
               <li>
+                <Link
+                  to="/contact"
+                  className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+                >
+                  Contact
+                </Link>
+              </li>
+              <li>
                 <a
                   href="mailto:f1taxhelper01@gmail.com"
                   className="text-sm text-muted-foreground transition-colors hover:text-foreground"

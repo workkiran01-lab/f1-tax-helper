@@ -92,7 +92,7 @@ export function ChatChecklistPanel({ onClose }) {
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-4 py-3">
+      <div className="flex-1 overflow-y-auto px-4 py-3 pb-0">
         <div className="space-y-4">
           {SECTIONS.map((section) => (
             <div key={section.id} className="space-y-2">
@@ -169,6 +169,20 @@ export function ChatChecklistPanel({ onClose }) {
 
           {allDone && <FilingOptionsSection />}
         </div>
+      </div>
+
+      <div className="border-t border-border px-4 py-3">
+        <button
+          type="button"
+          onClick={() => {
+            localStorage.removeItem(CHECKLIST_STORAGE_KEY)
+            const reset = Object.fromEntries(allItemIds.map((id) => [id, false]))
+            setChecked(reset)
+          }}
+          className="text-xs text-muted-foreground underline underline-offset-2 hover:text-foreground"
+        >
+          Reset checklist
+        </button>
       </div>
     </div>
   )

@@ -176,6 +176,13 @@ export function ChatSidebar({ conversations = [], onSelect, onNewChat }) {
             >
               ⚡ Upgrade to Pro
             </button>
+            <button
+              type="button"
+              onClick={handleSignOut}
+              className="mt-2 w-full rounded-xl border border-white/20 bg-white/5 px-4 py-2 text-sm font-medium text-slate-300 transition-colors hover:bg-white/10"
+            >
+              Sign Out
+            </button>
           </div>
         </div>
       </div>

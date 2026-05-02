@@ -320,6 +320,7 @@ export default function Form8843Page() {
   const [success, setSuccess]                     = useState(false)
   const [genError, setGenError]                   = useState('')
   const [lastFilledBytes, setLastFilledBytes]     = useState(null)
+  const [clearLabel, setClearLabel]               = useState('Clear Data')
 
   useEffect(() => {
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(formData)) } catch {}
@@ -531,6 +532,17 @@ export default function Form8843Page() {
     }
   }
 
+  function handleClearData() {
+    localStorage.removeItem(STORAGE_KEY)
+    localStorage.removeItem('f1_user_name')
+    setFormData(blankData())
+    setStep(0)
+    setShowReview(false)
+    setErrors({})
+    setClearLabel('Cleared!')
+    setTimeout(() => setClearLabel('Clear Data'), 2000)
+  }
+
   function handleReset() {
     const storedName = localStorage.getItem('f1_user_name') || ''
     const parts = storedName.trim().split(' ')
@@ -682,6 +694,13 @@ export default function Form8843Page() {
                   className="rounded-lg border border-white/20 bg-white/5 px-3 py-1.5 text-xs font-medium text-slate-300 transition-colors hover:bg-white/10"
                 >
                   Save Progress
+                </button>
+                <button
+                  type="button"
+                  onClick={handleClearData}
+                  className="rounded-lg border border-white/20 bg-white/5 px-3 py-1.5 text-xs font-medium text-slate-300 transition-colors hover:bg-white/10"
+                >
+                  {clearLabel}
                 </button>
               </div>
             </div>

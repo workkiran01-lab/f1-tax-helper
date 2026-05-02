@@ -1,40 +1,45 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-
-const getStoredName = () => localStorage.getItem('f1_user_name') || ''
-const getStoredUniversity = () => localStorage.getItem('f1_user_university') || ''
+import supabase from '../utils/supabase'
+import useAuth from '../hooks/useAuth'
 
 export default function WelcomePage() {
   const navigate = useNavigate()
+  const { user } = useAuth()
 
-  const [isOnboarding, setIsOnboarding] = useState(
-    () => !getStoredName() || !getStoredUniversity(),
-  )
-  const [name, setName] = useState(getStoredName)
-  const [university, setUniversity] = useState(getStoredUniversity)
+  const [isOnboarding, setIsOnboarding] = useState(true)
+  const [name, setName] = useState('')
+  const [university, setUniversity] = useState('')
   const [nameInput, setNameInput] = useState('')
   const [universityInput, setUniversityInput] = useState('')
 
-  const handleOnboardingSubmit = (e) => {
+  useEffect(() => {
+    const metadata = user?.user_metadata || {}
+    const n = metadata.display_name || localStorage.getItem('f1_user_name') || ''
+    const u = metadata.university || localStorage.getItem('f1_user_university') || ''
+    if (n && u) {
+      setName(n)
+      setUniversity(u)
+      setIsOnboarding(false)
+    }
+  }, [user])
+
+  const handleOnboardingSubmit = async (e) => {
     e.preventDefault()
     const n = nameInput.trim()
     const u = universityInput.trim()
     if (!n || !u) return
     localStorage.setItem('f1_user_name', n)
     localStorage.setItem('f1_user_university', u)
+    await supabase.auth.updateUser({ data: { display_name: n, university: u } })
     setName(n)
     setUniversity(u)
     setIsOnboarding(false)
   }
 
-  const handleReset = () => {
-    localStorage.removeItem('f1_user_name')
-    localStorage.removeItem('f1_user_university')
-    setName('')
-    setUniversity('')
-    setNameInput('')
-    setUniversityInput('')
-    setIsOnboarding(true)
+  const handleReset = async () => {
+    await supabase.auth.signOut()
+    navigate('/login', { replace: true })
   }
 
   return (
@@ -154,7 +159,7 @@ export default function WelcomePage() {
                 onClick={handleReset}
                 className="text-xs text-slate-500 underline transition-colors hover:text-slate-300"
               >
-                Not you? Reset
+                Not you? Sign out
               </button>
             </p>
           </div>

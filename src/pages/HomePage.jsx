@@ -361,6 +361,9 @@ export default function HomePage() {
             <Link to="/disclaimer" className="text-xs text-slate-500 transition-colors hover:text-slate-300">
               Disclaimer
             </Link>
+            <Link to="/contact" className="text-xs text-slate-500 transition-colors hover:text-slate-300">
+              Contact
+            </Link>
           </div>
           <p className="mt-4 text-center text-xs leading-5 text-slate-600">
             F1 Tax Helper provides general educational information only. Not tax, legal, or financial advice.

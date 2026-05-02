@@ -65,7 +65,7 @@ export default function LoginPage() {
           </h1>
 
           <p className="mt-4 max-w-lg text-base leading-relaxed text-slate-300 sm:text-lg">
-            Sign in with your Google account to access your tax dashboard
+            Sign in with your Google account to continue
           </p>
 
           <div className="mt-8 space-y-4">

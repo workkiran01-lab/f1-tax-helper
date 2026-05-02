@@ -217,7 +217,7 @@ const TREATY_COUNTRIES = {
   "France": { article: "Article 21", wageCap: null, scholarshipExempt: true, form8833Required: true },
   "Germany": { article: "Article 20", wageCap: null, scholarshipExempt: true, form8833Required: true },
   "Netherlands": { article: "Article 22", wageCap: null, scholarshipExempt: true, form8833Required: true },
-  "UK": { article: "Article 20", wageCap: null, scholarshipExempt: true, form8833Required: true },
+  "United Kingdom": { article: "Article 20", wageCap: null, scholarshipExempt: true, form8833Required: true },
   "Japan": { article: "Article 20", wageCap: null, scholarshipExempt: true, form8833Required: true },
 };
 
@@ -299,8 +299,26 @@ export default function QuestionnairePage() {
 
   const handleIncomeAnswer = (answer) => {
     setAnswers((prev) => ({ ...prev, hasUSIncome: answer }))
-    goToNextStep()
+    if (answer === false) {
+      setIsTransitioning(true)
+      setTimeout(() => {
+        setCurrentStep(5)
+        setIsTransitioning(false)
+      }, 300)
+    } else {
+      goToNextStep()
+    }
   }
+
+  useEffect(() => {
+    if (currentStep === 3 && answers.hasUSIncome === false) {
+      setIsTransitioning(true)
+      setTimeout(() => {
+        setCurrentStep(5)
+        setIsTransitioning(false)
+      }, 300)
+    }
+  }, [currentStep, answers.hasUSIncome])
 
   const handleIncomeTypeToggle = (type) => {
     setAnswers((prev) => {
@@ -333,7 +351,6 @@ export default function QuestionnairePage() {
 
   const handleCountrySelect = (country) => {
     setAnswers((prev) => ({ ...prev, country }))
-    goToNextStep()
   }
 
   const actionItems = useMemo(() => {
@@ -343,7 +360,7 @@ export default function QuestionnairePage() {
     if (answers.hasUSIncome === false) {
       items.push('You are required to file Form 8843, Statement for Exempt Individuals and Individuals With a Medical Condition. This is true even if you had no income.')
       items.push('Since you had no US-source income, you likely do not need to file a US tax return (like Form 1040-NR), but Form 8843 is mandatory.')
-      items.push('Filing Form 8843 on time is crucial for maintaining your F-1 visa status and future immigration benefits.')
+      items.push('Filing Form 8843 on time is important. The main consequence of not filing is that the IRS may count your exempt days toward the Substantial Presence Test, which could affect your tax residency status — not your visa directly.')
       return items;
     }
 
@@ -537,7 +554,7 @@ export default function QuestionnairePage() {
                 />
               )}
               {currentStep === 4 && <Question4 onAnswer={handleYearsInUSAnswer} />}
-              {currentStep === 5 && <Question5 onSelect={handleCountrySelect} />}
+              {currentStep === 5 && <Question5 onSelect={handleCountrySelect} selectedCountry={answers.country} onContinue={goToNextStep} />}
               {currentStep === 6 && (
                 <div className="py-8 text-center">
                   <p className="text-sm text-slate-400">Preparing your results…</p>
@@ -749,7 +766,7 @@ function Question4({ onAnswer }) {
   )
 }
 
-function Question5({ onSelect }) {
+function Question5({ onSelect, selectedCountry, onContinue }) {
   const [search, setSearch] = useState('')
   const [isOpen, setIsOpen] = useState(false)
 
@@ -809,6 +826,7 @@ function Question5({ onSelect }) {
                 className="w-full px-4 py-3 text-left text-slate-100 transition-colors hover:bg-white/10"
                 onClick={() => {
                   onSelect(country)
+                  setSearch(country)
                   setIsOpen(false)
                 }}
               >
@@ -823,6 +841,23 @@ function Question5({ onSelect }) {
           </div>
         )}
       </div>
+
+      {selectedCountry && (
+        <div className="mt-4 space-y-4">
+          <div className="flex items-center gap-2 rounded-xl border border-green-500/30 bg-green-500/10 px-4 py-3">
+            <Check className="h-4 w-4 text-green-400" />
+            <span className="text-sm text-green-300">{selectedCountry}</span>
+          </div>
+          <button
+            type="button"
+            onClick={onContinue}
+            className="inline-flex h-12 w-full items-center justify-center rounded-xl bg-gradient-to-r from-[#3b82f6] to-[#8b5cf6] text-base font-semibold text-white shadow-lg shadow-blue-600/30 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-violet-500/40"
+          >
+            Continue →
+            <ArrowRight className="ml-2 h-4 w-4" />
+          </button>
+        </div>
+      )}
     </div>
   )
 }
