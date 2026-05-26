@@ -7,11 +7,12 @@ import { ChatChecklistPanel } from '../components/chat/ChatChecklistPanel'
 import DisclaimerBanner from '../components/DisclaimerBanner'
 import Button from '../components/ui/Button'
 import { X } from 'lucide-react'
+import useAuth from '../hooks/useAuth'
 
 const CHAT_STORAGE_KEY = 'f1-conversations'
 
-const loadConversations = () => {
-  const stored = localStorage.getItem(CHAT_STORAGE_KEY)
+const loadConversations = (storageKey) => {
+  const stored = localStorage.getItem(storageKey)
   if (!stored) return []
 
   try {
@@ -23,9 +24,12 @@ const loadConversations = () => {
 
 export default function ChatPage() {
   const navigate = useNavigate()
+  const { user } = useAuth()
+  const uid = user?.id || 'guest'
+  const chatStorageKey = `${CHAT_STORAGE_KEY}_${uid}`
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [checklistOpen, setChecklistOpen] = useState(false)
-  const [conversations, setConversations] = useState(loadConversations)
+  const [conversations, setConversations] = useState(() => loadConversations(chatStorageKey))
   const [selectedConversation, setSelectedConversation] = useState(null)
   
   const location = useLocation()
@@ -37,6 +41,10 @@ export default function ChatPage() {
   const initialContext = useMemo(() => ({ answers, actionItems }), [answers, actionItems])
   const handleOpenSidebar = useCallback(() => setSidebarOpen(true), [])
   const handleCloseSidebar = useCallback(() => setSidebarOpen(false), [])
+
+  useEffect(() => {
+    setConversations(loadConversations(chatStorageKey))
+  }, [chatStorageKey])
 
   useEffect(() => {
     if (location.key) {
@@ -78,10 +86,10 @@ export default function ChatPage() {
       const next = existingIdx >= 0
         ? prev.map((c, i) => i === existingIdx ? newConv : c)
         : [newConv, ...prev]
-      localStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(next))
+      localStorage.setItem(chatStorageKey, JSON.stringify(next))
       return next
     })
-  }, [selectedConversation])
+  }, [chatStorageKey, selectedConversation])
 
   return (
     <div className="relative flex h-screen flex-col overflow-hidden bg-[#0f172a] text-slate-100">

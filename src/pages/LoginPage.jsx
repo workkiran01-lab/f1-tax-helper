@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { LoaderCircle } from 'lucide-react'
+import { LoaderCircle, UserRound } from 'lucide-react'
 import supabase from '../utils/supabase'
 import useAuth from '../hooks/useAuth'
 
 export default function LoginPage() {
   const navigate = useNavigate()
-  const { user, loading: authLoading } = useAuth()
+  const { user, loading: authLoading, signInAsGuest } = useAuth()
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
   const [loading, setLoading] = useState(false)
@@ -65,7 +65,7 @@ export default function LoginPage() {
           </h1>
 
           <p className="mt-4 max-w-lg text-base leading-relaxed text-slate-300 sm:text-lg">
-            Sign in with your Google account to continue
+            Sign in with Google or continue as a guest
           </p>
 
           <div className="mt-8 space-y-4">
@@ -87,6 +87,20 @@ export default function LoginPage() {
               )}
               Continue with Google
             </button>
+
+            <button
+              type="button"
+              onClick={() => signInAsGuest('/welcome')}
+              disabled={loading}
+              className="inline-flex w-full items-center justify-center gap-3 rounded-xl border border-white/20 bg-white/5 px-7 py-3 text-sm font-semibold text-slate-100 transition-all duration-300 hover:-translate-y-0.5 hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-300 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0f172a] disabled:cursor-not-allowed disabled:opacity-70 sm:text-base"
+            >
+              <UserRound className="h-4 w-4" />
+              Continue as Guest
+            </button>
+
+            <p className="text-center text-xs text-slate-500">
+              Guest mode saves progress only in this browser.
+            </p>
 
             {error && (
               <div className="rounded-xl border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-100">

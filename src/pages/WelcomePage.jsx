@@ -5,7 +5,10 @@ import useAuth from '../hooks/useAuth'
 
 export default function WelcomePage() {
   const navigate = useNavigate()
-  const { user } = useAuth()
+  const { user, signOut } = useAuth()
+  const uid = user?.id || 'guest'
+  const displayNameKey = `display_name_${uid}`
+  const universityKey = `university_${uid}`
 
   const [isOnboarding, setIsOnboarding] = useState(true)
   const [name, setName] = useState('')
@@ -15,31 +18,32 @@ export default function WelcomePage() {
 
   useEffect(() => {
     const metadata = user?.user_metadata || {}
-    const n = metadata.display_name || localStorage.getItem('f1_user_name') || ''
-    const u = metadata.university || localStorage.getItem('f1_user_university') || ''
+    const n = metadata.display_name || localStorage.getItem(displayNameKey) || ''
+    const u = metadata.university || localStorage.getItem(universityKey) || ''
     if (n && u) {
       setName(n)
       setUniversity(u)
       setIsOnboarding(false)
     }
-  }, [user])
+  }, [displayNameKey, universityKey, user])
 
   const handleOnboardingSubmit = async (e) => {
     e.preventDefault()
     const n = nameInput.trim()
     const u = universityInput.trim()
     if (!n || !u) return
-    localStorage.setItem('f1_user_name', n)
-    localStorage.setItem('f1_user_university', u)
-    await supabase.auth.updateUser({ data: { display_name: n, university: u } })
+    localStorage.setItem(displayNameKey, n)
+    localStorage.setItem(universityKey, u)
+    if (!user?.is_guest) {
+      await supabase.auth.updateUser({ data: { display_name: n, university: u } })
+    }
     setName(n)
     setUniversity(u)
     setIsOnboarding(false)
   }
 
   const handleReset = async () => {
-    await supabase.auth.signOut()
-    navigate('/login', { replace: true })
+    await signOut('/login')
   }
 
   return (

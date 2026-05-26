@@ -433,17 +433,19 @@ export default function QuestionnairePage() {
     if (currentStep !== 6) return
 
     const persistAndContinue = async () => {
-      const metadata = user?.user_metadata || {}
-      await supabase.auth.updateUser({
-        data: {
-          ...metadata,
-          questionnaire: {
-            answers,
-            actionItems,
-            completedAt: new Date().toISOString(),
+      if (!user?.is_guest) {
+        const metadata = user?.user_metadata || {}
+        await supabase.auth.updateUser({
+          data: {
+            ...metadata,
+            questionnaire: {
+              answers,
+              actionItems,
+              completedAt: new Date().toISOString(),
+            },
           },
-        },
-      })
+        })
+      }
 
       sessionStorage.removeItem(STORAGE_KEY)
       navigate('/results', {
@@ -453,7 +455,7 @@ export default function QuestionnairePage() {
     }
 
     persistAndContinue()
-  }, [actionItems, answers, currentStep, navigate, user?.user_metadata])
+  }, [actionItems, answers, currentStep, navigate, user?.is_guest, user?.user_metadata])
 
   if (stopped) {
     return (

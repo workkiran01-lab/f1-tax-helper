@@ -13,6 +13,11 @@ async function isRateLimited(key) {
   return requests > 20
 }
 
+const allowedOrigins = [
+  'https://f1-tax-helper.vercel.app', // replace with custom domain when ready
+  'http://localhost:5173',
+]
+
 const SYSTEM_PROMPT = `You are Alex, a friendly and knowledgeable F-1 tax assistant who helps international students understand US taxes. Speak like a helpful, knowledgeable friend — not a formal tax advisor. Use simple language, short answers (2–4 sentences unless detail is needed), and occasionally add a friendly emoji.
 
 FOCUS ONLY ON F-1 STUDENT TAX TOPICS. If asked about unrelated topics, politely redirect.
@@ -126,35 +131,41 @@ export default async function handler(req) {
     return new Response('Method Not Allowed', { status: 405 })
   }
 
-  const ip = req.headers.get('x-forwarded-for')?.split(',')[0].trim() ?? 'unknown'
-  if (await isRateLimited(`rl:${ip}`)) {
-    return new Response(JSON.stringify({ error: 'Too many requests. Please wait a moment.' }), {
-      status: 429,
-      headers: { 'Content-Type': 'application/json', 'Retry-After': '60' },
-    })
-  }
-
-  const appToken = req.headers.get('x-app-token')
-  if (appToken !== process.env.APP_SECRET) {
-    return new Response('Unauthorized', { status: 401 })
-  }
-
-  // Reject requests from unknown origins (browser always sends Origin on cross-origin requests)
-  const origin = req.headers.get('origin')
-  if (origin && !/^https?:\/\/(localhost(:\d+)?|[^/]*\.vercel\.app|f1taxhelper\.com)$/.test(origin)) {
+  // The old client-bundled app secret was exposed and is compromised.
+  // It has been removed; requests are now limited to exact trusted origins.
+  const origin = req.headers.get('origin') || ''
+  if (!allowedOrigins.includes(origin)) {
     return new Response('Forbidden', { status: 403 })
   }
 
-  let messages
+  const ip = req.headers.get('x-forwarded-for')?.split(',')[0].trim() ?? 'unknown'
+  try {
+    if (await isRateLimited(`rl:${ip}`)) {
+      return new Response('Rate limit exceeded', {
+        status: 429,
+        headers: { 'Retry-After': '60' },
+      })
+    }
+  } catch (err) {
+    console.error('Redis error:', err)
+    // Fail open if Redis is unavailable.
+  }
+
+  let safeMessages
   try {
     const body = await req.json()
     if (!Array.isArray(body.messages)) throw new Error('invalid')
-    if (body.messages.length > 50) throw new Error('too many messages')
-    for (const m of body.messages) {
-      if (typeof m.content !== 'string' || m.content.length > 4000) throw new Error('message too long')
+
+    safeMessages = (body.messages || [])
+      .filter((m) => m.role === 'user' && typeof m.content === 'string' && m.content.trim())
+      .slice(-20)
+
+    if (!safeMessages.length) throw new Error('no safe messages')
+    for (const m of safeMessages) {
+      if (m.content.length > 4000) throw new Error('message too long')
     }
     const injectionPatterns = [/ignore previous/i, /system:/i, /you are now/i, /disregard/i, /forget your instructions/i]
-    for (const m of body.messages) {
+    for (const m of safeMessages) {
       if (injectionPatterns.some(p => p.test(m.content))) {
         return new Response(JSON.stringify({ error: 'Invalid message content' }), {
           status: 400,
@@ -162,7 +173,6 @@ export default async function handler(req) {
         })
       }
     }
-    messages = body.messages
   } catch {
     return new Response(JSON.stringify({ error: 'Invalid request body' }), {
       status: 400,
@@ -170,32 +180,36 @@ export default async function handler(req) {
     })
   }
 
-  const groqRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${process.env.GROQ_API_KEY}`,
-    },
-    body: JSON.stringify({
-      model: 'llama-3.3-70b-versatile',
-      messages: [{ role: 'system', content: SYSTEM_PROMPT }, ...messages],
-      stream: true,
-    }),
-  })
+  try {
+    const groqRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${process.env.GROQ_API_KEY}`,
+      },
+      body: JSON.stringify({
+        model: 'llama-3.3-70b-versatile',
+        messages: [{ role: 'system', content: SYSTEM_PROMPT }, ...safeMessages],
+        stream: true,
+        max_tokens: 1024,
+      }),
+    })
 
-  if (!groqRes.ok) {
-    const err = await groqRes.json().catch(() => ({}))
-    return new Response(
-      JSON.stringify({ error: err?.error?.message || `Groq error ${groqRes.status}` }),
-      { status: groqRes.status, headers: { 'Content-Type': 'application/json' } },
-    )
+    if (!groqRes.ok) {
+      console.error('Groq error:', groqRes.status)
+      return new Response('AI service unavailable', { status: 502 })
+    }
+
+    // TODO: Add explicit client disconnect abort handling around the stream.
+    return new Response(groqRes.body, {
+      headers: {
+        'Content-Type': 'text/event-stream',
+        'Cache-Control': 'no-cache',
+        'X-Content-Type-Options': 'nosniff',
+      },
+    })
+  } catch (err) {
+    console.error('Groq error:', err)
+    return new Response('AI service error', { status: 502 })
   }
-
-  return new Response(groqRes.body, {
-    headers: {
-      'Content-Type': 'text/event-stream',
-      'Cache-Control': 'no-cache',
-      'X-Content-Type-Options': 'nosniff',
-    },
-  })
 }

@@ -1,9 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { Plus, MessageSquare, Settings, X } from 'lucide-react'
 import useAuth from '../../hooks/useAuth'
-import supabase from '../../utils/supabase'
 
 const formatGroupLabel = (timestamp) => {
   const date = new Date(timestamp)
@@ -53,8 +52,7 @@ const initDarkMode = () => {
 }
 
 export function ChatSidebar({ conversations = [], onSelect, onNewChat }) {
-  const navigate = useNavigate()
-  const { user } = useAuth()
+  const { user, signOut } = useAuth()
   const [showProModal, setShowProModal] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
   const [waitlistEmail, setWaitlistEmail] = useState(user?.email || '')
@@ -69,8 +67,7 @@ export function ChatSidebar({ conversations = [], onSelect, onNewChat }) {
   const initial = useMemo(() => (displayName?.[0] || 'S').toUpperCase(), [displayName])
 
   const handleSignOut = async () => {
-    await supabase.auth.signOut()
-    navigate('/', { replace: true })
+    await signOut('/')
   }
 
   const handleDeleteAccount = async () => {
@@ -78,8 +75,7 @@ export function ChatSidebar({ conversations = [], onSelect, onNewChat }) {
       'This will sign you out. To fully delete your account, email f1taxhelper01@gmail.com with your registered email address.'
     )
     if (!confirmed) return
-    await supabase.auth.signOut()
-    navigate('/', { replace: true })
+    await signOut('/')
   }
 
   useEffect(() => {

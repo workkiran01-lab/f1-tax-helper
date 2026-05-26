@@ -99,6 +99,8 @@ export default function ChecklistPage() {
   const navigate = useNavigate()
   const location = useLocation()
   const { user } = useAuth()
+  const uid = user?.id || 'guest'
+  const checklistStorageKey = `${STORAGE_KEY}_${uid}`
 
   const storedQuestionnaire = user?.user_metadata?.questionnaire || null
   const answers = location.state?.answers || storedQuestionnaire?.answers || null
@@ -133,16 +135,28 @@ export default function ChecklistPage() {
 
   const [checked, setChecked] = useState(() => {
     try {
-      const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}')
+      const saved = JSON.parse(localStorage.getItem(checklistStorageKey) || '{}')
       return Object.fromEntries(allItemIds.map((id) => [id, saved[id] ?? false]))
     } catch {
       return Object.fromEntries(allItemIds.map((id) => [id, false]))
     }
   })
+  const [loadedStorageKey, setLoadedStorageKey] = useState(checklistStorageKey)
 
   useEffect(() => {
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(checked)) } catch {}
-  }, [checked])
+    try {
+      const saved = JSON.parse(localStorage.getItem(checklistStorageKey) || '{}')
+      setChecked(Object.fromEntries(allItemIds.map((id) => [id, saved[id] ?? false])))
+    } catch {
+      setChecked(Object.fromEntries(allItemIds.map((id) => [id, false])))
+    }
+    setLoadedStorageKey(checklistStorageKey)
+  }, [allItemIds, checklistStorageKey])
+
+  useEffect(() => {
+    if (loadedStorageKey !== checklistStorageKey) return
+    try { localStorage.setItem(checklistStorageKey, JSON.stringify(checked)) } catch {}
+  }, [checked, checklistStorageKey, loadedStorageKey])
 
   const toggle = (id) => setChecked((prev) => ({ ...prev, [id]: !prev[id] }))
 

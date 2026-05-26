@@ -1,17 +1,18 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Check, ChevronDown, X } from 'lucide-react'
 import { SECTIONS } from '../checklist/data'
 import { FilingOptionsSection } from '../checklist/FilingOptionsSection'
 import { cn } from '../../utils/cn'
+import useAuth from '../../hooks/useAuth'
 
 const CHECKLIST_STORAGE_KEY = 'f1-tax-helper-checklist'
 
-const loadChecklistState = (allItemIds) => {
+const loadChecklistState = (allItemIds, storageKey) => {
   if (typeof window === 'undefined') {
     return Object.fromEntries(allItemIds.map((id) => [id, false]))
   }
   try {
-    const stored = window.localStorage.getItem(CHECKLIST_STORAGE_KEY)
+    const stored = window.localStorage.getItem(storageKey)
     if (!stored) {
       return Object.fromEntries(allItemIds.map((id) => [id, false]))
     }
@@ -24,11 +25,11 @@ const loadChecklistState = (allItemIds) => {
   }
 }
 
-const saveChecklistState = (state) => {
+const saveChecklistState = (state, storageKey) => {
   if (typeof window === 'undefined') return
   try {
     window.localStorage.setItem(
-      CHECKLIST_STORAGE_KEY,
+      storageKey,
       JSON.stringify(state),
     )
   } catch {
@@ -37,12 +38,19 @@ const saveChecklistState = (state) => {
 }
 
 export function ChatChecklistPanel({ onClose }) {
+  const { user } = useAuth()
+  const uid = user?.id || 'guest'
+  const checklistStorageKey = `${CHECKLIST_STORAGE_KEY}_${uid}`
   const allItemIds = useMemo(
     () => SECTIONS.flatMap((section) => section.items.map((item) => item.id)),
     [],
   )
-  const [checked, setChecked] = useState(() => loadChecklistState(allItemIds))
+  const [checked, setChecked] = useState(() => loadChecklistState(allItemIds, checklistStorageKey))
   const [openDetails, setOpenDetails] = useState({})
+
+  useEffect(() => {
+    setChecked(loadChecklistState(allItemIds, checklistStorageKey))
+  }, [allItemIds, checklistStorageKey])
 
   const total = allItemIds.length
   const completed = Object.values(checked).filter(Boolean).length
@@ -52,7 +60,7 @@ export function ChatChecklistPanel({ onClose }) {
   const toggleItem = (id) => {
     setChecked((prev) => {
       const next = { ...prev, [id]: !prev[id] }
-      saveChecklistState(next)
+      saveChecklistState(next, checklistStorageKey)
       return next
     })
   }
@@ -175,7 +183,7 @@ export function ChatChecklistPanel({ onClose }) {
         <button
           type="button"
           onClick={() => {
-            localStorage.removeItem(CHECKLIST_STORAGE_KEY)
+            localStorage.removeItem(checklistStorageKey)
             const reset = Object.fromEntries(allItemIds.map((id) => [id, false]))
             setChecked(reset)
           }}
