@@ -14,9 +14,9 @@ export default function ResultsPage() {
   const storedQuestionnaire = user?.user_metadata?.questionnaire || null
   const answers = location.state?.answers || storedQuestionnaire?.answers || null
   const actionItems = location.state?.actionItems || storedQuestionnaire?.actionItems || []
+  const hasTreatyBenefit = Boolean(location.state?.hasTreatyBenefit ?? storedQuestionnaire?.hasTreatyBenefit)
 
   const chatState = useMemo(() => ({ answers, actionItems }), [answers, actionItems])
-  const hasTreatyBenefit = actionItems.some((item) => item.toLowerCase().includes('tax treaty'))
 
   const getResultStyle = (item) => {
     const lowered = item.toLowerCase()

@@ -355,11 +355,36 @@ export default function QuestionnairePage() {
 
   const actionItems = useMemo(() => {
     const items = []
+    const getTreatyMessage = () => {
+      if (!answers.country) return null
+
+      const treaty = TREATY_COUNTRIES[answers.country]
+      if (!treaty) {
+        return `Your country (${answers.country}) does not have a US tax treaty for students. You are not eligible for treaty-based exemptions.`
+      }
+
+      let treatyMessage = `Your country, ${answers.country}, has a tax treaty with the US (${treaty.article}). `
+      if (treaty.wageCap && needsW2Flow) {
+        treatyMessage += `You may be able to exclude up to $${treaty.wageCap} of your wages. `
+      }
+      if (treaty.scholarshipExempt && needs1042SFlow) {
+        treatyMessage += `Scholarship/fellowship income is generally exempt. `
+      }
+      if (treaty.form8833Required) {
+        treatyMessage += `You must file Form 8833 to claim these treaty benefits.`
+      }
+      return treatyMessage
+    }
+
+    const treatyMessage = getTreatyMessage()
 
     // No income flow
     if (answers.hasUSIncome === false) {
       items.push('You are required to file Form 8843, Statement for Exempt Individuals and Individuals With a Medical Condition. This is true even if you had no income.')
       items.push('Since you had no US-source income, you likely do not need to file a US tax return (like Form 1040-NR), but Form 8843 is mandatory.')
+      if (treatyMessage?.includes('does not have a US tax treaty')) {
+        items.push(treatyMessage)
+      }
       items.push('Filing Form 8843 on time is important. The main consequence of not filing is that the IRS may count your exempt days toward the Substantial Presence Test, which could affect your tax residency status — not your visa directly.')
       return items;
     }
@@ -369,6 +394,10 @@ export default function QuestionnairePage() {
       items.push('As a Non-Resident Alien, you will file Form 1040-NR and Form 8843.')
     } else if (answers.residencyStatus === 'Resident Alien') {
       items.push('Our analysis suggests you may qualify as a Resident Alien for tax purposes. You would file Form 1040, the standard US tax return.')
+    }
+
+    if (treatyMessage) {
+      items.push(treatyMessage)
     }
 
     if (needsW2Flow) {
@@ -384,25 +413,6 @@ export default function QuestionnairePage() {
       items.push('Investment income may be taxed differently depending on the source. This adds complexity to your return.')
     }
 
-    if (answers.country) {
-      const treaty = TREATY_COUNTRIES[answers.country];
-      if (treaty) {
-        let treatyMessage = `Your country, ${answers.country}, has a tax treaty with the US (${treaty.article}). `;
-        if (treaty.wageCap && needsW2Flow) {
-          treatyMessage += `You may be able to exclude up to $${treaty.wageCap} of your wages. `;
-        }
-        if (treaty.scholarshipExempt && needs1042SFlow) {
-          treatyMessage += `Scholarship/fellowship income is generally exempt. `;
-        }
-        if (treaty.form8833Required) {
-          treatyMessage += `You must file Form 8833 to claim these treaty benefits.`;
-        }
-        items.push(treatyMessage);
-      } else {
-        items.push(`No US income tax treaty exists for ${answers.country}. Standard Non-Resident Alien rules apply in full.`);
-      }
-    }
-    
     // 1098-T Advice
     if (answers.residencyStatus === 'Resident Alien') {
         items.push('Your 1098-T may make you eligible for education credits like the American Opportunity Credit or Lifetime Learning Credit on your Form 1040.')
@@ -433,6 +443,8 @@ export default function QuestionnairePage() {
     if (currentStep !== 6) return
 
     const persistAndContinue = async () => {
+      const hasTreatyBenefit = Boolean(answers.country && TREATY_COUNTRIES[answers.country])
+
       if (!user?.is_guest) {
         const metadata = user?.user_metadata || {}
         await supabase.auth.updateUser({
@@ -441,6 +453,7 @@ export default function QuestionnairePage() {
             questionnaire: {
               answers,
               actionItems,
+              hasTreatyBenefit,
               completedAt: new Date().toISOString(),
             },
           },
@@ -450,7 +463,7 @@ export default function QuestionnairePage() {
       sessionStorage.removeItem(STORAGE_KEY)
       navigate('/results', {
         replace: true,
-        state: { answers, actionItems },
+        state: { answers, actionItems, hasTreatyBenefit },
       })
     }
 
