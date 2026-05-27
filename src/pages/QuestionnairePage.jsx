@@ -358,6 +358,14 @@ export default function QuestionnairePage() {
     const getTreatyMessage = () => {
       if (!answers.country) return null
 
+      if (answers.country === 'Russia') {
+        return '⚠️ The US-Russia tax treaty was suspended on August 16, 2024. If you previously claimed treaty benefits, you may no longer be eligible. Consult a tax professional.'
+      }
+
+      if (answers.country === 'Hungary') {
+        return '⚠️ The US-Hungary tax treaty was terminated on January 1, 2024. Treaty benefits are no longer available for Hungarian students. Consult a tax professional.'
+      }
+
       const treaty = TREATY_COUNTRIES[answers.country]
       if (!treaty) {
         return `Your country (${answers.country}) does not have a US tax treaty for students. You are not eligible for treaty-based exemptions.`
@@ -382,7 +390,7 @@ export default function QuestionnairePage() {
     if (answers.hasUSIncome === false) {
       items.push('You are required to file Form 8843, Statement for Exempt Individuals and Individuals With a Medical Condition. This is true even if you had no income.')
       items.push('Since you had no US-source income, you likely do not need to file a US tax return (like Form 1040-NR), but Form 8843 is mandatory.')
-      if (treatyMessage?.includes('does not have a US tax treaty')) {
+      if (treatyMessage) {
         items.push(treatyMessage)
       }
       items.push('Filing Form 8843 on time is important. The main consequence of not filing is that the IRS may count your exempt days toward the Substantial Presence Test, which could affect your tax residency status — not your visa directly.')

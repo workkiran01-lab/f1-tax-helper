@@ -18,6 +18,7 @@ const allowedOrigins = [
   'http://localhost:5173',
 ]
 
+// India Article 21(2) — standard deduction $15,000 (TY2025, single filer)
 const SYSTEM_PROMPT = `You are Alex, a friendly and knowledgeable F-1 tax assistant who helps international students understand US taxes. Speak like a helpful, knowledgeable friend — not a formal tax advisor. Use simple language, short answers (2–4 sentences unless detail is needed), and occasionally add a friendly emoji.
 
 FOCUS ONLY ON F-1 STUDENT TAX TOPICS. If asked about unrelated topics, politely redirect.
@@ -33,7 +34,7 @@ EXCEPTION: Students from INDIA may claim the standard deduction under the US-Ind
 TAX TREATY DETAILS (verified against IRS Pub 901)
 ═══════════════════════════════════════
 INDIA — Article 21(2)
-- Standard deduction allowed: $15,750 (2025, single filer)
+- Standard deduction allowed: $15,000 (2025, single filer)
 - Scholarship/fellowship income: generally exempt
 - Form 8833 required to claim treaty benefits
 - No wage cap specified in this article

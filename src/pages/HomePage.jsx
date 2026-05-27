@@ -2,11 +2,12 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import supabase from '../utils/supabase'
 import useAuth from '../hooks/useAuth'
+import DisclaimerBanner from '../components/DisclaimerBanner'
 
 const TRUST_CARDS = [
-  { icon: '🛡️', title: 'Visa Safe', description: 'We never ask for SSN or immigration documents.' },
-  { icon: '✅', title: 'IRS Compliant', description: 'Forms match official IRS specifications exactly.' },
-  { icon: '📋', title: 'No Audit Risk', description: 'Plain explanations, no guessing — just accurate guidance.' },
+  { icon: '🛡️', title: 'Built for F-1 student situations', description: 'We never ask for SSN or immigration documents.' },
+  { icon: '✅', title: 'Based on IRS guidance for international students', description: 'References official IRS forms and publications where possible.' },
+  { icon: '📋', title: 'Designed with accuracy in mind', description: 'Plain explanations with reminders to verify before filing.' },
   { icon: '💰', title: 'Save $200+', description: 'CPAs charge $200–400. We start at free.' },
 ]
 
@@ -52,7 +53,7 @@ const PRICING = [
 
 const TRUST_BADGES = [
   '🔒 No SSN Required',
-  '📄 IRS Compliant',
+  '📄 Based on IRS Guidance',
   '⚡ Free to Start',
 ]
 
@@ -122,6 +123,8 @@ export default function HomePage() {
         </div>
       </header>
 
+      <DisclaimerBanner />
+
       <main className="relative z-10">
 
         {/* ── HERO ── */}
@@ -133,16 +136,16 @@ export default function HomePage() {
           <div className="relative">
             <div className="pointer-events-none absolute inset-0 -z-10 mx-auto max-w-2xl rounded-full bg-gradient-to-r from-blue-600/20 to-violet-600/20 blur-3xl" />
             <h1 className="max-w-3xl text-4xl font-extrabold leading-[1.1] tracking-tight sm:text-5xl md:text-6xl">
-              U.S. Taxes Shouldn't Cost
+              Understand Your Tax Obligations
               <br />
               <span className="bg-gradient-to-r from-blue-400 to-violet-400 bg-clip-text text-transparent [filter:drop-shadow(0_0_24px_rgba(139,92,246,0.35))]">
-                You Your Visa
+                as an F-1 Student
               </span>
             </h1>
           </div>
 
           <p className="mt-6 max-w-xl text-base leading-7 text-slate-300 sm:text-lg">
-            The only tax tool built specifically for F-1 international students.
+            A free tax tool built specifically for F-1 international students.
             Start with a free Form 8843 — no login, no SSN required.
           </p>
 

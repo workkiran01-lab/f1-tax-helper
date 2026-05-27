@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { fillForm8843 } from '../utils/form8843Fields'
+import DisclaimerBanner from '../components/DisclaimerBanner'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Constants
@@ -712,6 +713,8 @@ export default function Form8843Page() {
               />
             </div>
           </header>
+
+          <DisclaimerBanner />
 
           {/* Data safety badge */}
           <div className="border-b border-green-500/10 bg-green-500/5 px-4 py-2 sm:px-8">

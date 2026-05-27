@@ -20,7 +20,7 @@ export default function ResultsPage() {
 
   const getResultStyle = (item) => {
     const lowered = item.toLowerCase()
-    if (lowered.includes('warning') || lowered.includes('risk') || lowered.includes('unauthorized')) {
+    if (item.startsWith('⚠️') || lowered.includes('warning') || lowered.includes('risk') || lowered.includes('unauthorized')) {
       return {
         border: 'border-l-yellow-500',
         icon: <AlertTriangle className="h-5 w-5 text-yellow-300" />,

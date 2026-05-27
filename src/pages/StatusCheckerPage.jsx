@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { ChevronRight, ChevronLeft } from 'lucide-react'
+import DisclaimerBanner from '../components/DisclaimerBanner'
+import useAuth from '../hooks/useAuth'
 
 const QUESTIONS = [
   {
@@ -127,6 +129,7 @@ function computeResult(answers) {
 
 export default function StatusCheckerPage() {
   const navigate = useNavigate()
+  const { user, signInAsGuest } = useAuth()
   const [step, setStep] = useState(0)
   const [answers, setAnswers] = useState({})
   const [result, setResult] = useState(null)
@@ -152,7 +155,7 @@ export default function StatusCheckerPage() {
   }
 
   if (result) {
-    return <ResultScreen result={result} navigate={navigate} />
+    return <ResultScreen result={result} navigate={navigate} signInAsGuest={signInAsGuest} user={user} />
   }
 
   return (
@@ -176,6 +179,8 @@ export default function StatusCheckerPage() {
           </span>
         </div>
       </header>
+
+      <DisclaimerBanner />
 
       <main className="relative z-10 mx-auto flex w-full max-w-xl flex-1 flex-col px-4 py-12 sm:px-6">
         {/* Progress bar */}
@@ -248,8 +253,17 @@ export default function StatusCheckerPage() {
   )
 }
 
-function ResultScreen({ result, navigate }) {
+function ResultScreen({ result, navigate, signInAsGuest, user }) {
   const isNRA = result.badge === 'nra'
+  const [showChecklistPrompt, setShowChecklistPrompt] = useState(false)
+
+  const handleChecklistClick = () => {
+    if (user) {
+      navigate('/checklist')
+      return
+    }
+    setShowChecklistPrompt(true)
+  }
 
   return (
     <div className="relative flex min-h-screen flex-col overflow-hidden bg-[#0f172a] text-slate-100">
@@ -269,6 +283,8 @@ function ResultScreen({ result, navigate }) {
           <span className="text-xs text-green-400">✓ Results Ready</span>
         </div>
       </header>
+
+      <DisclaimerBanner />
 
       <main className="relative z-10 mx-auto w-full max-w-xl px-4 py-10 sm:px-6">
         {/* Status badge */}
@@ -338,11 +354,34 @@ function ResultScreen({ result, navigate }) {
         <div className="space-y-3">
           <button
             type="button"
-            onClick={() => navigate('/checklist')}
+            onClick={handleChecklistClick}
             className="w-full rounded-xl bg-gradient-to-r from-blue-500 to-violet-500 px-5 py-3 text-sm font-semibold text-white transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl"
           >
             View My Document Checklist →
           </button>
+          {showChecklistPrompt && (
+            <div className="rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4 text-sm text-amber-100">
+              <p className="leading-6">
+                Sign in to save and view your personalized checklist. Your progress won't be lost.
+              </p>
+              <div className="mt-3 flex flex-col gap-2 sm:flex-row">
+                <button
+                  type="button"
+                  onClick={() => navigate('/login')}
+                  className="rounded-xl bg-amber-400 px-4 py-2 text-xs font-semibold text-slate-950 transition-colors hover:bg-amber-300"
+                >
+                  Sign in with Google
+                </button>
+                <button
+                  type="button"
+                  onClick={() => signInAsGuest('/checklist')}
+                  className="rounded-xl border border-amber-300/40 bg-white/5 px-4 py-2 text-xs font-semibold text-amber-100 transition-colors hover:bg-white/10"
+                >
+                  Continue as Guest
+                </button>
+              </div>
+            </div>
+          )}
           <button
             type="button"
             onClick={() => {

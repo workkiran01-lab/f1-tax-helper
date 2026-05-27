@@ -1,19 +1,38 @@
-import { Link } from 'react-router-dom'
+import { useState } from 'react'
+import { X } from 'lucide-react'
+
+const STORAGE_KEY = 'f1_disclaimer_dismissed'
 
 export default function DisclaimerBanner() {
+  const [dismissed, setDismissed] = useState(() => {
+    try {
+      return sessionStorage.getItem(STORAGE_KEY) === 'true'
+    } catch {
+      return false
+    }
+  })
+
+  const handleDismiss = () => {
+    try { sessionStorage.setItem(STORAGE_KEY, 'true') } catch {}
+    setDismissed(true)
+  }
+
+  if (dismissed) return null
+
   return (
-    <div className="border-b border-amber-200 bg-amber-50/90 px-4 py-3 text-sm text-amber-950">
-      <div className="mx-auto flex max-w-6xl flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+    <div className="relative z-20 border-b border-amber-300/40 bg-amber-500/15 px-4 py-3 text-sm text-amber-100">
+      <div className="mx-auto flex max-w-6xl items-start justify-between gap-3">
         <p className="leading-6">
-          F1 Tax Helper provides general educational information only and does
-          not provide tax, legal, or financial advice.
+          ⚠️ For informational purposes only. This is not legal or tax advice. Always verify with a qualified tax professional or your DSO before filing.
         </p>
-        <Link
-          className="font-medium underline underline-offset-4 hover:text-amber-800"
-          to="/disclaimer"
+        <button
+          type="button"
+          onClick={handleDismiss}
+          className="mt-0.5 rounded-lg p-1 text-amber-100/80 transition-colors hover:bg-amber-400/10 hover:text-amber-50"
+          aria-label="Dismiss disclaimer"
         >
-          Read full disclaimer
-        </Link>
+          <X className="h-4 w-4" />
+        </button>
       </div>
     </div>
   )
