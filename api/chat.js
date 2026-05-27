@@ -14,8 +14,10 @@ async function isRateLimited(key) {
 }
 
 const allowedOrigins = [
-  'https://f1-tax-helper.vercel.app', // replace with custom domain when ready
+  'https://f1-tax-helper.vercel.app',
+  'https://www.f1-tax-helper.vercel.app',
   'http://localhost:5173',
+  'http://localhost:4173',
 ]
 
 // India Article 21(2) — standard deduction $15,000 (TY2025, single filer)
@@ -135,9 +137,11 @@ export default async function handler(req) {
   // The old client-bundled app secret was exposed and is compromised.
   // It has been removed; requests are now limited to exact trusted origins.
   const origin = req.headers.get('origin') || ''
-  if (!allowedOrigins.includes(origin)) {
+  console.log('Incoming chat origin:', origin)
+  if (origin && !allowedOrigins.includes(origin)) {
     return new Response('Forbidden', { status: 403 })
   }
+  // Empty origin can happen on same-origin requests; allow those through.
 
   const ip = req.headers.get('x-forwarded-for')?.split(',')[0].trim() ?? 'unknown'
   try {
