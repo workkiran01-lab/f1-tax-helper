@@ -254,6 +254,7 @@ export default function QuestionnairePage() {
   const [needs1099Flow, setNeeds1099Flow] = useState(saved?.needs1099Flow ?? false)
   const [needsInvestmentFlow, setNeedsInvestmentFlow] = useState(saved?.needsInvestmentFlow ?? false)
   const [needsResidencyCheck, setNeedsResidencyCheck] = useState(saved?.needsResidencyCheck ?? false)
+  const [saveWarning, setSaveWarning] = useState('')
 
   useEffect(() => {
     sessionStorage.setItem(STORAGE_KEY, JSON.stringify({
@@ -449,34 +450,62 @@ export default function QuestionnairePage() {
 
   useEffect(() => {
     if (currentStep !== 6) return
+    let cancelled = false
 
     const persistAndContinue = async () => {
       const hasTreatyBenefit = Boolean(answers.country && TREATY_COUNTRIES[answers.country])
+      let syncWarning = ''
+      const shouldSyncToSupabase = user?.id && user.id !== 'guest' && !user?.is_guest
 
-      if (!user?.is_guest) {
-        const metadata = user?.user_metadata || {}
-        await supabase.auth.updateUser({
-          data: {
-            ...metadata,
-            questionnaire: {
-              answers,
-              actionItems,
-              hasTreatyBenefit,
-              completedAt: new Date().toISOString(),
+      if (shouldSyncToSupabase) {
+        const saveToSupabase = async () => {
+          const metadata = user?.user_metadata || {}
+          const { error } = await supabase.auth.updateUser({
+            data: {
+              ...metadata,
+              questionnaire: {
+                answers,
+                actionItems,
+                hasTreatyBenefit,
+                completedAt: new Date().toISOString(),
+              },
             },
-          },
-        })
+          })
+          if (error) throw error
+        }
+
+        const result = await Promise.race([
+          saveToSupabase()
+            .then(() => 'saved')
+            .catch((err) => {
+              console.error('Failed to save to Supabase:', err)
+              return 'failed'
+            }),
+          new Promise((resolve) => setTimeout(() => resolve('timeout'), 3000)),
+        ])
+
+        if (result === 'failed' || result === 'timeout') {
+          if (result === 'timeout') {
+            console.error('Failed to save to Supabase: request timed out')
+          }
+          syncWarning = 'Progress saved locally. Sign in to sync across devices.'
+          if (!cancelled) setSaveWarning(syncWarning)
+        }
       }
 
+      if (cancelled) return
       sessionStorage.removeItem(STORAGE_KEY)
       navigate('/results', {
         replace: true,
-        state: { answers, actionItems, hasTreatyBenefit },
+        state: { answers, actionItems, hasTreatyBenefit, syncWarning },
       })
     }
 
     persistAndContinue()
-  }, [actionItems, answers, currentStep, navigate, user?.is_guest, user?.user_metadata])
+    return () => {
+      cancelled = true
+    }
+  }, [actionItems, answers, currentStep, navigate, user?.id, user?.is_guest, user?.user_metadata])
 
   if (stopped) {
     return (
@@ -581,6 +610,11 @@ export default function QuestionnairePage() {
               {currentStep === 6 && (
                 <div className="py-8 text-center">
                   <p className="text-sm text-slate-400">Preparing your results…</p>
+                  {saveWarning && (
+                    <p className="mt-3 rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
+                      {saveWarning}
+                    </p>
+                  )}
                 </div>
               )}
 
@@ -814,9 +848,17 @@ function Question5({ onSelect, selectedCountry, onContinue }) {
         <div
           className="flex cursor-pointer items-center gap-3 rounded-xl border border-white/20 bg-white/5 p-4 transition-colors hover:border-blue-500/50 hover:bg-white/10"
           onClick={() => setIsOpen(!isOpen)}
-          role="button"
+          role="combobox"
+          aria-controls="country-listbox"
+          aria-expanded={isOpen}
+          aria-label="Select your country"
           tabIndex={0}
-          onKeyDown={(e) => e.key === 'Enter' && setIsOpen(!isOpen)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault()
+              setIsOpen(!isOpen)
+            }
+          }}
         >
           <Search className="h-5 w-5 text-slate-400" />
           <input
@@ -842,10 +884,16 @@ function Question5({ onSelect, selectedCountry, onContinue }) {
         </div>
 
         {isOpen && (
-          <div className="absolute left-0 right-0 top-full z-10 mt-2 max-h-64 overflow-y-auto rounded-xl border border-white/20 bg-slate-900/95 shadow-2xl backdrop-blur-xl">
+          <div
+            id="country-listbox"
+            role="listbox"
+            className="absolute left-0 right-0 top-full z-10 mt-2 max-h-64 overflow-y-auto rounded-xl border border-white/20 bg-slate-900/95 shadow-2xl backdrop-blur-xl"
+          >
             {filteredCountries.map((country) => (
               <button
                 key={country}
+                role="option"
+                aria-selected={selectedCountry === country}
                 className="w-full px-4 py-3 text-left text-slate-100 transition-colors hover:bg-white/10"
                 onClick={() => {
                   onSelect(country)

@@ -15,6 +15,7 @@ export default function ResultsPage() {
   const answers = location.state?.answers || storedQuestionnaire?.answers || null
   const actionItems = location.state?.actionItems || storedQuestionnaire?.actionItems || []
   const hasTreatyBenefit = Boolean(location.state?.hasTreatyBenefit ?? storedQuestionnaire?.hasTreatyBenefit)
+  const syncWarning = location.state?.syncWarning || null
 
   const chatState = useMemo(() => ({ answers, actionItems }), [answers, actionItems])
 
@@ -23,7 +24,7 @@ export default function ResultsPage() {
     if (item.startsWith('⚠️') || lowered.includes('warning') || lowered.includes('risk') || lowered.includes('unauthorized')) {
       return {
         border: 'border-l-yellow-500',
-        icon: <AlertTriangle className="h-5 w-5 text-yellow-300" />,
+        icon: <AlertTriangle className="h-5 w-5 text-yellow-200" />,
         title: 'Warning',
       }
     }
@@ -98,6 +99,11 @@ export default function ResultsPage() {
             </p>
             <h1 className="text-3xl font-extrabold tracking-tight text-slate-100 sm:text-4xl">Here&apos;s your tax summary</h1>
             <p className="mt-3 text-slate-300">Based on your answers, here&apos;s what you need to know</p>
+            {syncWarning && (
+              <p className="mt-4 rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
+                {syncWarning}
+              </p>
+            )}
           </div>
 
           <div className="space-y-3">

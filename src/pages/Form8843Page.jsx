@@ -666,7 +666,7 @@ export default function Form8843Page() {
           </div>
 
           <div className="mt-auto rounded-xl border border-yellow-500/20 bg-yellow-500/10 p-4">
-            <p className="text-[11px] leading-5 text-yellow-400/80">
+            <p className="text-[11px] leading-5 text-yellow-200/90">
               Form 8843 is an informational statement — not a tax return. F-1 students with no US income must still file it by the tax deadline.
             </p>
           </div>
@@ -1177,7 +1177,7 @@ export default function Form8843Page() {
                     {genError && <p className="mt-2 text-center text-xs text-red-400">{genError}</p>}
 
                     <div className="mt-3 rounded-xl border border-yellow-500/20 bg-yellow-500/10 px-4 py-3">
-                      <p className="text-xs leading-5 text-yellow-400">
+                      <p className="text-xs leading-5 text-yellow-200">
                         ⚠️ Review all information carefully. Errors on Form 8843 can affect your immigration status.
                       </p>
                     </div>

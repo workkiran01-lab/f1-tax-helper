@@ -225,7 +225,7 @@ export default function ChatPage() {
       </div>
 
       <div
-        className={`fixed inset-y-0 right-0 z-50 w-[380px] transform border-l border-white/10 bg-slate-900/95 shadow-2xl backdrop-blur-xl transition-transform duration-300 ease-in-out lg:relative lg:shadow-none ${
+        className={`fixed inset-y-0 right-0 z-50 w-[280px] transform border-l border-white/10 bg-slate-900/95 shadow-2xl backdrop-blur-xl transition-transform duration-300 ease-in-out sm:w-[380px] lg:relative lg:shadow-none ${
           checklistOpen ? 'translate-x-0' : 'translate-x-full lg:hidden'
         }`}
       >

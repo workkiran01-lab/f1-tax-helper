@@ -403,7 +403,7 @@ function CheckItem({ item, checked, onToggle }) {
               'shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-medium',
               item.required
                 ? 'border-red-500/30 bg-red-500/20 text-red-400'
-                : 'border-yellow-500/30 bg-yellow-500/20 text-yellow-400',
+                : 'border-yellow-500/30 bg-yellow-500/20 text-yellow-200',
             )}
           >
             {item.required ? 'Required' : 'If applicable'}

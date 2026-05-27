@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { Plus, MessageSquare, Settings, X } from 'lucide-react'
 import useAuth from '../../hooks/useAuth'
+import supabase from '../../utils/supabase'
 
 const formatGroupLabel = (timestamp) => {
   const date = new Date(timestamp)
@@ -51,16 +52,46 @@ const initDarkMode = () => {
   return isDark
 }
 
+const clearAccountStorage = (uid) => {
+  const scopedUid = uid || 'guest'
+  const scopedKeys = [
+    `f1_checklist_state_${scopedUid}`,
+    `f1-tax-helper-checklist_${scopedUid}`,
+    `f1-conversations_${scopedUid}`,
+    `display_name_${scopedUid}`,
+    `university_${scopedUid}`,
+  ]
+  const unscopedKeys = [
+    'f1_form8843_v3',
+    'f1_user_name',
+    'f1_status_result',
+    'f1-questionnaire-progress',
+  ]
+
+  scopedKeys.forEach((key) => localStorage.removeItem(key))
+  unscopedKeys.forEach((key) => {
+    localStorage.removeItem(key)
+    sessionStorage.removeItem(key)
+  })
+}
+
 export function ChatSidebar({ conversations = [], onSelect, onNewChat }) {
+  const navigate = useNavigate()
   const { user, signOut } = useAuth()
   const [showProModal, setShowProModal] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
   const [waitlistEmail, setWaitlistEmail] = useState(user?.email || '')
   const [waitlistVisa, setWaitlistVisa] = useState('')
   const [proWaitlistJoined, setProWaitlistJoined] = useState(false)
+  const [waitlistError, setWaitlistError] = useState('')
+  const [waitlistSubmitting, setWaitlistSubmitting] = useState(false)
   const [emailNotifications, setEmailNotifications] = useState(true)
   const [deadlineReminders, setDeadlineReminders] = useState(true)
   const [darkMode, setDarkMode] = useState(initDarkMode)
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [deleteError, setDeleteError] = useState('')
+  const [deleteMessage, setDeleteMessage] = useState('')
+  const [deleteLoading, setDeleteLoading] = useState(false)
 
   const metadata = user?.user_metadata || {}
   const displayName = metadata.full_name || metadata.name || user?.email?.split('@')?.[0] || 'Student'
@@ -70,12 +101,82 @@ export function ChatSidebar({ conversations = [], onSelect, onNewChat }) {
     await signOut('/')
   }
 
+  const handleProWaitlistSubmit = async (e) => {
+    e.preventDefault()
+    const email = waitlistEmail.trim()
+    if (!email) return
+    setWaitlistError('')
+    setWaitlistSubmitting(true)
+
+    try {
+      const res = await fetch('/api/waitlist', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      })
+
+      if (!res.ok) throw new Error('waitlist request failed')
+      setProWaitlistJoined(true)
+    } catch (err) {
+      console.error('Waitlist signup failed:', err)
+      try { localStorage.setItem('waitlist_email', email) } catch {}
+      if (waitlistVisa) try { localStorage.setItem('waitlist_visa', waitlistVisa) } catch {}
+      setWaitlistError('Something went wrong. Please try again.')
+    } finally {
+      setWaitlistSubmitting(false)
+    }
+  }
+
   const handleDeleteAccount = async () => {
-    const confirmed = window.confirm(
-      'This will sign you out. To fully delete your account, email f1taxhelper01@gmail.com with your registered email address.'
-    )
-    if (!confirmed) return
-    await signOut('/')
+    setDeleteError('')
+    setDeleteMessage('')
+    setDeleteLoading(true)
+
+    try {
+      const { data: { user: currentUser } = {} } = await supabase.auth.getUser()
+      const uid = currentUser?.id || user?.id || 'guest'
+      clearAccountStorage(uid)
+
+      if (uid === 'guest' || user?.is_guest || !currentUser) {
+        await signOut('/')
+        return
+      }
+
+      let deleted = false
+
+      if (supabase.auth.admin?.deleteUser) {
+        try {
+          const { error } = await supabase.auth.admin.deleteUser(uid)
+          if (error) console.error('Supabase admin delete failed:', error)
+          else deleted = true
+        } catch (err) {
+          console.error('Supabase admin delete failed:', err)
+        }
+      }
+
+      if (!deleted) {
+        try {
+          const { error } = await supabase.rpc('delete_user')
+          if (error) console.error('delete_user RPC failed:', error)
+          else deleted = true
+        } catch (err) {
+          console.error('delete_user RPC failed:', err)
+        }
+      }
+
+      if (deleted) {
+        await signOut('/')
+        return
+      }
+
+      await supabase.auth.signOut()
+      setDeleteMessage('Your data has been cleared. Contact support to fully remove your account from our servers.')
+      setTimeout(() => navigate('/', { replace: true }), 1600)
+    } catch (err) {
+      console.error('Account deletion failed:', err)
+      setDeleteError('Could not delete account. Please try again or contact support@f1taxhelper.com')
+      setDeleteLoading(false)
+    }
   }
 
   useEffect(() => {
@@ -179,6 +280,13 @@ export function ChatSidebar({ conversations = [], onSelect, onNewChat }) {
             >
               Sign Out
             </button>
+            <button
+              type="button"
+              onClick={() => setShowDeleteModal(true)}
+              className="mt-2 w-full rounded-xl border border-red-500/40 bg-red-500/10 px-4 py-2 text-sm font-medium text-red-300 transition-colors hover:bg-red-500/20"
+            >
+              Delete Account
+            </button>
           </div>
         </div>
       </div>
@@ -213,22 +321,12 @@ export function ChatSidebar({ conversations = [], onSelect, onNewChat }) {
             {proWaitlistJoined ? (
               <div className="mt-5 rounded-2xl border border-green-500/20 bg-green-500/10 px-4 py-4 text-center">
                 <p className="text-sm font-semibold text-green-400">
-                  You&apos;re on the list!
-                </p>
-                <p className="mt-1 text-xs text-green-400/70">
-                  We&apos;ll email you when 1040-NR filing goes live.
+                  You&apos;re on the list! We&apos;ll email you when this feature launches.
                 </p>
               </div>
             ) : (
               <form
-                onSubmit={(e) => {
-                  e.preventDefault()
-                  const email = waitlistEmail.trim()
-                  if (!email) return
-                  try { localStorage.setItem('waitlist_email', email) } catch {}
-                  if (waitlistVisa) try { localStorage.setItem('waitlist_visa', waitlistVisa) } catch {}
-                  setProWaitlistJoined(true)
-                }}
+                onSubmit={handleProWaitlistSubmit}
                 className="mt-5 space-y-3"
               >
                 <input
@@ -253,13 +351,61 @@ export function ChatSidebar({ conversations = [], onSelect, onNewChat }) {
                 </select>
                 <button
                   type="submit"
+                  disabled={waitlistSubmitting}
                   className="w-full rounded-xl bg-gradient-to-r from-[#3b82f6] to-[#8b5cf6] py-2.5 text-sm font-semibold text-white shadow-md transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg"
                 >
-                  Notify Me When Pro Launches
+                  {waitlistSubmitting ? 'Joining...' : 'Notify Me When Pro Launches'}
                 </button>
+                {waitlistError && (
+                  <p className="text-center text-xs font-medium text-amber-200">{waitlistError}</p>
+                )}
                 <p className="text-center text-xs text-slate-500">No spam, ever. Unsubscribe anytime.</p>
               </form>
             )}
+          </div>
+        </div>,
+        document.body,
+      )}
+
+      {showDeleteModal && createPortal(
+        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
+          <div className="relative w-full max-w-md rounded-3xl border border-red-500/30 bg-slate-900/95 p-6 shadow-2xl">
+            <h3 className="text-xl font-bold text-slate-100">Delete your account?</h3>
+            <p className="mt-3 text-sm leading-6 text-slate-300">
+              This will permanently delete your account and all saved data. This cannot be undone.
+            </p>
+            {deleteError && (
+              <p className="mt-4 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+                {deleteError}
+              </p>
+            )}
+            {deleteMessage && (
+              <p className="mt-4 rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
+                {deleteMessage}
+              </p>
+            )}
+            <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-end">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowDeleteModal(false)
+                  setDeleteError('')
+                  setDeleteMessage('')
+                }}
+                disabled={deleteLoading}
+                className="rounded-xl border border-white/20 bg-white/5 px-4 py-2 text-sm font-semibold text-slate-200 transition-colors hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleDeleteAccount}
+                disabled={deleteLoading}
+                className="rounded-xl bg-red-500 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-red-400 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {deleteLoading ? 'Deleting...' : 'Delete Account'}
+              </button>
+            </div>
           </div>
         </div>,
         document.body,
@@ -360,10 +506,13 @@ export function ChatSidebar({ conversations = [], onSelect, onNewChat }) {
                   </button>
                   <button
                     type="button"
-                    onClick={handleDeleteAccount}
+                    onClick={() => {
+                      setShowSettings(false)
+                      setShowDeleteModal(true)
+                    }}
                     className="w-full rounded-xl border border-red-500/30 py-2 text-sm text-red-400 transition-colors hover:bg-red-500/10"
                   >
-                    Delete Account (contact support)
+                    Delete Account
                   </button>
                 </div>
               </section>

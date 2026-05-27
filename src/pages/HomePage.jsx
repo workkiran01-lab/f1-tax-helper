@@ -64,6 +64,8 @@ export default function HomePage() {
   const [waitlistVisa, setWaitlistVisa] = useState('')
   const [waitlistSchool, setWaitlistSchool] = useState('')
   const [waitlistJoined, setWaitlistJoined] = useState(false)
+  const [waitlistError, setWaitlistError] = useState('')
+  const [waitlistSubmitting, setWaitlistSubmitting] = useState(false)
 
   useEffect(() => {
     let isMounted = true
@@ -76,14 +78,31 @@ export default function HomePage() {
     return () => { isMounted = false }
   }, [navigate])
 
-  const handleWaitlist = (e) => {
+  const handleWaitlist = async (e) => {
     e.preventDefault()
     const trimmed = waitlistEmail.trim()
     if (!trimmed) return
-    try { localStorage.setItem('waitlist_email', trimmed) } catch {}
-    if (waitlistVisa)   try { localStorage.setItem('waitlist_visa',   waitlistVisa) } catch {}
-    if (waitlistSchool) try { localStorage.setItem('waitlist_school', waitlistSchool.trim()) } catch {}
-    setWaitlistJoined(true)
+    setWaitlistError('')
+    setWaitlistSubmitting(true)
+
+    try {
+      const res = await fetch('/api/waitlist', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: trimmed }),
+      })
+
+      if (!res.ok) throw new Error('waitlist request failed')
+      setWaitlistJoined(true)
+    } catch (err) {
+      console.error('Waitlist signup failed:', err)
+      try { localStorage.setItem('waitlist_email', trimmed) } catch {}
+      if (waitlistVisa)   try { localStorage.setItem('waitlist_visa',   waitlistVisa) } catch {}
+      if (waitlistSchool) try { localStorage.setItem('waitlist_school', waitlistSchool.trim()) } catch {}
+      setWaitlistError('Something went wrong. Please try again.')
+    } finally {
+      setWaitlistSubmitting(false)
+    }
   }
 
   const scrollToHowItWorks = () => {
@@ -304,7 +323,7 @@ export default function HomePage() {
             </p>
             {waitlistJoined ? (
               <p className="mt-6 text-sm font-medium text-green-400">
-                ✓ You're on the list! We'll notify you when paid plans launch.
+                You're on the list! We'll email you when this feature launches.
               </p>
             ) : (
               <form
@@ -339,10 +358,14 @@ export default function HomePage() {
                 />
                 <button
                   type="submit"
+                  disabled={waitlistSubmitting}
                   className="w-full rounded-xl bg-gradient-to-r from-blue-500 to-violet-500 px-6 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-600/20 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-violet-500/30"
                 >
-                  Join Waitlist
+                  {waitlistSubmitting ? 'Joining...' : 'Join Waitlist'}
                 </button>
+                {waitlistError && (
+                  <p className="text-xs font-medium text-amber-200">{waitlistError}</p>
+                )}
                 <p className="text-xs text-slate-500">No spam, ever. Unsubscribe anytime.</p>
               </form>
             )}
