@@ -509,50 +509,42 @@ export default function QuestionnairePage() {
 
   if (stopped) {
     return (
-       <div className="relative flex min-h-screen flex-col overflow-hidden bg-[#0f172a] text-slate-100">
-        <div className="pointer-events-none absolute inset-0">
-          <div className="absolute -left-24 top-16 h-72 w-72 rounded-full bg-blue-500/20 blur-3xl animate-pulse [animation-duration:9s]" />
-          <div className="absolute -right-20 top-36 h-80 w-80 rounded-full bg-violet-500/20 blur-3xl animate-pulse [animation-duration:11s]" />
-          <div className="absolute bottom-0 left-1/2 h-96 w-96 -translate-x-1/2 rounded-full bg-cyan-500/10 blur-3xl animate-pulse [animation-duration:13s]" />
-        </div>
+      <div className="relative flex min-h-screen flex-col overflow-hidden bg-[#080c14] text-slate-100">
+        <div className="absolute inset-0 bg-grid opacity-30 pointer-events-none" />
         <DisclaimerBanner />
-         <header className="sticky top-0 z-20 border-b border-white/10 bg-slate-900/50 backdrop-blur-xl">
+        <header className="sticky top-0 z-20 border-b border-[#1e293b] bg-[#080c14]/80 backdrop-blur">
           <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-4 sm:px-6">
             <Link to="/" className="flex items-center gap-3">
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-[#3b82f6] to-[#8b5cf6] text-sm font-bold text-white shadow-lg shadow-blue-500/30">
+              <span className="font-mono text-xs font-bold border border-[#3b82f6]/50 text-[#3b82f6] px-2 py-1 rounded">
                 F1
-              </div>
+              </span>
               <span className="text-base font-semibold tracking-wide text-slate-100 sm:text-lg">F1 Tax Helper</span>
             </Link>
           </div>
         </header>
-         <main className="relative z-10 flex flex-1 items-center justify-center px-4 py-8 text-center sm:px-6">
-            <div className="w-full max-w-xl rounded-3xl border border-white/20 bg-white/5 p-8 shadow-2xl shadow-blue-950/40 backdrop-blur-xl">
-                <AlertTriangle className="mx-auto mb-4 h-12 w-12 text-amber-400" />
-                <h2 className="mb-2 text-2xl font-semibold text-slate-100">Important Notice</h2>
-                <p className="text-slate-300">
-                    This tool is designed specifically for students on an F-1 visa. For other visa types, tax rules can be very different. Please consult a qualified tax professional for assistance.
-                </p>
-            </div>
-         </main>
-       </div>
+        <main className="relative z-10 flex flex-1 items-center justify-center px-4 py-8 text-center sm:px-6">
+          <div className="w-full max-w-xl rounded-2xl border border-[#1e293b] bg-[#0f172a] p-8">
+            <AlertTriangle className="mx-auto mb-4 h-12 w-12 text-[#f59e0b]" />
+            <h2 className="mb-2 text-lg font-semibold text-[#f8fafc]">Important Notice</h2>
+            <p className="text-sm text-[#64748b]">
+              This tool is designed specifically for students on an F-1 visa. For other visa types, tax rules can be very different. Please consult a qualified tax professional for assistance.
+            </p>
+          </div>
+        </main>
+      </div>
     )
   }
 
   return (
-    <div className="relative flex min-h-screen flex-col overflow-hidden bg-[#0f172a] text-slate-100">
-      <div className="pointer-events-none absolute inset-0">
-        <div className="absolute -left-24 top-16 h-72 w-72 rounded-full bg-blue-500/20 blur-3xl animate-pulse [animation-duration:9s]" />
-        <div className="absolute -right-20 top-36 h-80 w-80 rounded-full bg-violet-500/20 blur-3xl animate-pulse [animation-duration:11s]" />
-        <div className="absolute bottom-0 left-1/2 h-96 w-96 -translate-x-1/2 rounded-full bg-cyan-500/10 blur-3xl animate-pulse [animation-duration:13s]" />
-      </div>
+    <div className="relative flex min-h-screen flex-col overflow-hidden bg-[#080c14] text-slate-100">
+      <div className="absolute inset-0 bg-grid opacity-30 pointer-events-none" />
       <DisclaimerBanner />
-      <header className="sticky top-0 z-20 border-b border-white/10 bg-slate-900/50 backdrop-blur-xl">
+      <header className="sticky top-0 z-20 border-b border-[#1e293b] bg-[#080c14]/80 backdrop-blur">
         <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-4 sm:px-6">
           <Link to="/" className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-[#3b82f6] to-[#8b5cf6] text-sm font-bold text-white shadow-lg shadow-blue-500/30">
+            <span className="font-mono text-xs font-bold border border-[#3b82f6]/50 text-[#3b82f6] px-2 py-1 rounded">
               F1
-            </div>
+            </span>
             <span className="text-base font-semibold tracking-wide text-slate-100 sm:text-lg">F1 Tax Helper</span>
           </Link>
         </div>
@@ -560,7 +552,7 @@ export default function QuestionnairePage() {
 
       <main className="relative z-10 flex flex-1 items-center justify-center px-4 py-8 sm:px-6">
         <div className="w-full max-w-2xl">
-          <div className="rounded-3xl border border-white/20 bg-white/5 shadow-2xl shadow-blue-950/40 backdrop-blur-xl">
+          <div className="rounded-2xl border border-[#1e293b] bg-[#0f172a]">
             <div
               className={cn(
                 'p-6 transition-all duration-300 md:p-8',
@@ -571,25 +563,25 @@ export default function QuestionnairePage() {
             >
               {currentStep <= totalSteps && (
                 <div className="mb-8">
-                  <div className="mb-2 flex items-center justify-between">
-                    <span className="text-sm text-slate-400">
+                  <div className="mb-3 flex items-center justify-between">
+                    <span className="text-xs text-[#475569]">
                       Question {currentStep} of {totalSteps}
                     </span>
                     <div className="flex items-center gap-3">
                       {currentStep > 1 && (
                         <button
                           onClick={handleStartOver}
-                          className="text-xs text-slate-500 underline underline-offset-2 transition-colors hover:text-slate-300"
+                          className="text-xs text-[#475569] transition-colors hover:text-[#64748b]"
                         >
                           Start over
                         </button>
                       )}
-                      <span className="text-sm text-slate-400">{progressPercentage}%</span>
+                      <span className="text-xs text-[#475569]">{progressPercentage}%</span>
                     </div>
                   </div>
-                  <div className="h-2 overflow-hidden rounded-full bg-white/10">
+                  <div className="h-px w-full bg-[#1e293b]">
                     <div
-                      className="h-2 rounded-full bg-gradient-to-r from-[#3b82f6] to-[#8b5cf6] transition-all duration-500 ease-out"
+                      className="h-px bg-[#3b82f6] transition-all duration-500 ease-out"
                       style={{ width: `${(currentStep / totalSteps) * 100}%` }}
                     />
                   </div>
@@ -609,9 +601,9 @@ export default function QuestionnairePage() {
               {currentStep === 5 && <Question5 onSelect={handleCountrySelect} selectedCountry={answers.country} onContinue={goToNextStep} />}
               {currentStep === 6 && (
                 <div className="py-8 text-center">
-                  <p className="text-sm text-slate-400">Preparing your results…</p>
+                  <p className="text-sm text-[#475569]">Preparing your results…</p>
                   {saveWarning && (
-                    <p className="mt-3 rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
+                    <p className="mt-3 rounded-xl border border-[#f59e0b]/20 bg-[#f59e0b]/10 px-4 py-3 text-sm text-[#f59e0b]">
                       {saveWarning}
                     </p>
                   )}
@@ -619,15 +611,15 @@ export default function QuestionnairePage() {
               )}
 
               {currentStep <= totalSteps && (
-                <div className="mt-8 flex items-center justify-between border-t border-white/10 pt-6">
+                <div className="mt-8 flex items-center justify-between border-t border-[#1e293b] pt-6">
                   <button
                     type="button"
                     onClick={handleBack}
-                    className="rounded-xl border border-white/20 bg-white/5 px-5 py-2.5 text-sm font-semibold text-slate-100 transition-all duration-300 hover:bg-white/10"
+                    className="rounded-xl border border-[#1e293b] bg-transparent px-5 py-2.5 text-sm font-medium text-[#64748b] transition-colors hover:border-[#2d4a6e] hover:text-[#f8fafc]"
                   >
                     ← Back
                   </button>
-                  <p className="text-xs text-slate-500">Your progress is saved automatically</p>
+                  <p className="text-xs text-[#475569]">Your progress is saved automatically</p>
                 </div>
               )}
             </div>
@@ -641,27 +633,27 @@ export default function QuestionnairePage() {
 function Question1({ onAnswer }) {
   return (
     <div>
-      <p className="mb-3 w-fit rounded-full border border-white/20 bg-white/10 px-4 py-1 text-xs font-medium uppercase tracking-[0.16em] text-blue-100/90">
+      <p className="mb-3 font-mono text-[10px] uppercase tracking-widest text-[#475569]">
         STEP 1
       </p>
-      <h2 className="mb-2 text-2xl font-bold text-slate-100">
+      <h2 className="text-lg font-semibold text-[#f8fafc] mb-2">
         Are you currently on an F-1 student visa?
       </h2>
-      <p className="mb-6 text-slate-300">
+      <p className="text-sm text-[#64748b] mb-6">
         This helps us determine which tax forms and rules apply to you.
       </p>
       <div className="space-y-3">
         <button
           type="button"
           onClick={() => onAnswer(true)}
-          className="w-full rounded-xl border border-white/20 bg-white/5 p-4 text-left text-slate-100 transition-all duration-200 hover:border-blue-500/50 hover:bg-white/10"
+          className="w-full rounded-xl border border-[#1e293b] bg-transparent px-4 py-3 text-left text-sm text-[#cbd5e1] transition-all duration-150 hover:border-[#2d4a6e] hover:text-[#f8fafc] active:scale-[0.99]"
         >
           Yes, I am
         </button>
         <button
           type="button"
           onClick={() => onAnswer(false)}
-          className="w-full rounded-xl border border-white/20 bg-white/5 p-4 text-left text-slate-100 transition-all duration-200 hover:border-blue-500/50 hover:bg-white/10"
+          className="w-full rounded-xl border border-[#1e293b] bg-transparent px-4 py-3 text-left text-sm text-[#cbd5e1] transition-all duration-150 hover:border-[#2d4a6e] hover:text-[#f8fafc] active:scale-[0.99]"
         >
           No, I'm not
         </button>
@@ -673,27 +665,27 @@ function Question1({ onAnswer }) {
 function Question2({ onAnswer }) {
  return (
     <div>
-      <p className="mb-3 w-fit rounded-full border border-white/20 bg-white/10 px-4 py-1 text-xs font-medium uppercase tracking-[0.16em] text-blue-100/90">
+      <p className="mb-3 font-mono text-[10px] uppercase tracking-widest text-[#475569]">
         STEP 2
       </p>
-      <h2 className="mb-2 text-2xl font-bold text-slate-100">
+      <h2 className="text-lg font-semibold text-[#f8fafc] mb-2">
         Did you have any US-source income in tax year 2025?
       </h2>
-      <p className="mb-6 text-slate-300">
+      <p className="text-sm text-[#64748b] mb-6">
         This includes wages, scholarships, freelance work, investments, etc.
       </p>
       <div className="space-y-3">
         <button
           type="button"
           onClick={() => onAnswer(true)}
-          className="w-full rounded-xl border border-white/20 bg-white/5 p-4 text-left text-slate-100 transition-all duration-200 hover:border-blue-500/50 hover:bg-white/10"
+          className="w-full rounded-xl border border-[#1e293b] bg-transparent px-4 py-3 text-left text-sm text-[#cbd5e1] transition-all duration-150 hover:border-[#2d4a6e] hover:text-[#f8fafc] active:scale-[0.99]"
         >
           Yes, I had income
         </button>
         <button
           type="button"
           onClick={() => onAnswer(false)}
-          className="w-full rounded-xl border border-white/20 bg-white/5 p-4 text-left text-slate-100 transition-all duration-200 hover:border-blue-500/50 hover:bg-white/10"
+          className="w-full rounded-xl border border-[#1e293b] bg-transparent px-4 py-3 text-left text-sm text-[#cbd5e1] transition-all duration-150 hover:border-[#2d4a6e] hover:text-[#f8fafc] active:scale-[0.99]"
         >
           No, I had no income
         </button>
@@ -711,13 +703,13 @@ function Question3({ selected, onToggle, onContinue }) {
   ]
   return (
     <div>
-      <p className="mb-3 w-fit rounded-full border border-white/20 bg-white/10 px-4 py-1 text-xs font-medium uppercase tracking-[0.16em] text-blue-100/90">
+      <p className="mb-3 font-mono text-[10px] uppercase tracking-widest text-[#475569]">
         STEP 3
       </p>
-      <h2 className="mb-2 text-2xl font-bold text-slate-100">
+      <h2 className="text-lg font-semibold text-[#f8fafc] mb-2">
         What type of income did you receive?
       </h2>
-      <p className="mb-6 text-slate-300">
+      <p className="text-sm text-[#64748b] mb-6">
         Select all that apply. This determines the forms you'll need.
       </p>
 
@@ -729,24 +721,24 @@ function Question3({ selected, onToggle, onContinue }) {
               key={type.id}
               onClick={() => onToggle(type.id)}
               className={cn(
-                'flex w-full items-center justify-between rounded-xl border border-white/20 bg-white/5 p-4 text-left transition-all duration-200 hover:bg-white/10 hover:border-blue-500/50',
+                'flex w-full items-center justify-between rounded-xl border bg-transparent px-4 py-3 text-left text-sm transition-all duration-150 active:scale-[0.99]',
                 isSelected
-                  ? 'border-blue-500 bg-blue-500/20 text-blue-100'
-                  : '',
-                type.id === '1099' && isSelected ? 'border-amber-400 bg-amber-500/20 text-amber-50' : ''
+                  ? 'border-[#3b82f6] bg-[#3b82f6]/10 text-[#f8fafc]'
+                  : 'border-[#1e293b] text-[#cbd5e1] hover:border-[#2d4a6e] hover:text-[#f8fafc]',
+                type.id === '1099' && isSelected ? 'border-[#f59e0b]/40 bg-[#f59e0b]/10 text-[#f59e0b]' : ''
               )}
             >
               <div>
-                <div className={cn('font-medium text-slate-100', isSelected ? 'text-blue-100' : '',  type.id === '1099' && isSelected ? 'text-amber-50' : '')}>
+                <div className="font-medium">
                   {type.title}
                 </div>
-                <div className="mt-1 text-sm text-slate-300">{type.description}</div>
+                <div className="mt-1 text-xs opacity-70">{type.description}</div>
               </div>
               <div
                 className={cn(
                   'flex h-6 w-6 items-center justify-center rounded-md border transition-colors',
-                  isSelected ? 'border-blue-500 bg-gradient-to-r from-[#3b82f6] to-[#8b5cf6]' : 'border-slate-500',
-                  type.id === '1099' && isSelected ? 'border-amber-400 bg-amber-400' : ''
+                  isSelected ? 'border-[#3b82f6] bg-[#3b82f6]' : 'border-[#334155]',
+                  type.id === '1099' && isSelected ? 'border-[#f59e0b] bg-[#f59e0b]' : ''
                 )}
               >
                 {isSelected && (
@@ -756,13 +748,13 @@ function Question3({ selected, onToggle, onContinue }) {
             </button>
           )
         })}
-         {selected.includes('1099') && (
-            <div className="mt-4 flex items-start gap-3 rounded-xl border border-amber-400/60 bg-amber-500/15 p-3">
-                <AlertTriangle className="h-5 w-5 flex-shrink-0 text-amber-300" />
-                <p className="text-xs text-amber-100">
-                    <strong>Warning:</strong> Freelance (1099) work may violate your F-1 status unless it is directly related to your studies and authorized CPT/OPT. This carries immigration risk. You must still report this income to the IRS.
-                </p>
-            </div>
+        {selected.includes('1099') && (
+          <div className="flex items-start gap-3 rounded-xl border border-[#f59e0b]/20 bg-[#f59e0b]/10 px-4 py-3">
+            <AlertTriangle className="h-5 w-5 flex-shrink-0 text-[#f59e0b]" />
+            <p className="text-xs text-[#f59e0b]">
+              <strong>Warning:</strong> Freelance (1099) work may violate your F-1 status unless it is directly related to your studies and authorized CPT/OPT. This carries immigration risk. You must still report this income to the IRS.
+            </p>
+          </div>
         )}
       </div>
 
@@ -770,10 +762,9 @@ function Question3({ selected, onToggle, onContinue }) {
         type="button"
         onClick={onContinue}
         disabled={selected.length === 0}
-        className="inline-flex h-12 w-full items-center justify-center rounded-xl bg-gradient-to-r from-[#3b82f6] to-[#8b5cf6] text-base font-semibold text-white shadow-lg shadow-blue-600/30 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-violet-500/40 disabled:cursor-not-allowed disabled:opacity-50"
+        className="w-full rounded-xl bg-[#3b82f6] px-6 py-3 text-sm font-semibold text-white transition-all duration-150 hover:bg-[#2563eb] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
       >
         Next
-        <ArrowRight className="ml-2 h-4 w-4" />
       </button>
     </div>
   )
@@ -787,14 +778,14 @@ function Question4({ onAnswer }) {
     { id: 5, text: '5 or more years' },
   ]
   return (
-     <div>
-      <p className="mb-3 w-fit rounded-full border border-white/20 bg-white/10 px-4 py-1 text-xs font-medium uppercase tracking-[0.16em] text-blue-100/90">
+    <div>
+      <p className="mb-3 font-mono text-[10px] uppercase tracking-widest text-[#475569]">
         STEP 4
       </p>
-      <h2 className="mb-2 text-2xl font-bold text-slate-100">
+      <h2 className="text-lg font-semibold text-[#f8fafc] mb-2">
         How many calendar years have you been in the US on F-1 status?
       </h2>
-      <p className="mb-6 text-slate-300">
+      <p className="text-sm text-[#64748b] mb-6">
         This helps determine your tax residency status (Non-Resident vs. Resident).
       </p>
 
@@ -803,21 +794,17 @@ function Question4({ onAnswer }) {
           <button
             key={option.id}
             onClick={() => onAnswer(option.id)}
-            className="group w-full rounded-xl border border-white/20 bg-white/5 p-4 text-left transition-all duration-200 hover:border-blue-500/50 hover:bg-white/10"
+            className="w-full rounded-xl border border-[#1e293b] bg-transparent px-4 py-3 text-left text-sm text-[#cbd5e1] transition-all duration-150 hover:border-[#2d4a6e] hover:text-[#f8fafc] active:scale-[0.99]"
           >
-            <span className="font-medium text-slate-100 transition-colors group-hover:text-blue-100">
-              {option.text}
-            </span>
+            {option.text}
           </button>
         ))}
-         <button
-            onClick={() => onAnswer(0)} // Special value for "not sure"
-            className="group w-full rounded-xl border border-white/20 bg-white/5 p-4 text-left transition-all duration-200 hover:border-blue-500/50 hover:bg-white/10"
-          >
-            <span className="font-medium text-slate-100 transition-colors group-hover:text-blue-100">
-              I'm not sure / It's complicated
-            </span>
-          </button>
+        <button
+          onClick={() => onAnswer(0)}
+          className="w-full rounded-xl border border-[#1e293b] bg-transparent px-4 py-3 text-left text-sm text-[#cbd5e1] transition-all duration-150 hover:border-[#2d4a6e] hover:text-[#f8fafc] active:scale-[0.99]"
+        >
+          I'm not sure / It's complicated
+        </button>
       </div>
     </div>
   )
@@ -834,19 +821,19 @@ function Question5({ onSelect, selectedCountry, onContinue }) {
 
   return (
     <div>
-      <p className="mb-3 w-fit rounded-full border border-white/20 bg-white/10 px-4 py-1 text-xs font-medium uppercase tracking-[0.16em] text-blue-100/90">
+      <p className="mb-3 font-mono text-[10px] uppercase tracking-widest text-[#475569]">
         STEP 5
       </p>
-      <h2 className="mb-2 text-2xl font-bold text-slate-100">
+      <h2 className="text-lg font-semibold text-[#f8fafc] mb-2">
         What is your country of citizenship?
       </h2>
-      <p className="mb-6 text-slate-300">
+      <p className="text-sm text-[#64748b] mb-6">
         This is for checking potential tax treaty benefits.
       </p>
 
       <div className="relative">
         <div
-          className="flex cursor-pointer items-center gap-3 rounded-xl border border-white/20 bg-white/5 p-4 transition-colors hover:border-blue-500/50 hover:bg-white/10"
+          className="flex cursor-pointer items-center gap-3 rounded-xl border border-[#1e293b] bg-transparent px-4 py-3 transition-colors hover:border-[#2d4a6e]"
           onClick={() => setIsOpen(!isOpen)}
           role="combobox"
           aria-controls="country-listbox"
@@ -860,11 +847,11 @@ function Question5({ onSelect, selectedCountry, onContinue }) {
             }
           }}
         >
-          <Search className="h-5 w-5 text-slate-400" />
+          <Search className="h-5 w-5 text-[#475569]" />
           <input
             type="text"
             placeholder="Search for your country..."
-            className="flex-1 bg-transparent text-slate-100 outline-none placeholder:text-slate-500"
+            className="flex-1 bg-transparent text-sm text-[#f8fafc] outline-none placeholder:text-[#475569]"
             value={search}
             onChange={(e) => {
               setSearch(e.target.value)
@@ -877,7 +864,7 @@ function Question5({ onSelect, selectedCountry, onContinue }) {
           />
           <ChevronDown
             className={cn(
-              'h-5 w-5 text-slate-400 transition-transform',
+              'h-5 w-5 text-[#475569] transition-transform',
               isOpen && 'rotate-180',
             )}
           />
@@ -887,14 +874,14 @@ function Question5({ onSelect, selectedCountry, onContinue }) {
           <div
             id="country-listbox"
             role="listbox"
-            className="absolute left-0 right-0 top-full z-10 mt-2 max-h-64 overflow-y-auto rounded-xl border border-white/20 bg-slate-900/95 shadow-2xl backdrop-blur-xl"
+            className="absolute left-0 right-0 top-full z-10 mt-1 max-h-56 overflow-y-auto rounded-xl border border-[#1e293b] bg-[#0f172a] shadow-xl"
           >
             {filteredCountries.map((country) => (
               <button
                 key={country}
                 role="option"
                 aria-selected={selectedCountry === country}
-                className="w-full px-4 py-3 text-left text-slate-100 transition-colors hover:bg-white/10"
+                className="w-full px-4 py-2.5 text-left text-sm text-[#cbd5e1] transition-colors hover:bg-[#1e293b] hover:text-[#f8fafc]"
                 onClick={() => {
                   onSelect(country)
                   setSearch(country)
@@ -905,7 +892,7 @@ function Question5({ onSelect, selectedCountry, onContinue }) {
               </button>
             ))}
             {filteredCountries.length === 0 && (
-              <div className="px-4 py-3 text-slate-400">
+              <div className="px-4 py-3 text-sm text-[#475569]">
                 No countries found
               </div>
             )}
@@ -915,17 +902,16 @@ function Question5({ onSelect, selectedCountry, onContinue }) {
 
       {selectedCountry && (
         <div className="mt-4 space-y-4">
-          <div className="flex items-center gap-2 rounded-xl border border-green-500/30 bg-green-500/10 px-4 py-3">
-            <Check className="h-4 w-4 text-green-400" />
-            <span className="text-sm text-green-300">{selectedCountry}</span>
+          <div className="flex items-center gap-2 rounded-xl border border-[#22c55e]/30 bg-[#22c55e]/10 px-4 py-3">
+            <Check className="h-4 w-4 text-[#22c55e]" />
+            <span className="text-sm text-[#22c55e]">{selectedCountry}</span>
           </div>
           <button
             type="button"
             onClick={onContinue}
-            className="inline-flex h-12 w-full items-center justify-center rounded-xl bg-gradient-to-r from-[#3b82f6] to-[#8b5cf6] text-base font-semibold text-white shadow-lg shadow-blue-600/30 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-violet-500/40"
+            className="w-full rounded-xl bg-[#3b82f6] px-6 py-3 text-sm font-semibold text-white transition-all duration-150 hover:bg-[#2563eb] active:scale-[0.98]"
           >
             Continue →
-            <ArrowRight className="ml-2 h-4 w-4" />
           </button>
         </div>
       )}
