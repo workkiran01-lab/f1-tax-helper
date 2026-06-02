@@ -89,7 +89,7 @@ export default function WelcomePage() {
                   value={nameInput}
                   onChange={(e) => setNameInput(e.target.value)}
                   placeholder="e.g. Kiran Shahi"
-                  className="w-full rounded-xl border border-[#1e293b] bg-transparent px-4 py-3 text-sm text-[#f8fafc] placeholder:text-[#475569] focus:border-[#3b82f6] focus:outline-none focus:ring-1 focus:ring-[#3b82f6]/20 transition-colors"
+                  className="w-full rounded-xl border border-[#1e293b] bg-[#080c14] px-4 py-3 text-sm text-[#f8fafc] placeholder:text-[#475569] focus:border-[#3b82f6] focus:outline-none transition-colors"
                 />
               </div>
               <div>
@@ -102,7 +102,7 @@ export default function WelcomePage() {
                   value={universityInput}
                   onChange={(e) => setUniversityInput(e.target.value)}
                   placeholder="e.g. UCLA, NYU, UT Austin"
-                  className="w-full rounded-xl border border-[#1e293b] bg-transparent px-4 py-3 text-sm text-[#f8fafc] placeholder:text-[#475569] focus:border-[#3b82f6] focus:outline-none focus:ring-1 focus:ring-[#3b82f6]/20 transition-colors"
+                  className="w-full rounded-xl border border-[#1e293b] bg-[#080c14] px-4 py-3 text-sm text-[#f8fafc] placeholder:text-[#475569] focus:border-[#3b82f6] focus:outline-none transition-colors"
                 />
               </div>
               <button

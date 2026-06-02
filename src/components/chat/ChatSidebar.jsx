@@ -165,12 +165,10 @@ export function ChatSidebar({ conversations = [], onSelect, onNewChat }) {
 
   return (
     <>
-      <div className="flex h-full flex-col border-r border-white/10 bg-slate-900/95 backdrop-blur-xl">
+      <div className="flex h-full flex-col bg-[#080c14] border-r border-[#1e293b]">
         <div className="flex items-center justify-between p-4">
           <div className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-[#3b82f6] to-[#8b5cf6]">
-              <span className="text-sm font-bold text-white">F1</span>
-            </div>
+            <div className="font-mono text-xs font-bold border border-[#1e293b] px-2 py-1 text-[#3b82f6]">F1</div>
             <span className="font-semibold text-slate-100">Tax Helper</span>
           </div>
         </div>
@@ -178,7 +176,7 @@ export function ChatSidebar({ conversations = [], onSelect, onNewChat }) {
         <div className="px-3 pb-4 shrink-0">
           <button
             onClick={onNewChat}
-            className="flex w-full items-center justify-start gap-2 rounded-xl border border-white/20 bg-white/5 px-3 py-2 text-slate-100 transition-colors hover:bg-white/10"
+            className="flex w-full items-center justify-start gap-2 rounded-xl border border-[#1e293b] bg-transparent px-3 py-2 text-[#cbd5e1] transition-colors hover:border-[#2d4a6e] hover:text-[#f8fafc]"
           >
             <Plus className="h-4 w-4" />
             New Chat
@@ -213,8 +211,8 @@ export function ChatSidebar({ conversations = [], onSelect, onNewChat }) {
           )}
         </div>
 
-        <div className="border-t border-white/10 p-3">
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-3">
+        <div className="border-t border-[#1e293b] p-3">
+          <div className="rounded-xl border border-[#1e293b] bg-[#0f172a] p-3">
             <div className="flex items-center gap-3">
               <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-[#3b82f6] to-[#8b5cf6] text-sm font-semibold text-white">
                 {initial}
@@ -229,7 +227,7 @@ export function ChatSidebar({ conversations = [], onSelect, onNewChat }) {
               <button
                 type="button"
                 onClick={() => setShowSettings(true)}
-                className="rounded-xl border border-white/20 bg-white/5 p-2 text-slate-300 transition-colors hover:bg-white/10"
+                className="rounded-xl border border-[#1e293b] bg-transparent p-2 text-[#64748b] transition-colors hover:border-[#2d4a6e] hover:text-[#f8fafc]"
               >
                 <Settings className="h-4 w-4" />
               </button>
@@ -237,7 +235,7 @@ export function ChatSidebar({ conversations = [], onSelect, onNewChat }) {
             <button
               type="button"
               onClick={handleSignOut}
-              className="mt-2 w-full rounded-xl border border-white/20 bg-white/5 px-4 py-2 text-sm font-medium text-slate-300 transition-colors hover:bg-white/10"
+              className="mt-2 w-full rounded-xl border border-[#1e293b] bg-transparent px-4 py-2 text-sm font-medium text-[#64748b] transition-colors hover:border-[#2d4a6e] hover:text-[#f8fafc]"
             >
               Sign Out
             </button>
