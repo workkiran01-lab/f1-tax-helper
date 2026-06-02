@@ -205,7 +205,7 @@ export default function HomePage() {
                   IRS TAX YEAR 2025
                 </span>
 
-                <h1 className="text-3xl font-semibold leading-tight text-[#f8fafc] sm:text-4xl lg:text-5xl">
+                <h1 className="text-2xl font-semibold leading-tight text-[#f8fafc] sm:text-4xl lg:text-5xl">
                   Answer 5 questions.<br />
                   Get your required tax forms.
                 </h1>
@@ -223,8 +223,12 @@ export default function HomePage() {
                   </Link>
                 </div>
 
-                <p className="text-xs text-[#475569]">
-                  No SSN required · Based on IRS guidance · Free forever
+                <p className="flex flex-wrap gap-2 text-xs text-[#475569]">
+                  <span>No SSN required</span>
+                  <span>·</span>
+                  <span>Based on IRS guidance</span>
+                  <span>·</span>
+                  <span>Free forever</span>
                 </p>
               </div>
 

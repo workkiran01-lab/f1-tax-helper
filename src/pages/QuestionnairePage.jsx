@@ -555,7 +555,7 @@ export default function QuestionnairePage() {
           <div className="rounded-2xl border border-[#1e293b] bg-[#0f172a]">
             <div
               className={cn(
-                'p-6 transition-all duration-300 md:p-8',
+                'p-4 sm:p-6 transition-all duration-300',
                 isTransitioning
                   ? 'translate-y-4 opacity-0'
                   : 'translate-y-0 opacity-100',
@@ -636,7 +636,7 @@ function Question1({ onAnswer }) {
       <p className="mb-3 font-mono text-[10px] uppercase tracking-widest text-[#475569]">
         STEP 1
       </p>
-      <h2 className="text-lg font-semibold text-[#f8fafc] mb-2">
+      <h2 className="text-base sm:text-lg font-semibold text-[#f8fafc] mb-2">
         Are you currently on an F-1 student visa?
       </h2>
       <p className="text-sm text-[#64748b] mb-6">
@@ -668,7 +668,7 @@ function Question2({ onAnswer }) {
       <p className="mb-3 font-mono text-[10px] uppercase tracking-widest text-[#475569]">
         STEP 2
       </p>
-      <h2 className="text-lg font-semibold text-[#f8fafc] mb-2">
+      <h2 className="text-base sm:text-lg font-semibold text-[#f8fafc] mb-2">
         Did you have any US-source income in tax year 2025?
       </h2>
       <p className="text-sm text-[#64748b] mb-6">
@@ -706,7 +706,7 @@ function Question3({ selected, onToggle, onContinue }) {
       <p className="mb-3 font-mono text-[10px] uppercase tracking-widest text-[#475569]">
         STEP 3
       </p>
-      <h2 className="text-lg font-semibold text-[#f8fafc] mb-2">
+      <h2 className="text-base sm:text-lg font-semibold text-[#f8fafc] mb-2">
         What type of income did you receive?
       </h2>
       <p className="text-sm text-[#64748b] mb-6">
@@ -736,7 +736,7 @@ function Question3({ selected, onToggle, onContinue }) {
               </div>
               <div
                 className={cn(
-                  'flex h-6 w-6 items-center justify-center rounded-md border transition-colors',
+                  'flex h-6 w-6 shrink-0 items-center justify-center rounded-md border transition-colors',
                   isSelected ? 'border-[#3b82f6] bg-[#3b82f6]' : 'border-[#334155]',
                   type.id === '1099' && isSelected ? 'border-[#f59e0b] bg-[#f59e0b]' : ''
                 )}
@@ -782,7 +782,7 @@ function Question4({ onAnswer }) {
       <p className="mb-3 font-mono text-[10px] uppercase tracking-widest text-[#475569]">
         STEP 4
       </p>
-      <h2 className="text-lg font-semibold text-[#f8fafc] mb-2">
+      <h2 className="text-base sm:text-lg font-semibold text-[#f8fafc] mb-2">
         How many calendar years have you been in the US on F-1 status?
       </h2>
       <p className="text-sm text-[#64748b] mb-6">
@@ -824,7 +824,7 @@ function Question5({ onSelect, selectedCountry, onContinue }) {
       <p className="mb-3 font-mono text-[10px] uppercase tracking-widest text-[#475569]">
         STEP 5
       </p>
-      <h2 className="text-lg font-semibold text-[#f8fafc] mb-2">
+      <h2 className="text-base sm:text-lg font-semibold text-[#f8fafc] mb-2">
         What is your country of citizenship?
       </h2>
       <p className="text-sm text-[#64748b] mb-6">

@@ -83,13 +83,13 @@ export function Navbar() {
         {/* Hamburger — mobile */}
         <button
           type="button"
-          className="flex h-9 w-9 items-center justify-center rounded-md md:hidden"
+          className="flex h-9 w-9 items-center justify-center rounded-md text-[#64748b] transition-colors hover:text-[#f8fafc] md:hidden"
           onClick={() => setIsMenuOpen((v) => !v)}
           aria-label="Toggle menu"
         >
           {isMenuOpen
-            ? <X className="h-4 w-4 text-[#cbd5e1]" />
-            : <Menu className="h-4 w-4 text-[#cbd5e1]" />
+            ? <X className="h-4 w-4" />
+            : <Menu className="h-4 w-4" />
           }
         </button>
       </div>

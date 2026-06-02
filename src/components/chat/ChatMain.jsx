@@ -197,7 +197,7 @@ export function ChatMain({ initialContext, navigationKey, onOpenChecklist, onMes
             key={message.id}
             className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
           >
-            <div className={`max-w-[75%] ${message.role === 'user' ? 'items-end' : 'items-start'} flex flex-col`}>
+            <div className={`max-w-[85%] sm:max-w-[70%] ${message.role === 'user' ? 'items-end' : 'items-start'} flex flex-col`}>
               {message.role === 'assistant' && (
                 <div className="mb-1 flex items-center gap-2">
                   <div className="flex h-6 w-6 items-center justify-center rounded-full bg-gradient-to-r from-[#3b82f6] to-[#8b5cf6] text-xs">
@@ -248,7 +248,7 @@ export function ChatMain({ initialContext, navigationKey, onOpenChecklist, onMes
         ))}
         {isLoading && (
           <div className="flex justify-start">
-            <div className="max-w-[75%] rounded-2xl rounded-tl-sm border border-[#1e293b] border-l-2 border-l-[#3b82f6] bg-[#0f172a] px-4 py-3 text-[#cbd5e1]">
+            <div className="max-w-[85%] sm:max-w-[70%] rounded-2xl rounded-tl-sm border border-[#1e293b] border-l-2 border-l-[#3b82f6] bg-[#0f172a] px-4 py-3 text-[#cbd5e1]">
               <div className="flex items-center gap-1">
                 <span className="h-2 w-2 animate-bounce rounded-full bg-slate-300 [animation-delay:-0.3s]" />
                 <span className="h-2 w-2 animate-bounce rounded-full bg-slate-300 [animation-delay:-0.15s]" />
@@ -260,8 +260,8 @@ export function ChatMain({ initialContext, navigationKey, onOpenChecklist, onMes
         <div ref={messagesEndRef} />
       </div>
 
-      <div className="border-t border-[#1e293b] bg-[#080c14] px-4 py-4 shrink-0">
-        <div className="mb-3 flex flex-wrap gap-2">
+      <div className="border-t border-[#1e293b] bg-[#080c14] px-4 py-4 shrink-0" style={{ paddingBottom: 'max(1rem, env(safe-area-inset-bottom))' }}>
+        <div className="mb-3 hidden sm:flex flex-wrap gap-2">
           {suggestedQuestions.map((question) => (
             <button
               key={question}
