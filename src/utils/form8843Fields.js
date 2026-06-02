@@ -79,6 +79,7 @@ export async function fillForm8843(pdfBytes, formData) {
 
     // ── Part I ────────────────────────────────────────────────────────────────
     setText(form, `${P1}.f1_09[0]`, `F-1, ${formData.currentEntryDate}`)
+    if (formData.currentImmigrationStatus?.trim()) setText(form, `${P1}.f1_10[0]`, formData.currentImmigrationStatus.trim())
     setText(form, `${P1}.f1_11[0]`, formData.countryOfCitizenship)
     if (formData.passportCountry?.trim()) setText(form, `${P1}.f1_12[0]`, formData.passportCountry.trim())
     if (formData.passportNumber?.trim())  setText(form, `${P1}.f1_13[0]`, formData.passportNumber.trim())

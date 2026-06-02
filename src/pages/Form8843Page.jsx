@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { fillForm8843 } from '../utils/form8843Fields'
 import DisclaimerBanner from '../components/DisclaimerBanner'
@@ -22,8 +22,10 @@ const LABELS = {
   middleInitial:        'Middle Initial',
   lastName:             'Last Name',
   countryOfCitizenship: 'Country of Citizenship',
+  tinOrSSN:             'SSN or ITIN (optional)',
   passportCountry:      'Passport Issuing Country',
   passportNumber:       'Passport Number',
+  currentImmigrationStatus: 'Current immigration status (Line 1b)',
   usStreet:             'US Street Address',
   usCity:               'City',
   usState:              'State',
@@ -64,8 +66,10 @@ const REQUIRED_BY_STEP = {
 function blankData() {
   return {
     firstName: '', middleInitial: '', lastName: '',
+    tinOrSSN: '',
     countryOfCitizenship: '', taxYear: '2025',
     passportCountry: '', passportNumber: '',
+    currentImmigrationStatus: 'F-1',
     usStreet: '', usCity: '', usState: '', usZip: '',
     foreignAddress: '',
     schoolName: '', schoolStreet: '', schoolCity: '', schoolState: '', schoolZip: '', schoolPhone: '',
@@ -326,6 +330,20 @@ export default function Form8843Page() {
   useEffect(() => {
     try { sessionStorage.setItem(STORAGE_KEY, JSON.stringify(formData)) } catch {}
   }, [formData])
+
+  // Auto-sum Line 4b from Line 4a values; only overwrite if user hasn't manually changed it
+  const autoExcludeRef = useRef(formData.daysToExclude)
+  useEffect(() => {
+    const sum = (parseInt(formData.daysIn2025, 10) || 0)
+              + (parseInt(formData.daysIn2024, 10) || 0)
+              + (parseInt(formData.daysIn2023, 10) || 0)
+    const next = sum > 0 ? String(sum) : ''
+    if (formData.daysToExclude === '' || formData.daysToExclude === autoExcludeRef.current) {
+      autoExcludeRef.current = next
+      setFormData(p => ({ ...p, daysToExclude: next }))
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [formData.daysIn2025, formData.daysIn2024, formData.daysIn2023])
 
   // ── Field setters ─────────────────────────────────────────────────────────
 
@@ -836,6 +854,12 @@ export default function Form8843Page() {
                           <span className="text-sm font-bold text-blue-300">2025</span>
                         </div>
                       </div>
+                      <Field
+                        name="tinOrSSN" placeholder="e.g. 123-45-6789"
+                        helper="Leave blank if you don't have one."
+                        value={formData.tinOrSSN} onChange={set('tinOrSSN')}
+                        error={errors.tinOrSSN} required={false}
+                      />
                     </div>
                   </div>
 
@@ -1021,6 +1045,12 @@ export default function Form8843Page() {
                         helper="Your most recent U.S. entry — check your I-94 at cbp.dhs.gov"
                         {...fp('currentEntryDate')} onChange={setDate('currentEntryDate')}
                       />
+                      <Field
+                        name="currentImmigrationStatus" placeholder="e.g. F-1"
+                        helper="Most students can leave this as F-1"
+                        value={formData.currentImmigrationStatus} onChange={set('currentImmigrationStatus')}
+                        error={errors.currentImmigrationStatus} required={false}
+                      />
                     </div>
                   </div>
 
@@ -1043,6 +1073,9 @@ export default function Form8843Page() {
                             className={`${inputBase} ${errors[f] ? 'border-red-500/60' : ''}`}
                           />
                           {errors[f] && <p className="mt-1 text-xs text-red-400">{errors[f]}</p>}
+                          {f === 'daysToExclude' && !errors[f] && (
+                            <p className="mt-1 text-xs text-slate-500">For most F-1 students in their first 5 years, this equals your total days present above.</p>
+                          )}
                         </div>
                       ))}
                     </div>
