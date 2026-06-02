@@ -127,7 +127,7 @@ function formatDate(raw) {
 // ─────────────────────────────────────────────────────────────────────────────
 
 const inputBase =
-  'w-full rounded-xl border border-[#1e293b] bg-transparent px-4 py-3 text-sm text-[#f8fafc] placeholder:text-[#475569] focus:border-[#3b82f6] focus:outline-none focus:ring-1 focus:ring-[#3b82f6]/20 transition-colors'
+  'w-full rounded-xl border border-[#1e293b] bg-[#0f172a] px-4 py-3 text-sm text-[#f8fafc] placeholder:text-[#475569] focus:border-[#3b82f6] focus:outline-none focus:ring-1 focus:ring-[#3b82f6]/20 transition-colors'
 
 function Field({ name, placeholder, type = 'text', value, onChange, error, required, helper, maxLength }) {
   return (
@@ -648,7 +648,7 @@ export default function Form8843Page() {
                 <div
                   key={meta.label}
                   className={`flex items-start gap-3 rounded-xl p-3 transition-colors ${
-                    isCurrent ? 'bg-white/5' : isDone ? 'opacity-75' : 'opacity-35'
+                    isCurrent ? 'bg-white/5' : isDone ? 'opacity-75' : 'opacity-60'
                   }`}
                 >
                   <div className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] font-bold ${
@@ -668,7 +668,7 @@ export default function Form8843Page() {
               )
             })}
 
-            <div className={`flex items-start gap-3 rounded-xl p-3 transition-colors ${showReview ? 'bg-white/5' : 'opacity-35'}`}>
+            <div className={`flex items-start gap-3 rounded-xl p-3 transition-colors ${showReview ? 'bg-white/5' : 'opacity-60'}`}>
               <div className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] font-bold ${
                 showReview ? 'bg-[#3b82f6] text-white' : 'border border-[#1e293b] text-[#475569]'
               }`}>
@@ -930,7 +930,7 @@ export default function Form8843Page() {
                         placeholder="e.g. 45 Park Street, Mumbai 400001, India"
                         rows={3}
                         maxLength={200}
-                        className="w-full rounded-xl border border-[#1e293b] bg-transparent px-4 py-3 text-sm text-[#f8fafc] placeholder:text-[#475569] focus:border-[#3b82f6] focus:outline-none focus:ring-1 focus:ring-[#3b82f6]/20 transition-colors resize-none"
+                        className="w-full rounded-xl border border-[#1e293b] bg-[#0f172a] px-4 py-3 text-sm text-[#f8fafc] placeholder:text-[#475569] focus:border-[#3b82f6] focus:outline-none focus:ring-1 focus:ring-[#3b82f6]/20 transition-colors resize-none"
                       />
                       <p className="mt-1 text-xs text-slate-500">Street, city, country</p>
                     </div>
@@ -1109,7 +1109,7 @@ export default function Form8843Page() {
                             placeholder="Explain the years and visa types for your prior exempt status..."
                             rows={3}
                             maxLength={300}
-                            className={`w-full rounded-xl border border-[#1e293b] bg-transparent px-4 py-3 text-sm text-[#f8fafc] placeholder:text-[#475569] focus:border-[#3b82f6] focus:outline-none focus:ring-1 focus:ring-[#3b82f6]/20 transition-colors resize-none ${errors.line14Explanation ? 'border-red-500/60' : ''}`}
+                            className={`w-full rounded-xl border border-[#1e293b] bg-[#0f172a] px-4 py-3 text-sm text-[#f8fafc] placeholder:text-[#475569] focus:border-[#3b82f6] focus:outline-none focus:ring-1 focus:ring-[#3b82f6]/20 transition-colors resize-none ${errors.line14Explanation ? 'border-red-500/60' : ''}`}
                           />
                           {errors.line14Explanation && <p className="mt-1 text-xs text-red-400">{errors.line14Explanation}</p>}
                         </div>
