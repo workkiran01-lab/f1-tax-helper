@@ -77,11 +77,11 @@ function blankData() {
 }
 
 function getInitialData() {
-  const saved = localStorage.getItem(STORAGE_KEY)
+  const saved = sessionStorage.getItem(STORAGE_KEY)
   if (saved) {
     try { return { ...blankData(), ...JSON.parse(saved) } } catch {}
   }
-  const storedName = localStorage.getItem('f1_user_name') || ''
+  const storedName = sessionStorage.getItem('f1_user_name') || ''
   const parts = storedName.trim().split(' ')
   return {
     ...blankData(),
@@ -91,7 +91,7 @@ function getInitialData() {
 }
 
 function hasSavedProgress() {
-  const saved = localStorage.getItem(STORAGE_KEY)
+  const saved = sessionStorage.getItem(STORAGE_KEY)
   if (!saved) return false
   try {
     const p = JSON.parse(saved)
@@ -324,7 +324,7 @@ export default function Form8843Page() {
   const [clearLabel, setClearLabel]               = useState('Clear Data')
 
   useEffect(() => {
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(formData)) } catch {}
+    try { sessionStorage.setItem(STORAGE_KEY, JSON.stringify(formData)) } catch {}
   }, [formData])
 
   // ── Field setters ─────────────────────────────────────────────────────────
@@ -517,7 +517,7 @@ export default function Form8843Page() {
       const filled = await generatePDF()
       triggerDownload(filled)
       setSuccess(true)
-      localStorage.removeItem(STORAGE_KEY)
+      sessionStorage.removeItem(STORAGE_KEY)
     } catch (err) {
       setGenError(err.message || 'Failed to generate PDF. Please try again.')
     } finally {
@@ -534,8 +534,8 @@ export default function Form8843Page() {
   }
 
   function handleClearData() {
-    localStorage.removeItem(STORAGE_KEY)
-    localStorage.removeItem('f1_user_name')
+    sessionStorage.removeItem(STORAGE_KEY)
+    sessionStorage.removeItem('f1_user_name')
     setFormData(blankData())
     setStep(0)
     setShowReview(false)
@@ -545,7 +545,7 @@ export default function Form8843Page() {
   }
 
   function handleReset() {
-    const storedName = localStorage.getItem('f1_user_name') || ''
+    const storedName = sessionStorage.getItem('f1_user_name') || ''
     const parts = storedName.trim().split(' ')
     setFormData({
       ...blankData(),
@@ -558,7 +558,7 @@ export default function Form8843Page() {
     setErrors({})
     setGenError('')
     setLastFilledBytes(null)
-    localStorage.removeItem(STORAGE_KEY)
+    sessionStorage.removeItem(STORAGE_KEY)
   }
 
   const fp = (name) => ({
@@ -691,7 +691,7 @@ export default function Form8843Page() {
                 <span className="hidden text-xs text-slate-600 sm:block">Tax Year 2025 · Form 8843</span>
                 <button
                   type="button"
-                  onClick={() => { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(formData)) } catch {} }}
+                  onClick={() => { try { sessionStorage.setItem(STORAGE_KEY, JSON.stringify(formData)) } catch {} }}
                   className="rounded-lg border border-white/20 bg-white/5 px-3 py-1.5 text-xs font-medium text-slate-300 transition-colors hover:bg-white/10"
                 >
                   Save Progress
@@ -723,7 +723,7 @@ export default function Form8843Page() {
                 <path fillRule="evenodd" d="M12 1.5a5.25 5.25 0 00-5.25 5.25v3a3 3 0 00-3 3v6.75a3 3 0 003 3h10.5a3 3 0 003-3v-6.75a3 3 0 00-3-3v-3A5.25 5.25 0 0012 1.5zm-3.75 8.25v-3a3.75 3.75 0 117.5 0v3h-7.5z" clipRule="evenodd" />
               </svg>
               <p className="text-xs text-green-400">
-                Your data never leaves your browser. We don't store any information you enter here.
+                Your form data is stored temporarily in your browser and cleared when you close the tab. Nothing is sent to our servers.
               </p>
             </div>
           </div>

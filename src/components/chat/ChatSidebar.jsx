@@ -78,13 +78,7 @@ const clearAccountStorage = (uid) => {
 export function ChatSidebar({ conversations = [], onSelect, onNewChat }) {
   const navigate = useNavigate()
   const { user, signOut } = useAuth()
-  const [showProModal, setShowProModal] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
-  const [waitlistEmail, setWaitlistEmail] = useState(user?.email || '')
-  const [waitlistVisa, setWaitlistVisa] = useState('')
-  const [proWaitlistJoined, setProWaitlistJoined] = useState(false)
-  const [waitlistError, setWaitlistError] = useState('')
-  const [waitlistSubmitting, setWaitlistSubmitting] = useState(false)
   const [emailNotifications, setEmailNotifications] = useState(true)
   const [deadlineReminders, setDeadlineReminders] = useState(true)
   const [darkMode, setDarkMode] = useState(initDarkMode)
@@ -99,32 +93,6 @@ export function ChatSidebar({ conversations = [], onSelect, onNewChat }) {
 
   const handleSignOut = async () => {
     await signOut('/')
-  }
-
-  const handleProWaitlistSubmit = async (e) => {
-    e.preventDefault()
-    const email = waitlistEmail.trim()
-    if (!email) return
-    setWaitlistError('')
-    setWaitlistSubmitting(true)
-
-    try {
-      const res = await fetch('/api/waitlist', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
-      })
-
-      if (!res.ok) throw new Error('waitlist request failed')
-      setProWaitlistJoined(true)
-    } catch (err) {
-      console.error('Waitlist signup failed:', err)
-      try { localStorage.setItem('waitlist_email', email) } catch {}
-      if (waitlistVisa) try { localStorage.setItem('waitlist_visa', waitlistVisa) } catch {}
-      setWaitlistError('Something went wrong. Please try again.')
-    } finally {
-      setWaitlistSubmitting(false)
-    }
   }
 
   const handleDeleteAccount = async () => {
@@ -268,13 +236,6 @@ export function ChatSidebar({ conversations = [], onSelect, onNewChat }) {
             </div>
             <button
               type="button"
-              onClick={() => setShowProModal(true)}
-              className="mt-3 w-full rounded-xl bg-gradient-to-r from-[#3b82f6] to-[#8b5cf6] px-4 py-2 text-sm font-semibold text-white transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl"
-            >
-              ⚡ Upgrade to Pro
-            </button>
-            <button
-              type="button"
               onClick={handleSignOut}
               className="mt-2 w-full rounded-xl border border-white/20 bg-white/5 px-4 py-2 text-sm font-medium text-slate-300 transition-colors hover:bg-white/10"
             >
@@ -290,82 +251,6 @@ export function ChatSidebar({ conversations = [], onSelect, onNewChat }) {
           </div>
         </div>
       </div>
-
-      {/* Pro modal — portalled to body to escape the sidebar's transform containing block */}
-      {showProModal && createPortal(
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
-          <div className="relative w-full max-w-md rounded-3xl border border-white/20 bg-slate-900/95 p-8">
-            <button
-              type="button"
-              onClick={() => setShowProModal(false)}
-              className="absolute right-4 top-4 rounded-md p-1 text-slate-300 hover:bg-white/10"
-            >
-              <X className="h-4 w-4" />
-            </button>
-            <p className="mb-4 w-fit rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-medium text-blue-100/90">
-              COMING SOON
-            </p>
-            <h3 className="text-2xl font-bold text-slate-100">F1 Tax Helper Pro ⚡</h3>
-            <p className="mt-2 text-sm text-slate-300">We&apos;re building something powerful for serious filers</p>
-            <ul className="mt-4 space-y-2 text-sm text-slate-300">
-              <li>✅ Auto-filled tax forms (1040-NR, 8843)</li>
-              <li>✅ Email reminders for deadlines</li>
-              <li>✅ Priority AI responses</li>
-              <li>✅ Multi-visa support (H1B, OPT, J1)</li>
-              <li>✅ Download ready-to-file PDF forms</li>
-              <li>✅ Human CPA review add-on</li>
-            </ul>
-            <p className="mt-4 text-xs font-medium text-blue-300">
-              Early bird pricing for waitlist members
-            </p>
-            {proWaitlistJoined ? (
-              <div className="mt-5 rounded-2xl border border-green-500/20 bg-green-500/10 px-4 py-4 text-center">
-                <p className="text-sm font-semibold text-green-400">
-                  You&apos;re on the list! We&apos;ll email you when this feature launches.
-                </p>
-              </div>
-            ) : (
-              <form
-                onSubmit={handleProWaitlistSubmit}
-                className="mt-5 space-y-3"
-              >
-                <input
-                  type="email"
-                  required
-                  value={waitlistEmail}
-                  onChange={(e) => setWaitlistEmail(e.target.value)}
-                  className="w-full rounded-xl border border-white/20 bg-white/5 px-3 py-2.5 text-sm text-slate-100 placeholder:text-slate-500 focus:border-blue-500/50 focus:outline-none"
-                  placeholder="your@email.com"
-                />
-                <select
-                  value={waitlistVisa}
-                  onChange={(e) => setWaitlistVisa(e.target.value)}
-                  className="w-full rounded-xl border border-white/20 bg-[#0f172a] px-3 py-2.5 text-sm text-slate-100 focus:border-blue-500/50 focus:outline-none"
-                >
-                  <option value="" disabled>Visa Type (optional)</option>
-                  <option value="F-1">F-1</option>
-                  <option value="J-1">J-1</option>
-                  <option value="OPT">OPT</option>
-                  <option value="CPT">CPT</option>
-                  <option value="Other">Other</option>
-                </select>
-                <button
-                  type="submit"
-                  disabled={waitlistSubmitting}
-                  className="w-full rounded-xl bg-gradient-to-r from-[#3b82f6] to-[#8b5cf6] py-2.5 text-sm font-semibold text-white shadow-md transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg"
-                >
-                  {waitlistSubmitting ? 'Joining...' : 'Notify Me When Pro Launches'}
-                </button>
-                {waitlistError && (
-                  <p className="text-center text-xs font-medium text-amber-200">{waitlistError}</p>
-                )}
-                <p className="text-center text-xs text-slate-500">No spam, ever. Unsubscribe anytime.</p>
-              </form>
-            )}
-          </div>
-        </div>,
-        document.body,
-      )}
 
       {showDeleteModal && createPortal(
         <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">

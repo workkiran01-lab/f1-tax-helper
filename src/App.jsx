@@ -114,6 +114,8 @@ function AppRoutes() {
       <Route path="/faq" element={<ComingSoon title="FAQ" />} />
       <Route path="/blog" element={<ComingSoon title="Blog" />} />
       <Route path="/tax-treaties" element={<ComingSoon title="Tax Treaties" />} />
+      <Route path="/privacy-policy" element={<Navigate to="/privacy" replace />} />
+      <Route path="/terms-of-service" element={<Navigate to="/terms" replace />} />
       <Route path="/dashboard" element={<Navigate to="/welcome" replace />} />
       <Route path="*" element={<NotFoundPage />} />
     </Routes>

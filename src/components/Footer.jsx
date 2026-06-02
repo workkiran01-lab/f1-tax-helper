@@ -109,7 +109,7 @@ export function Footer() {
               </li>
               <li>
                 <a
-                  href="mailto:f1taxhelper01@gmail.com"
+                  href="mailto:support@f1taxhelper.com"
                   className="text-sm text-muted-foreground transition-colors hover:text-foreground"
                 >
                   Contact Us
@@ -117,7 +117,7 @@ export function Footer() {
               </li>
               <li>
                 <a
-                  href="mailto:f1taxhelper01@gmail.com"
+                  href="mailto:support@f1taxhelper.com"
                   className="text-sm text-muted-foreground transition-colors hover:text-foreground"
                 >
                   Help
