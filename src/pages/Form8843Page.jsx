@@ -127,12 +127,12 @@ function formatDate(raw) {
 // ─────────────────────────────────────────────────────────────────────────────
 
 const inputBase =
-  'w-full rounded-xl border border-white/20 bg-white/5 px-4 py-3 text-sm text-slate-100 placeholder:text-slate-500 focus:border-blue-500/50 focus:outline-none transition-colors'
+  'w-full rounded-xl border border-[#1e293b] bg-transparent px-4 py-3 text-sm text-[#f8fafc] placeholder:text-[#475569] focus:border-[#3b82f6] focus:outline-none focus:ring-1 focus:ring-[#3b82f6]/20 transition-colors'
 
 function Field({ name, placeholder, type = 'text', value, onChange, error, required, helper, maxLength }) {
   return (
     <div>
-      <label className="mb-1.5 block text-xs font-medium text-slate-400">
+      <label className="mb-1.5 block text-[11px] font-medium uppercase tracking-[0.08em] text-[#64748b]">
         {LABELS[name]}
         {required && <span className="ml-1 text-red-400">*</span>}
       </label>
@@ -189,7 +189,7 @@ function InfoBanner({ children }) {
 
 function SummaryCard({ title, icon, rows, onEdit }) {
   return (
-    <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
+    <div className="rounded-2xl border border-[#1e293b] bg-[#0f172a] p-5">
       <div className="mb-3 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <span>{icon}</span>
@@ -249,7 +249,7 @@ function SuccessScreen({ taxYear, onReset, onDownloadAgain }) {
       <h2 className="text-sm font-semibold uppercase tracking-widest text-slate-500">What's next?</h2>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
+        <div className="rounded-2xl border border-[#1e293b] bg-[#0f172a] p-5">
           <div className="mb-2 text-2xl">✍️</div>
           <h3 className="text-sm font-semibold text-white">Sign & Date Your Form</h3>
           <p className="mt-1.5 text-xs leading-5 text-slate-400">
@@ -257,7 +257,7 @@ function SuccessScreen({ taxYear, onReset, onDownloadAgain }) {
           </p>
         </div>
 
-        <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
+        <div className="rounded-2xl border border-[#1e293b] bg-[#0f172a] p-5">
           <div className="mb-2 text-2xl">📬</div>
           <h3 className="mb-2 text-sm font-semibold text-white">Mail to the IRS</h3>
           <p className="mb-2 text-xs text-slate-400">If filing separately (no income), mail to:</p>
@@ -273,7 +273,7 @@ function SuccessScreen({ taxYear, onReset, onDownloadAgain }) {
           </button>
         </div>
 
-        <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
+        <div className="rounded-2xl border border-[#1e293b] bg-[#0f172a] p-5">
           <div className="mb-2 text-2xl">📅</div>
           <h3 className="text-sm font-semibold text-white">Filing Deadline</h3>
           <p className="mt-1.5 text-xs leading-5 text-slate-400">
@@ -628,7 +628,7 @@ export default function Form8843Page() {
       <div className="relative z-10 flex min-h-screen">
 
         {/* ── LEFT SIDEBAR (desktop) ────────────────────────────────────────── */}
-        <aside className="hidden lg:flex w-72 flex-shrink-0 flex-col border-r border-white/10 bg-white/[0.02] px-6 py-8">
+        <aside className="hidden lg:flex w-72 flex-shrink-0 flex-col border-r border-[#1e293b] bg-[#080c14] px-6 py-8">
           <Link to="/" className="mb-10 flex items-center gap-3">
             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-violet-500 text-sm font-bold text-white shadow-lg shadow-blue-500/30">
               F1
@@ -636,7 +636,7 @@ export default function Form8843Page() {
             <span className="text-base font-semibold text-slate-100">F1 Tax Helper</span>
           </Link>
 
-          <p className="mb-4 text-xs font-semibold uppercase tracking-widest text-slate-500">
+          <p className="mb-4 font-mono text-[10px] uppercase tracking-widest text-[#475569]">
             Form 8843 — Tax Year 2025
           </p>
 
@@ -648,37 +648,37 @@ export default function Form8843Page() {
                 <div
                   key={meta.label}
                   className={`flex items-start gap-3 rounded-xl p-3 transition-colors ${
-                    isCurrent ? 'bg-white/10' : isDone ? 'opacity-75' : 'opacity-35'
+                    isCurrent ? 'bg-white/5' : isDone ? 'opacity-75' : 'opacity-35'
                   }`}
                 >
                   <div className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] font-bold ${
-                    isDone      ? 'bg-green-500/20 text-green-400'
-                    : isCurrent ? 'bg-gradient-to-br from-blue-500 to-violet-500 text-white'
-                    : 'bg-white/10 text-slate-500'
+                    isDone      ? 'border border-[#22c55e] text-[#22c55e]'
+                    : isCurrent ? 'bg-[#3b82f6] text-white'
+                    : 'border border-[#1e293b] text-[#475569]'
                   }`}>
                     {isDone ? '✓' : i + 1}
                   </div>
                   <div>
-                    <p className={`text-xs font-semibold ${isCurrent ? 'text-white' : 'text-slate-400'}`}>
+                    <p className={`text-xs ${isCurrent ? 'font-medium text-[#f8fafc]' : 'text-[#475569]'}`}>
                       {meta.label}
                     </p>
-                    <p className="text-[11px] text-slate-600">{meta.section}</p>
+                    <p className="text-[11px] font-mono text-[#475569]">{meta.section}</p>
                   </div>
                 </div>
               )
             })}
 
-            <div className={`flex items-start gap-3 rounded-xl p-3 transition-colors ${showReview ? 'bg-white/10' : 'opacity-35'}`}>
+            <div className={`flex items-start gap-3 rounded-xl p-3 transition-colors ${showReview ? 'bg-white/5' : 'opacity-35'}`}>
               <div className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] font-bold ${
-                showReview ? 'bg-gradient-to-br from-blue-500 to-violet-500 text-white' : 'bg-white/10 text-slate-500'
+                showReview ? 'bg-[#3b82f6] text-white' : 'border border-[#1e293b] text-[#475569]'
               }`}>
                 ★
               </div>
               <div>
-                <p className={`text-xs font-semibold ${showReview ? 'text-white' : 'text-slate-400'}`}>
+                <p className={`text-xs ${showReview ? 'font-medium text-[#f8fafc]' : 'text-[#475569]'}`}>
                   Review & Generate
                 </p>
-                <p className="text-[11px] text-slate-600">Final check</p>
+                <p className="text-[11px] font-mono text-[#475569]">Final check</p>
               </div>
             </div>
           </div>
@@ -694,7 +694,7 @@ export default function Form8843Page() {
         <div className="flex flex-1 flex-col overflow-hidden">
 
           {/* Topbar */}
-          <header className="sticky top-0 z-20 border-b border-white/10 bg-[#0f172a]/80 backdrop-blur-xl">
+          <header className="sticky top-0 z-20 border-b border-[#1e293b] bg-[#080c14]/80 backdrop-blur">
             <div className="flex h-14 items-center justify-between px-4 sm:px-8">
               <Link to="/" className="flex items-center gap-2 lg:hidden">
                 <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-violet-500 text-xs font-bold text-white">
@@ -710,23 +710,23 @@ export default function Form8843Page() {
                 <button
                   type="button"
                   onClick={() => { try { sessionStorage.setItem(STORAGE_KEY, JSON.stringify(formData)) } catch {} }}
-                  className="rounded-lg border border-white/20 bg-white/5 px-3 py-1.5 text-xs font-medium text-slate-300 transition-colors hover:bg-white/10"
+                  className="rounded-lg border border-[#1e293b] bg-transparent px-3 py-1.5 text-xs text-[#64748b] transition-colors hover:border-[#2d4a6e] hover:text-[#f8fafc]"
                 >
                   Save Progress
                 </button>
                 <button
                   type="button"
                   onClick={handleClearData}
-                  className="rounded-lg border border-white/20 bg-white/5 px-3 py-1.5 text-xs font-medium text-slate-300 transition-colors hover:bg-white/10"
+                  className="rounded-lg border border-[#1e293b] bg-transparent px-3 py-1.5 text-xs text-[#64748b] transition-colors hover:border-[#2d4a6e] hover:text-[#f8fafc]"
                 >
                   {clearLabel}
                 </button>
               </div>
             </div>
 
-            <div className="h-1 w-full bg-white/5">
+            <div className="h-px w-full bg-[#1e293b]">
               <div
-                className="h-full bg-gradient-to-r from-blue-500 to-violet-500 transition-all duration-500"
+                className="h-full bg-[#3b82f6] transition-all duration-500"
                 style={{ width: `${progressPct}%` }}
               />
             </div>
@@ -773,10 +773,10 @@ export default function Form8843Page() {
 
               {/* Page title */}
               <div className="mb-6">
-                <div className="mb-2 inline-flex items-center rounded-full border border-white/20 bg-white/10 px-3 py-0.5 text-xs font-semibold uppercase tracking-widest text-blue-100/80">
+                <span className="font-mono text-[10px] uppercase tracking-widest text-[#475569]">
                   Free · No Login Required
-                </div>
-                <h1 className="text-2xl font-extrabold tracking-tight text-white sm:text-3xl">
+                </span>
+                <h1 className="mt-1 text-xl font-semibold text-[#f8fafc]">
                   {showReview ? 'Review & Generate' : STEP_META[step].label}
                 </h1>
                 {!showReview && (
@@ -814,7 +814,7 @@ export default function Form8843Page() {
               {/* ── STEP 0: Your Information ─────────────────────────────────── */}
               {step === 0 && !showReview && (
                 <div key="step0" className="step-enter space-y-5">
-                  <div className="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-xl">
+                  <div className="rounded-2xl border border-[#1e293b] bg-[#0f172a] p-6">
                     <h2 className="mb-4 text-sm font-semibold text-white">
                       Personal Details
                       <span className="ml-2 text-xs font-normal text-slate-500">as shown on your passport</span>
@@ -869,7 +869,7 @@ export default function Form8843Page() {
                     </div>
                   </div>
 
-                  <div className="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-xl">
+                  <div className="rounded-2xl border border-[#1e293b] bg-[#0f172a] p-6">
                     <h2 className="mb-1 text-sm font-semibold text-white">Passport Details</h2>
                     <p className="mb-4 text-xs text-slate-500">Optional — fills Lines 3a and 3b of Form 8843</p>
                     <div className="space-y-4">
@@ -893,7 +893,7 @@ export default function Form8843Page() {
               {/* ── STEP 1: Your Address ──────────────────────────────────────── */}
               {step === 1 && !showReview && (
                 <div key="step1" className="step-enter space-y-5">
-                  <div className="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-xl">
+                  <div className="rounded-2xl border border-[#1e293b] bg-[#0f172a] p-6">
                     <h2 className="mb-4 text-sm font-semibold text-white">US Mailing Address</h2>
                     <div className="space-y-4">
                       <Field
@@ -917,7 +917,7 @@ export default function Form8843Page() {
                     </div>
                   </div>
 
-                  <div className="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-xl">
+                  <div className="rounded-2xl border border-[#1e293b] bg-[#0f172a] p-6">
                     <h2 className="mb-1 text-sm font-semibold text-white">Foreign Address</h2>
                     <p className="mb-4 text-xs text-slate-500">Optional — your address in your home country (Line 7 of Form 8843)</p>
                     <div>
@@ -930,7 +930,7 @@ export default function Form8843Page() {
                         placeholder="e.g. 45 Park Street, Mumbai 400001, India"
                         rows={3}
                         maxLength={200}
-                        className="w-full rounded-xl border border-white/20 bg-white/5 px-4 py-3 text-sm text-slate-100 placeholder:text-slate-500 focus:border-blue-500/50 focus:outline-none transition-colors resize-none"
+                        className="w-full rounded-xl border border-[#1e293b] bg-transparent px-4 py-3 text-sm text-[#f8fafc] placeholder:text-[#475569] focus:border-[#3b82f6] focus:outline-none focus:ring-1 focus:ring-[#3b82f6]/20 transition-colors resize-none"
                       />
                       <p className="mt-1 text-xs text-slate-500">Street, city, country</p>
                     </div>
@@ -944,7 +944,7 @@ export default function Form8843Page() {
                   <InfoBanner>
                     F-1 students complete Part III of Form 8843. Enter your school's official information exactly as it appears on your I-20.
                   </InfoBanner>
-                  <div className="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-xl">
+                  <div className="rounded-2xl border border-[#1e293b] bg-[#0f172a] p-6">
                     <h2 className="mb-4 text-sm font-semibold text-white">Academic Institution Information</h2>
                     <div className="space-y-4">
                       <Field
@@ -985,7 +985,7 @@ export default function Form8843Page() {
                   <InfoBanner>
                     Your DSO (Designated School Official) is listed on your I-20 document. Enter their contact information as it appears there.
                   </InfoBanner>
-                  <div className="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-xl">
+                  <div className="rounded-2xl border border-[#1e293b] bg-[#0f172a] p-6">
                     <h2 className="mb-4 text-sm font-semibold text-white">Designated School Official (DSO)</h2>
                     <div className="space-y-4">
                       <Field
@@ -1001,7 +1001,7 @@ export default function Form8843Page() {
                     </div>
                   </div>
 
-                  <div className="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-xl">
+                  <div className="rounded-2xl border border-[#1e293b] bg-[#0f172a] p-6">
                     <h2 className="mb-1 text-sm font-semibold text-white">DSO Office Address</h2>
                     <p className="mb-4 text-xs text-slate-500">Optional — enter if available on your I-20</p>
                     <div className="space-y-4">
@@ -1037,7 +1037,7 @@ export default function Form8843Page() {
               {/* ── STEP 4: Visa & Presence ───────────────────────────────────── */}
               {step === 4 && !showReview && (
                 <div key="step4" className="step-enter space-y-5">
-                  <div className="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-xl">
+                  <div className="rounded-2xl border border-[#1e293b] bg-[#0f172a] p-6">
                     <h2 className="mb-4 text-sm font-semibold text-white">Visa & Entry</h2>
                     <div className="space-y-4">
                       <Field
@@ -1048,7 +1048,7 @@ export default function Form8843Page() {
                     </div>
                   </div>
 
-                  <div className="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-xl">
+                  <div className="rounded-2xl border border-[#1e293b] bg-[#0f172a] p-6">
                     <h2 className="mb-1 text-sm font-semibold text-white">Days Present in the U.S.</h2>
                     <p className="mb-4 text-xs text-slate-500">Optional — Part I, Line 4. F-1 students are typically exempt and leave these blank.</p>
                     <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -1075,7 +1075,7 @@ export default function Form8843Page() {
                     </div>
                   </div>
 
-                  <div className="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-xl">
+                  <div className="rounded-2xl border border-[#1e293b] bg-[#0f172a] p-6">
                     <h2 className="mb-1 text-sm font-semibold text-white">Status Questions</h2>
                     <p className="mb-4 text-xs text-slate-500">Part III, Lines 12–14. Most F-1 students answer No to both.</p>
                     <div className="space-y-5">
@@ -1109,7 +1109,7 @@ export default function Form8843Page() {
                             placeholder="Explain the years and visa types for your prior exempt status..."
                             rows={3}
                             maxLength={300}
-                            className={`w-full rounded-xl border border-white/20 bg-white/5 px-4 py-3 text-sm text-slate-100 placeholder:text-slate-500 focus:border-blue-500/50 focus:outline-none transition-colors resize-none ${errors.line14Explanation ? 'border-red-500/60' : ''}`}
+                            className={`w-full rounded-xl border border-[#1e293b] bg-transparent px-4 py-3 text-sm text-[#f8fafc] placeholder:text-[#475569] focus:border-[#3b82f6] focus:outline-none focus:ring-1 focus:ring-[#3b82f6]/20 transition-colors resize-none ${errors.line14Explanation ? 'border-red-500/60' : ''}`}
                           />
                           {errors.line14Explanation && <p className="mt-1 text-xs text-red-400">{errors.line14Explanation}</p>}
                         </div>
