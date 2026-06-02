@@ -14,6 +14,8 @@ async function isRateLimited(key) {
 }
 
 const allowedOrigins = [
+  'https://f1taxhelper.com',
+  'https://www.f1taxhelper.com',
   'https://f1-tax-helper.vercel.app',
   'https://www.f1-tax-helper.vercel.app',
   'http://localhost:5173',
@@ -137,7 +139,7 @@ export default async function handler(req) {
   // The old client-bundled app secret was exposed and is compromised.
   // It has been removed; requests are now limited to exact trusted origins.
   const origin = req.headers.get('origin') || ''
-  console.log('Incoming chat origin:', origin)
+  console.log('Request origin:', origin)
   if (origin && !allowedOrigins.includes(origin)) {
     return new Response('Forbidden', { status: 403 })
   }
