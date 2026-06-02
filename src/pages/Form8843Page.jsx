@@ -25,7 +25,7 @@ const LABELS = {
   tinOrSSN:             'SSN or ITIN (optional)',
   passportCountry:      'Passport Issuing Country',
   passportNumber:       'Passport Number',
-  currentImmigrationStatus: 'Current immigration status (Line 1b)',
+  currentImmigrationStatus: 'Visa Type',
   usStreet:             'US Street Address',
   usCity:               'City',
   usState:              'State',
@@ -848,6 +848,12 @@ export default function Form8843Page() {
                         helper="Country that issued your passport"
                         {...fp('countryOfCitizenship')}
                       />
+                      <Field
+                        name="currentImmigrationStatus" placeholder="e.g. F-1"
+                        helper="Most international students select F-1."
+                        value={formData.currentImmigrationStatus} onChange={set('currentImmigrationStatus')}
+                        error={errors.currentImmigrationStatus} required={false}
+                      />
                       <div>
                         <label className="mb-1.5 block text-xs font-medium text-slate-400">Tax Year</label>
                         <div className="inline-flex h-11 items-center rounded-xl border border-blue-500/30 bg-blue-500/10 px-4">
@@ -1034,22 +1040,10 @@ export default function Form8843Page() {
                   <div className="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-xl">
                     <h2 className="mb-4 text-sm font-semibold text-white">Visa & Entry</h2>
                     <div className="space-y-4">
-                      <div>
-                        <label className="mb-1.5 block text-xs font-medium text-slate-400">Visa Type</label>
-                        <div className="flex h-11 items-center rounded-xl border border-violet-500/30 bg-violet-500/10 px-4">
-                          <span className="text-sm font-semibold text-violet-300">F-1 Student Visa</span>
-                        </div>
-                      </div>
                       <Field
                         name="currentEntryDate" placeholder="MM/DD/YYYY"
                         helper="Your most recent U.S. entry — check your I-94 at cbp.dhs.gov"
                         {...fp('currentEntryDate')} onChange={setDate('currentEntryDate')}
-                      />
-                      <Field
-                        name="currentImmigrationStatus" placeholder="e.g. F-1"
-                        helper="Most students can leave this as F-1"
-                        value={formData.currentImmigrationStatus} onChange={set('currentImmigrationStatus')}
-                        error={errors.currentImmigrationStatus} required={false}
                       />
                     </div>
                   </div>
@@ -1177,7 +1171,7 @@ export default function Form8843Page() {
                     title="Visa & Presence" icon="✈️"
                     onEdit={() => goToStep(4)}
                     rows={[
-                      ['Visa Type', 'F-1 Student'],
+                      ['Visa Type', formData.currentImmigrationStatus || 'F-1'],
                       ['Most Recent U.S. Entry', formData.currentEntryDate],
                       ['Days Present 2025', formData.daysIn2025 || '—'],
                       ['Days Present 2024', formData.daysIn2024 || '—'],
