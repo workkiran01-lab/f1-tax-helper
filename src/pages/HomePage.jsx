@@ -38,14 +38,10 @@ const FEATURES = [
     title: 'Know what to file',
     desc: 'Answer 5 questions and get your exact required forms.',
     mockup: (
-      <div className="rounded-lg border border-[#1e293b] bg-[#080c14] p-4 font-mono text-xs space-y-1.5">
+      <div className="rounded-lg border border-[#1e293b] bg-[#080c14] p-4 font-mono text-xs">
         <div className="flex items-center gap-2">
           <span className="text-[#22c55e]">✓</span>
           <span className="text-[#cbd5e1]">Form 8843 Required</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="text-[#475569]">○</span>
-          <span className="text-[#64748b]">Form 1040-NR if income</span>
         </div>
       </div>
     ),
