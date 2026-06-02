@@ -13,14 +13,6 @@ async function isRateLimited(key) {
   return requests > 20
 }
 
-const allowedOrigins = [
-  'https://f1taxhelper.com',
-  'https://www.f1taxhelper.com',
-  'https://f1-tax-helper.vercel.app',
-  'https://www.f1-tax-helper.vercel.app',
-  'http://localhost:5173',
-  'http://localhost:4173',
-]
 
 // India Article 21(2) — standard deduction $15,000 (TY2025, single filer)
 const SYSTEM_PROMPT = `You are Alex, a friendly and knowledgeable F-1 tax assistant who helps international students understand US taxes. Speak like a helpful, knowledgeable friend — not a formal tax advisor. Use simple language, short answers (2–4 sentences unless detail is needed), and occasionally add a friendly emoji.
@@ -136,14 +128,17 @@ export default async function handler(req) {
     return new Response('Method Not Allowed', { status: 405 })
   }
 
-  // The old client-bundled app secret was exposed and is compromised.
-  // It has been removed; requests are now limited to exact trusted origins.
   const origin = req.headers.get('origin') || ''
   console.log('Request origin:', origin)
-  if (origin && !allowedOrigins.includes(origin)) {
+  const isAllowed =
+    !origin ||
+    origin.includes('f1taxhelper.com') ||
+    origin.includes('f1-tax-helper') ||
+    origin.includes('localhost:5173') ||
+    origin.includes('localhost:4173')
+  if (!isAllowed) {
     return new Response('Forbidden', { status: 403 })
   }
-  // Empty origin can happen on same-origin requests; allow those through.
 
   const ip = req.headers.get('x-forwarded-for')?.split(',')[0].trim() ?? 'unknown'
   try {
