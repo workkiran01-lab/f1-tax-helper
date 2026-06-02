@@ -36,35 +36,29 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="relative min-h-screen overflow-hidden bg-[#0f172a] text-slate-100">
-      <div className="pointer-events-none absolute inset-0">
-        <div className="absolute -left-24 top-16 h-72 w-72 rounded-full bg-blue-500/20 blur-3xl animate-pulse [animation-duration:9s]" />
-        <div className="absolute -right-20 top-36 h-80 w-80 rounded-full bg-violet-500/20 blur-3xl animate-pulse [animation-duration:11s]" />
-        <div className="absolute bottom-0 left-1/2 h-96 w-96 -translate-x-1/2 rounded-full bg-cyan-500/10 blur-3xl animate-pulse [animation-duration:13s]" />
-      </div>
+    <main className="relative min-h-screen overflow-hidden bg-[#080c14] text-slate-100">
+      <div className="absolute inset-0 bg-grid opacity-30 pointer-events-none" />
 
-      <header className="sticky top-0 z-20 border-b border-white/10 bg-slate-900/50 backdrop-blur-xl">
+      <header className="sticky top-0 z-20 border-b border-[#1e293b] bg-[#080c14]/80 backdrop-blur">
         <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-4 sm:px-6">
-          <Link to="/" className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-violet-500 text-sm font-bold text-white shadow-lg shadow-blue-500/30">
-              F1
-            </div>
-            <span className="text-base font-semibold tracking-wide text-slate-100 sm:text-lg">F1 Tax Helper</span>
+          <Link to="/" className="flex items-center gap-2">
+            <div className="font-mono text-xs font-bold border border-[#1e293b] px-2 py-1 text-[#3b82f6]">F1</div>
+            <span className="text-sm font-medium text-[#f8fafc]">Tax Helper</span>
           </Link>
         </div>
       </header>
 
       <section className="relative z-10 mx-auto flex min-h-[calc(100vh-4rem)] w-full max-w-6xl items-center justify-center px-4 py-16 sm:px-6 md:py-20">
-        <div className="w-full max-w-xl rounded-3xl border border-white/20 bg-white/5 p-8 shadow-2xl shadow-blue-950/40 backdrop-blur-xl sm:p-12">
-          <p className="mb-6 inline-flex rounded-full border border-white/20 bg-white/10 px-4 py-1.5 text-xs font-medium uppercase tracking-[0.18em] text-blue-100/90">
-            SIGN IN TO CONTINUE
-          </p>
+        <div className="w-full max-w-xl rounded-2xl border border-[#1e293b] bg-[#0f172a] p-8 sm:p-10">
+          <span className="font-mono text-[10px] uppercase tracking-widest text-[#475569]">
+            Sign in to continue
+          </span>
 
-          <h1 className="text-4xl font-extrabold leading-tight tracking-tight text-white sm:text-5xl">
+          <h1 className="mt-4 text-2xl font-semibold text-[#f8fafc]">
             Welcome back.
           </h1>
 
-          <p className="mt-4 max-w-lg text-base leading-relaxed text-slate-300 sm:text-lg">
+          <p className="text-sm text-[#64748b] mt-3">
             Sign in with Google or continue as a guest
           </p>
 
@@ -73,7 +67,7 @@ export default function LoginPage() {
               type="button"
               onClick={handleGoogleSignIn}
               disabled={loading}
-              className="group inline-flex w-full items-center justify-center gap-3 rounded-xl bg-gradient-to-r from-[#3b82f6] to-[#8b5cf6] px-7 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-600/30 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-violet-500/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-300 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0f172a] disabled:cursor-not-allowed disabled:opacity-70 sm:text-base"
+              className="w-full rounded-xl bg-[#3b82f6] px-6 py-3 text-sm font-semibold text-white transition-all hover:bg-[#2563eb] active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3b82f6] focus-visible:ring-offset-2 focus-visible:ring-offset-[#080c14]"
             >
               {loading ? (
                 <LoaderCircle className="h-4 w-4 animate-spin" />
@@ -92,18 +86,18 @@ export default function LoginPage() {
               type="button"
               onClick={() => signInAsGuest('/welcome')}
               disabled={loading}
-              className="inline-flex w-full items-center justify-center gap-3 rounded-xl border border-white/20 bg-white/5 px-7 py-3 text-sm font-semibold text-slate-100 transition-all duration-300 hover:-translate-y-0.5 hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-300 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0f172a] disabled:cursor-not-allowed disabled:opacity-70 sm:text-base"
+              className="w-full rounded-xl border border-[#1e293b] bg-transparent px-6 py-3 text-sm font-medium text-[#cbd5e1] transition-colors hover:border-[#2d4a6e] hover:text-[#f8fafc] flex items-center justify-center gap-3 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3b82f6] focus-visible:ring-offset-2 focus-visible:ring-offset-[#080c14]"
             >
               <UserRound className="h-4 w-4" />
               Continue as Guest
             </button>
 
-            <p className="text-center text-xs text-slate-500">
+            <p className="text-xs text-[#475569] text-center">
               Guest mode saves progress only in this browser.
             </p>
 
             {error && (
-              <div className="rounded-xl border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-100">
+              <div className="rounded-xl border border-[#ef4444]/30 bg-[#ef4444]/10 px-4 py-3 text-sm text-[#ef4444]">
                 {error}
               </div>
             )}
@@ -114,7 +108,7 @@ export default function LoginPage() {
               </div>
             )}
 
-            <p className="text-center text-xs text-slate-500">
+            <p className="text-xs text-[#475569] text-center">
               By signing in, you agree to our Terms of Service
             </p>
           </div>

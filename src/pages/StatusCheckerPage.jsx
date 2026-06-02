@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { ChevronRight, ChevronLeft } from 'lucide-react'
+import { ChevronLeft } from 'lucide-react'
 import DisclaimerBanner from '../components/DisclaimerBanner'
 import useAuth from '../hooks/useAuth'
 
@@ -159,22 +159,17 @@ export default function StatusCheckerPage() {
   }
 
   return (
-    <div className="relative flex min-h-screen flex-col overflow-hidden bg-[#0f172a] text-slate-100">
-      <div className="pointer-events-none absolute inset-0">
-        <div className="absolute -left-24 top-16 h-72 w-72 rounded-full bg-blue-500/20 blur-3xl animate-pulse [animation-duration:9s]" />
-        <div className="absolute -right-20 top-36 h-80 w-80 rounded-full bg-violet-500/20 blur-3xl animate-pulse [animation-duration:11s]" />
-      </div>
+    <div className="relative flex min-h-screen flex-col overflow-hidden bg-[#080c14] text-slate-100">
+      <div className="absolute inset-0 bg-grid opacity-30 pointer-events-none" />
 
       {/* Header */}
-      <header className="sticky top-0 z-20 border-b border-white/10 bg-slate-900/50 backdrop-blur-xl">
+      <header className="sticky top-0 z-20 border-b border-[#1e293b] bg-[#080c14]/80 backdrop-blur">
         <div className="mx-auto flex h-16 w-full max-w-3xl items-center justify-between px-4 sm:px-6">
           <Link to="/" className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-violet-500 text-xs font-bold text-white">
-              F1
-            </div>
-            <span className="text-sm font-semibold text-slate-100">Tax Helper</span>
+            <div className="font-mono text-xs font-bold border border-[#1e293b] px-2 py-1 text-[#3b82f6]">F1</div>
+            <span className="text-sm font-medium text-[#f8fafc]">Tax Helper</span>
           </Link>
-          <span className="text-xs text-slate-400">
+          <span className="text-xs text-[#475569]">
             Question {step + 1} of {totalSteps}
           </span>
         </div>
@@ -185,13 +180,13 @@ export default function StatusCheckerPage() {
       <main className="relative z-10 mx-auto flex w-full max-w-xl flex-1 flex-col px-4 py-12 sm:px-6">
         {/* Progress bar */}
         <div className="mb-8 space-y-2">
-          <div className="h-1.5 overflow-hidden rounded-full bg-white/10">
+          <div className="h-px w-full bg-[#1e293b]">
             <div
-              className="h-full rounded-full bg-gradient-to-r from-blue-500 to-violet-500 transition-all duration-500 ease-out"
+              className="h-full bg-[#3b82f6] transition-all duration-500"
               style={{ width: `${progress}%` }}
             />
           </div>
-          <div className="flex justify-between text-xs text-slate-500">
+          <div className="flex justify-between text-xs text-[#475569]">
             <span>F-1 Status Checker</span>
             <span>{progress}%</span>
           </div>
@@ -199,8 +194,8 @@ export default function StatusCheckerPage() {
 
         {/* Question card */}
         <div className="flex-1">
-          <div className="rounded-3xl border border-white/20 bg-white/5 p-6 shadow-2xl shadow-blue-950/30 backdrop-blur-xl sm:p-8">
-            <h2 className="mb-6 text-lg font-semibold leading-snug text-slate-100 sm:text-xl">
+          <div className="rounded-2xl border border-[#1e293b] bg-[#0f172a] p-6 sm:p-8">
+            <h2 className="text-lg font-semibold text-[#f8fafc] mb-6 leading-snug">
               {current.question}
             </h2>
             <div className="space-y-3">
@@ -211,14 +206,14 @@ export default function StatusCheckerPage() {
                     key={opt.value}
                     type="button"
                     onClick={() => handleSelect(opt.value)}
-                    className={`flex w-full items-center justify-between rounded-2xl border px-5 py-4 text-left text-sm font-medium transition-all duration-150 ${
+                    className={`flex w-full items-center justify-between rounded-xl border px-5 py-4 text-left text-sm transition-all duration-150 active:scale-[0.99] ${
                       selected
-                        ? 'border-blue-500/60 bg-blue-500/20 text-white'
-                        : 'border-white/15 bg-white/5 text-slate-200 hover:border-white/30 hover:bg-white/10'
+                        ? 'border-[#3b82f6] bg-[#3b82f6]/10 text-[#f8fafc]'
+                        : 'border-[#1e293b] bg-transparent text-[#cbd5e1] hover:border-[#2d4a6e] hover:text-[#f8fafc]'
                     }`}
                   >
                     <span>{opt.label}</span>
-                    <ChevronRight className="h-4 w-4 shrink-0 text-slate-400" />
+                    {selected && <span className="h-1.5 w-1.5 rounded-full bg-[#3b82f6]" />}
                   </button>
                 )
               })}
@@ -232,7 +227,7 @@ export default function StatusCheckerPage() {
             <button
               type="button"
               onClick={handleBack}
-              className="flex items-center gap-1.5 rounded-xl border border-white/20 bg-white/5 px-4 py-2 text-sm text-slate-300 transition-colors hover:bg-white/10"
+              className="flex items-center gap-1.5 border border-[#1e293b] bg-transparent text-[#64748b] hover:border-[#2d4a6e] hover:text-[#f8fafc] rounded-xl px-4 py-2 text-sm transition-colors"
             >
               <ChevronLeft className="h-4 w-4" />
               Back
@@ -240,13 +235,13 @@ export default function StatusCheckerPage() {
           ) : (
             <Link
               to="/"
-              className="flex items-center gap-1.5 rounded-xl border border-white/20 bg-white/5 px-4 py-2 text-sm text-slate-300 transition-colors hover:bg-white/10"
+              className="flex items-center gap-1.5 border border-[#1e293b] bg-transparent text-[#64748b] hover:border-[#2d4a6e] hover:text-[#f8fafc] rounded-xl px-4 py-2 text-sm transition-colors"
             >
               <ChevronLeft className="h-4 w-4" />
               Home
             </Link>
           )}
-          <p className="text-xs text-slate-600">Select an option to continue</p>
+          <p className="text-xs text-[#475569]">Select an option to continue</p>
         </div>
       </main>
     </div>
@@ -266,21 +261,16 @@ function ResultScreen({ result, navigate, signInAsGuest, user }) {
   }
 
   return (
-    <div className="relative flex min-h-screen flex-col overflow-hidden bg-[#0f172a] text-slate-100">
-      <div className="pointer-events-none absolute inset-0">
-        <div className="absolute -left-24 top-16 h-72 w-72 rounded-full bg-blue-500/20 blur-3xl animate-pulse [animation-duration:9s]" />
-        <div className="absolute -right-20 top-36 h-80 w-80 rounded-full bg-violet-500/20 blur-3xl animate-pulse [animation-duration:11s]" />
-      </div>
+    <div className="relative flex min-h-screen flex-col overflow-hidden bg-[#080c14] text-slate-100">
+      <div className="absolute inset-0 bg-grid opacity-30 pointer-events-none" />
 
-      <header className="sticky top-0 z-20 border-b border-white/10 bg-slate-900/50 backdrop-blur-xl">
+      <header className="sticky top-0 z-20 border-b border-[#1e293b] bg-[#080c14]/80 backdrop-blur">
         <div className="mx-auto flex h-16 w-full max-w-3xl items-center justify-between px-4 sm:px-6">
           <Link to="/" className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-violet-500 text-xs font-bold text-white">
-              F1
-            </div>
-            <span className="text-sm font-semibold text-slate-100">Tax Helper</span>
+            <div className="font-mono text-xs font-bold border border-[#1e293b] px-2 py-1 text-[#3b82f6]">F1</div>
+            <span className="text-sm font-medium text-[#f8fafc]">Tax Helper</span>
           </Link>
-          <span className="text-xs text-green-400">✓ Results Ready</span>
+          <span className="text-xs text-[#475569]">Results Ready</span>
         </div>
       </header>
 
@@ -291,47 +281,47 @@ function ResultScreen({ result, navigate, signInAsGuest, user }) {
         <div className="mb-8 text-center">
           <div className="mb-4 inline-flex items-center gap-2">
             <span
-              className={`rounded-full px-5 py-2 text-sm font-bold ${
+              className={`rounded-full px-5 py-2 text-sm font-mono font-medium ${
                 isNRA
-                  ? 'border border-green-500/30 bg-green-500/20 text-green-400'
-                  : 'border border-amber-500/30 bg-amber-500/20 text-amber-400'
+                  ? 'border border-[#22c55e]/30 bg-[#22c55e]/10 text-[#22c55e]'
+                  : 'border border-[#f59e0b]/30 bg-[#f59e0b]/10 text-[#f59e0b]'
               }`}
             >
-              {isNRA ? '✅' : '⚠️'} {result.status}
+              {result.status}
             </span>
           </div>
-          <h1 className="text-2xl font-bold text-slate-100">Your Tax Filing Results</h1>
+          <h1 className="text-2xl font-bold text-[#f8fafc]">Your Tax Filing Results</h1>
           {result.message && (
-            <p className="mt-3 rounded-xl border border-amber-500/20 bg-amber-500/10 p-3 text-sm text-amber-300">
+            <p className="mt-3 rounded-xl border border-[#f59e0b]/20 bg-[#f59e0b]/10 p-3 text-sm text-[#f59e0b]">
               {result.message}
             </p>
           )}
         </div>
 
         {/* Filing requirements */}
-        <div className="mb-5 rounded-3xl border border-white/20 bg-white/5 p-5 shadow-xl backdrop-blur-xl sm:p-6">
-          <h2 className="mb-4 text-base font-semibold text-slate-100">Your Filing Requirements</h2>
+        <div className="mb-5 rounded-2xl border border-[#1e293b] bg-[#0f172a] p-5 sm:p-6">
+          <h2 className="text-xs font-mono uppercase tracking-widest text-[#475569] mb-4">Your Filing Requirements</h2>
           <div className="space-y-3">
             {result.forms.map((form) => (
               <div
                 key={form.id}
-                className="flex items-start justify-between gap-3 rounded-2xl border border-white/10 bg-white/5 p-4"
+                className="flex items-start justify-between gap-3 rounded-xl border border-[#1e293b] bg-[#080c14] p-4"
               >
                 <div className="flex-1">
-                  <p className="text-sm font-semibold text-white">{form.name}</p>
-                  <p className="mt-0.5 text-xs text-slate-400">{form.description}</p>
+                  <p className="text-sm font-medium text-[#f8fafc]">{form.name}</p>
+                  <p className="mt-0.5 text-xs text-[#64748b]">{form.description}</p>
                 </div>
                 {form.ctaLink ? (
                   <Link
                     to={form.ctaLink}
-                    className="shrink-0 rounded-xl bg-gradient-to-r from-blue-500 to-violet-500 px-3 py-1.5 text-xs font-semibold text-white transition-all hover:-translate-y-0.5"
+                    className="shrink-0 rounded-xl bg-[#3b82f6] px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-[#2563eb]"
                   >
                     {form.cta}
                   </Link>
                 ) : (
                   <Link
                     to="/chat"
-                    className="shrink-0 rounded-xl border border-white/20 bg-white/5 px-3 py-1.5 text-xs font-semibold text-slate-200 transition-colors hover:bg-white/10"
+                    className="shrink-0 rounded-xl border border-[#1e293b] bg-transparent px-3 py-1.5 text-xs font-medium text-[#64748b] transition-colors hover:border-[#2d4a6e] hover:text-[#f8fafc]"
                   >
                     {form.cta}
                   </Link>
@@ -342,10 +332,10 @@ function ResultScreen({ result, navigate, signInAsGuest, user }) {
         </div>
 
         {/* Deadline card */}
-        <div className="mb-5 rounded-3xl border border-blue-500/20 bg-blue-500/10 p-5 sm:p-6">
-          <h2 className="mb-2 text-base font-semibold text-slate-100">📅 Your Filing Deadline</h2>
-          <p className="text-sm font-bold text-blue-300">{result.deadline}</p>
-          <p className="mt-1 text-xs text-slate-400">
+        <div className="mb-5 rounded-2xl border border-[#1e293b] bg-[#0f172a] p-5 sm:p-6">
+          <h2 className="text-xs font-mono uppercase tracking-widest text-[#475569] mb-2">Your Filing Deadline</h2>
+          <p className="text-sm font-medium text-[#3b82f6] font-mono">{result.deadline}</p>
+          <p className="text-xs text-[#64748b] mt-1">
             Missing this deadline may result in penalties. File early when possible.
           </p>
         </div>
@@ -355,12 +345,12 @@ function ResultScreen({ result, navigate, signInAsGuest, user }) {
           <button
             type="button"
             onClick={handleChecklistClick}
-            className="w-full rounded-xl bg-gradient-to-r from-blue-500 to-violet-500 px-5 py-3 text-sm font-semibold text-white transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl"
+            className="w-full rounded-xl bg-[#3b82f6] px-5 py-3 text-sm font-semibold text-white transition-all hover:bg-[#2563eb] active:scale-[0.98]"
           >
             View My Document Checklist →
           </button>
           {showChecklistPrompt && (
-            <div className="rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4 text-sm text-amber-100">
+            <div className="rounded-2xl border border-[#f59e0b]/30 bg-[#f59e0b]/10 p-4 text-sm text-[#f59e0b]">
               <p className="leading-6">
                 Sign in to save and view your personalized checklist. Your progress won't be lost.
               </p>
@@ -368,14 +358,14 @@ function ResultScreen({ result, navigate, signInAsGuest, user }) {
                 <button
                   type="button"
                   onClick={() => navigate('/login')}
-                  className="rounded-xl bg-amber-400 px-4 py-2 text-xs font-semibold text-slate-950 transition-colors hover:bg-amber-300"
+                  className="rounded-xl bg-[#f59e0b] px-4 py-2 text-xs font-semibold text-slate-950 transition-colors hover:bg-[#d97706]"
                 >
                   Sign in with Google
                 </button>
                 <button
                   type="button"
                   onClick={() => signInAsGuest('/checklist')}
-                  className="rounded-xl border border-amber-300/40 bg-white/5 px-4 py-2 text-xs font-semibold text-amber-100 transition-colors hover:bg-white/10"
+                  className="rounded-xl border border-[#f59e0b]/40 bg-transparent px-4 py-2 text-xs font-semibold text-[#f59e0b] transition-colors hover:border-[#f59e0b]/60"
                 >
                   Continue as Guest
                 </button>
@@ -388,14 +378,14 @@ function ResultScreen({ result, navigate, signInAsGuest, user }) {
               localStorage.removeItem('f1_status_result')
               window.location.reload()
             }}
-            className="w-full rounded-xl border border-white/20 bg-white/5 px-5 py-3 text-sm font-semibold text-slate-300 transition-colors hover:bg-white/10"
+            className="w-full rounded-xl border border-[#1e293b] bg-transparent px-5 py-3 text-sm font-medium text-[#64748b] transition-colors hover:border-[#2d4a6e] hover:text-[#f8fafc]"
           >
             ← Retake the Checker
           </button>
         </div>
 
         {/* IRS disclaimer */}
-        <p className="mt-6 text-center text-xs leading-5 text-slate-600">
+        <p className="mt-6 text-xs text-[#475569] text-center leading-5">
           This tool provides general guidance based on IRS Publication 519. Results are not tax advice.
           Consult your university&apos;s international student office or a CPA for your specific situation.
         </p>
