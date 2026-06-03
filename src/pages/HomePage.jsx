@@ -31,53 +31,6 @@ const PROFILES = [
   },
 ]
 
-// ── Features section data ───────────────────────────────────────────────────
-
-const FEATURES = [
-  {
-    title: 'Know what to file',
-    desc: 'Answer 5 questions and get your exact required forms.',
-    mockup: (
-      <div className="rounded-lg border border-[#1e293b] bg-[#080c14] p-4 font-mono text-xs">
-        <div className="flex items-center gap-2">
-          <span className="text-[#22c55e]">✓</span>
-          <span className="text-[#cbd5e1]">Form 8843 Required</span>
-        </div>
-      </div>
-    ),
-  },
-  {
-    title: 'Detect your treaty benefits',
-    desc: 'We check 50+ countries against IRS Pub 901 automatically.',
-    mockup: (
-      <div className="rounded-lg border border-[#1e293b] bg-[#080c14] p-4 font-mono text-xs space-y-1.5">
-        <div className="text-[#cbd5e1]">India 🇮🇳</div>
-        <div className="text-[#22c55e]">Treaty Active · Article 21(2)</div>
-      </div>
-    ),
-  },
-  {
-    title: 'Generate Form 8843 free',
-    desc: 'Fill, preview, and download in minutes. No login required.',
-    mockup: (
-      <div className="rounded-lg border border-[#1e293b] bg-[#080c14] p-4 font-mono text-xs space-y-1.5">
-        <div className="flex gap-3">
-          <span className="text-[#475569] w-14 shrink-0">Name</span>
-          <span className="text-[#cbd5e1]">Kiran Shahi</span>
-        </div>
-        <div className="flex gap-3">
-          <span className="text-[#475569] w-14 shrink-0">Country</span>
-          <span className="text-[#cbd5e1]">Nepal</span>
-        </div>
-        <div className="flex gap-3">
-          <span className="text-[#475569] w-14 shrink-0">Visa</span>
-          <span className="text-[#cbd5e1]">F-1</span>
-        </div>
-      </div>
-    ),
-  },
-]
-
 // ── Animated card component ─────────────────────────────────────────────────
 
 function TaxCheckupCard() {
@@ -103,8 +56,10 @@ function TaxCheckupCard() {
   const profile = PROFILES[activeIndex]
 
   return (
-    <div className="card-base w-full max-w-sm p-6 bg-[#0d1117] border-[#2d4a6e]">
-      <div className="mb-4 font-mono text-xs uppercase tracking-widest text-[#475569]">
+    <div className="relative overflow-hidden rounded-xl border border-[#2d4a6e] bg-[#0d1117] p-6 shadow-xl shadow-[#3b82f6]/5 w-full max-w-sm">
+      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#3b82f6]/50 to-transparent rounded-t-xl" />
+
+      <div className="mb-4 font-mono text-[10px] uppercase tracking-widest text-[#3b82f6]">
         F-1 Tax Checkup
       </div>
 
@@ -119,7 +74,7 @@ function TaxCheckupCard() {
           ].map(({ label, value }) => (
             <div key={label}>
               <div className="mb-1 text-[10px] font-mono uppercase tracking-widest text-[#475569]">{label}</div>
-              <div className="text-xs text-[#f8fafc]">{value}</div>
+              <div className="text-sm font-semibold text-[#f8fafc]">{value}</div>
             </div>
           ))}
         </div>
@@ -127,23 +82,29 @@ function TaxCheckupCard() {
         {/* Checkmarks */}
         <div className="space-y-1.5">
           {profile.checks.map((check) => (
-            <div key={check} className="flex items-center gap-2 text-xs">
-              <span className="text-[#22c55e]">✓</span>
-              <span className="text-[#cbd5e1]">{check}</span>
+            <div key={check} className="flex items-center gap-2 text-sm text-[#cbd5e1]">
+              <span className="text-[#22c55e] text-xs">✓</span>
+              <span>{check}</span>
             </div>
           ))}
         </div>
 
         {/* Treaty row */}
         <div className="flex items-center gap-2 flex-wrap">
-          <span className="text-[10px] font-medium uppercase tracking-widest text-[#64748b]">Treaty</span>
-          <span className={profile.treatyStatus === 'active' ? 'badge-success' : 'badge-warning'}>
-            {profile.treatyLabel}
-          </span>
+          <span className="text-[10px] font-mono uppercase tracking-widest text-[#475569]">Treaty</span>
+          {profile.treatyStatus === 'active' ? (
+            <span className="border border-[#22c55e]/30 bg-[#22c55e]/10 text-[#22c55e] text-xs font-mono px-2 py-0.5 rounded">
+              {profile.treatyLabel}
+            </span>
+          ) : (
+            <span className="border border-[#ef4444]/30 bg-[#ef4444]/10 text-[#ef4444] text-xs font-mono px-2 py-0.5 rounded">
+              {profile.treatyLabel}
+            </span>
+          )}
         </div>
 
         {/* Next step */}
-        <div className="flex items-center gap-1.5 text-sm text-[#3b82f6]">
+        <div className="flex items-center gap-1.5 text-sm font-medium text-[#3b82f6]">
           <span>→</span>
           <span>{profile.next}</span>
         </div>
@@ -156,8 +117,8 @@ function TaxCheckupCard() {
             key={i}
             type="button"
             onClick={() => goTo(i)}
-            className={`h-1.5 rounded-full transition-all duration-300 ${
-              i === activeIndex ? 'w-4 bg-[#3b82f6]' : 'w-1.5 bg-[#1e293b] hover:bg-[#2d4a6e]'
+            className={`h-1 rounded-full transition-all duration-300 ${
+              i === activeIndex ? 'w-4 bg-[#3b82f6]' : 'w-1 bg-[#1e293b] hover:bg-[#2d4a6e]'
             }`}
           />
         ))}
@@ -205,9 +166,9 @@ export default function HomePage() {
                   IRS TAX YEAR 2025
                 </span>
 
-                <h1 className="text-2xl font-semibold leading-tight text-[#f8fafc] sm:text-4xl lg:text-5xl">
+                <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold leading-[1.1] tracking-tight text-[#f8fafc] max-w-2xl">
                   Answer 5 questions.<br />
-                  Get your required tax forms.
+                  Get your exact tax forms.
                 </h1>
 
                 <p className="max-w-md text-sm leading-6 text-[#64748b]">
@@ -241,47 +202,137 @@ export default function HomePage() {
           </div>
         </section>
 
+        {/* ── STATS ROW ── */}
+        <section className="mx-auto max-w-5xl px-4 pb-16 sm:px-6">
+          <div className="grid grid-cols-3 gap-4 rounded-xl border border-[#1e293b] bg-[#0f1629] p-6">
+            <div className="text-center">
+              <p className="text-2xl font-bold text-[#f8fafc] font-mono">8843</p>
+              <p className="text-xs text-[#475569] mt-1">Free form generation</p>
+            </div>
+            <div className="text-center border-x border-[#1e293b]">
+              <p className="text-2xl font-bold text-[#f8fafc] font-mono">50+</p>
+              <p className="text-xs text-[#475569] mt-1">Countries checked</p>
+            </div>
+            <div className="text-center">
+              <p className="text-2xl font-bold text-[#f8fafc] font-mono">$0</p>
+              <p className="text-xs text-[#475569] mt-1">Always free</p>
+            </div>
+          </div>
+        </section>
+
         {/* ── FEATURES ── */}
-        <section id="features">
-          <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
+        <section id="features" className="mx-auto max-w-5xl px-4 pb-24 sm:px-6">
+          <p className="font-mono text-[10px] uppercase tracking-widest text-[#475569] mb-10">What it does</p>
 
-            <div className="mb-10 font-mono text-xs uppercase tracking-widest text-[#475569]">
-              What It Does
-            </div>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
 
-            <div className="divide-y divide-[#1e293b]">
-              {FEATURES.map((feat) => (
-                <div
-                  key={feat.title}
-                  className="flex flex-col gap-8 py-10 sm:flex-row sm:items-center sm:justify-between"
-                >
-                  <div className="sm:w-1/2">
-                    <h3 className="text-base font-semibold text-[#f8fafc]">{feat.title}</h3>
-                    <p className="mt-1.5 text-sm leading-6 text-[#64748b]">{feat.desc}</p>
-                  </div>
-                  <div className="sm:w-5/12">{feat.mockup}</div>
+            {/* Card 1 */}
+            <div className="rounded-xl border border-[#1e293b] bg-[#0f1629] p-6 flex flex-col gap-4 hover:border-[#2d4a6e] transition-colors">
+              <div className="font-mono text-[10px] uppercase tracking-widest text-[#3b82f6]">01</div>
+              <div>
+                <h3 className="text-sm font-semibold text-[#f8fafc] mb-1">Know what to file</h3>
+                <p className="text-xs text-[#64748b] leading-relaxed">
+                  Answer 5 questions. Get your exact required forms based on your visa, income, and country.
+                </p>
+              </div>
+              <div className="mt-auto rounded-lg border border-[#1e293b] bg-[#080c14] p-3 space-y-2">
+                <div className="flex items-center gap-2">
+                  <span className="text-[#22c55e] text-xs">✓</span>
+                  <span className="text-xs text-[#cbd5e1]">Form 8843 Required</span>
+                  <span className="ml-auto text-[10px] font-mono text-[#ef4444] border border-[#ef4444]/20 bg-[#ef4444]/5 px-1.5 py-0.5 rounded">Required</span>
                 </div>
-              ))}
+                <div className="flex items-center gap-2">
+                  <span className="text-[#22c55e] text-xs">✓</span>
+                  <span className="text-xs text-[#cbd5e1]">Nonresident Alien status</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-[#22c55e] text-xs">✓</span>
+                  <span className="text-xs text-[#cbd5e1]">No SSN required</span>
+                </div>
+              </div>
             </div>
 
+            {/* Card 2 */}
+            <div className="rounded-xl border border-[#1e293b] bg-[#0f1629] p-6 flex flex-col gap-4 hover:border-[#2d4a6e] transition-colors">
+              <div className="font-mono text-[10px] uppercase tracking-widest text-[#3b82f6]">02</div>
+              <div>
+                <h3 className="text-sm font-semibold text-[#f8fafc] mb-1">Detect treaty benefits</h3>
+                <p className="text-xs text-[#64748b] leading-relaxed">
+                  We check 50+ countries against IRS Pub 901. Find out if your country has an active tax treaty.
+                </p>
+              </div>
+              <div className="mt-auto rounded-lg border border-[#1e293b] bg-[#080c14] p-3 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-mono text-[#cbd5e1]">India 🇮🇳</span>
+                  <span className="text-[10px] font-mono border border-[#22c55e]/30 bg-[#22c55e]/10 text-[#22c55e] px-1.5 py-0.5 rounded">Active</span>
+                </div>
+                <p className="text-[10px] text-[#475569] font-mono">Article 21(2) · Standard deduction eligible</p>
+                <div className="border-t border-[#1e293b] pt-2 flex items-center justify-between">
+                  <span className="text-xs font-mono text-[#cbd5e1]">Nepal 🇳🇵</span>
+                  <span className="text-[10px] font-mono border border-[#475569]/30 bg-[#475569]/10 text-[#475569] px-1.5 py-0.5 rounded">No treaty</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Card 3 */}
+            <div className="rounded-xl border border-[#1e293b] bg-[#0f1629] p-6 flex flex-col gap-4 hover:border-[#2d4a6e] transition-colors">
+              <div className="font-mono text-[10px] uppercase tracking-widest text-[#3b82f6]">03</div>
+              <div>
+                <h3 className="text-sm font-semibold text-[#f8fafc] mb-1">Generate Form 8843 free</h3>
+                <p className="text-xs text-[#64748b] leading-relaxed">
+                  Fill, download, and file in minutes. No login required. Nothing stored on our servers.
+                </p>
+              </div>
+              <div className="mt-auto rounded-lg border border-[#1e293b] bg-[#080c14] p-3 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-mono uppercase tracking-widest text-[#475569]">Name</span>
+                  <span className="text-xs text-[#cbd5e1] font-mono">Kiran Shahi</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-mono uppercase tracking-widest text-[#475569]">Visa</span>
+                  <span className="text-xs text-[#cbd5e1] font-mono">F-1</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-mono uppercase tracking-widest text-[#475569]">Status</span>
+                  <span className="text-[10px] font-mono border border-[#22c55e]/30 bg-[#22c55e]/10 text-[#22c55e] px-1.5 py-0.5 rounded">Ready to download</span>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+        {/* ── FREE NOTICE ── */}
+        <section className="mx-auto max-w-5xl px-4 pb-24 sm:px-6">
+          <div className="rounded-xl border border-[#1e293b] bg-[#0f1629] p-8 flex flex-col sm:flex-row items-center justify-between gap-6">
+            <div>
+              <p className="text-base font-semibold text-[#f8fafc]">Built for F-1 students. Free forever.</p>
+              <p className="text-sm text-[#64748b] mt-1">No subscriptions. No hidden fees. No credit card required.</p>
+            </div>
+            <Link
+              to="/form-8843"
+              className="shrink-0 rounded-xl bg-[#3b82f6] px-6 py-3 text-sm font-semibold text-white transition-all hover:bg-[#2563eb] active:scale-[0.98]"
+            >
+              Get My Free Form 8843 →
+            </Link>
           </div>
         </section>
 
       </main>
 
       {/* ── FOOTER ── */}
-      <footer className="border-t border-[#1e293b] px-4 py-8">
+      <footer className="bg-[#080c14] border-t border-[#1e293b] px-4 py-8">
         <div className="mx-auto max-w-6xl">
           <div className="flex flex-wrap items-center justify-center gap-6">
-            <Link to="/privacy"     className="text-xs text-[#475569] transition-colors hover:text-[#cbd5e1]">Privacy Policy</Link>
-            <Link to="/terms"       className="text-xs text-[#475569] transition-colors hover:text-[#cbd5e1]">Terms of Service</Link>
-            <Link to="/disclaimer"  className="text-xs text-[#475569] transition-colors hover:text-[#cbd5e1]">Disclaimer</Link>
-            <Link to="/contact"     className="text-xs text-[#475569] transition-colors hover:text-[#cbd5e1]">Contact</Link>
+            <Link to="/privacy"     className="text-xs text-[#475569] transition-colors hover:text-[#64748b]">Privacy Policy</Link>
+            <Link to="/terms"       className="text-xs text-[#475569] transition-colors hover:text-[#64748b]">Terms of Service</Link>
+            <Link to="/disclaimer"  className="text-xs text-[#475569] transition-colors hover:text-[#64748b]">Disclaimer</Link>
+            <Link to="/contact"     className="text-xs text-[#475569] transition-colors hover:text-[#64748b]">Contact</Link>
           </div>
           <p className="mt-4 text-center text-xs leading-5 text-[#475569]">
             F1 Tax Helper provides general educational information only. Not tax, legal, or financial advice.
           </p>
-          <p className="mt-2 text-center text-xs text-[#475569]">
+          <p className="mt-2 text-center text-xs font-mono text-[#475569]">
             © 2026 F1 Tax Helper. All rights reserved.
           </p>
         </div>
