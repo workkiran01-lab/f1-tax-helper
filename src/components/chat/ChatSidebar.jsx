@@ -176,7 +176,7 @@ export function ChatSidebar({ conversations = [], onSelect, onNewChat }) {
         <div className="px-3 pb-4 shrink-0">
           <button
             onClick={onNewChat}
-            className="flex w-full items-center justify-start gap-2 rounded-xl border border-[#1e293b] bg-transparent px-3 py-2 text-[#cbd5e1] transition-colors hover:border-[#2d4a6e] hover:text-[#f8fafc]"
+            className="flex w-full items-center justify-start gap-2 rounded-xl border border-[#1e293b] bg-transparent px-3 py-2 text-[#64748b] transition-colors hover:border-[#2d4a6e] hover:text-[#f8fafc]"
           >
             <Plus className="h-4 w-4" />
             New Chat
@@ -191,7 +191,7 @@ export function ChatSidebar({ conversations = [], onSelect, onNewChat }) {
           ) : (
             groupConversations(conversations).map(({ label, items }) => (
               <div key={label} className="space-y-1">
-                <h3 className="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-slate-500">
+                <h3 className="mb-2 px-3 text-[10px] font-mono uppercase tracking-widest text-[#475569]">
                   {label}
                 </h3>
                 <div className="space-y-1">
@@ -199,7 +199,7 @@ export function ChatSidebar({ conversations = [], onSelect, onNewChat }) {
                     <button
                       key={conv.id}
                       onClick={() => onSelect && onSelect(conv)}
-                      className="w-full truncate rounded-md px-3 py-2 text-left text-sm text-slate-200 transition-colors hover:bg-white/10 hover:text-white"
+                      className="w-full truncate rounded-md px-3 py-2 text-left text-sm text-[#64748b] transition-colors hover:bg-[#0f172a] hover:text-[#f8fafc]"
                     >
                       <MessageSquare className="inline-block w-4 h-4 mr-2 opacity-70" />
                       {conv.title}
@@ -214,7 +214,7 @@ export function ChatSidebar({ conversations = [], onSelect, onNewChat }) {
         <div className="border-t border-[#1e293b] p-3">
           <div className="rounded-xl border border-[#1e293b] bg-[#0f172a] p-3">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-[#3b82f6] to-[#8b5cf6] text-sm font-semibold text-white">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#1e293b] border border-[#2d4a6e] text-[#3b82f6] font-mono font-bold text-sm">
                 {initial}
               </div>
               <div className="min-w-0 flex-1">
@@ -223,7 +223,7 @@ export function ChatSidebar({ conversations = [], onSelect, onNewChat }) {
               </div>
             </div>
             <div className="mt-3 flex items-center justify-between gap-2">
-              <span className="rounded-full bg-green-500/20 px-3 py-1 text-xs text-green-400">Free Plan</span>
+              <span className="border border-[#22c55e]/20 text-[#22c55e] text-[10px] font-mono px-2 py-0.5 rounded">Free Plan</span>
               <button
                 type="button"
                 onClick={() => setShowSettings(true)}
@@ -242,7 +242,7 @@ export function ChatSidebar({ conversations = [], onSelect, onNewChat }) {
             <button
               type="button"
               onClick={() => setShowDeleteModal(true)}
-              className="mt-2 w-full rounded-xl border border-red-500/40 bg-red-500/10 px-4 py-2 text-sm font-medium text-red-300 transition-colors hover:bg-red-500/20"
+              className="mt-2 w-full rounded-xl border border-[#ef4444]/20 bg-transparent px-4 py-2 text-sm font-medium text-[#ef4444]/70 transition-colors hover:border-[#ef4444]/40 hover:text-[#ef4444]"
             >
               Delete Account
             </button>
@@ -276,7 +276,7 @@ export function ChatSidebar({ conversations = [], onSelect, onNewChat }) {
                   setDeleteMessage('')
                 }}
                 disabled={deleteLoading}
-                className="rounded-xl border border-white/20 bg-white/5 px-4 py-2 text-sm font-semibold text-slate-200 transition-colors hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-60"
+                className="rounded-xl border border-[#1e293b] bg-transparent px-4 py-2 text-sm font-semibold text-[#cbd5e1] transition-colors hover:border-[#2d4a6e] hover:text-[#f8fafc] disabled:cursor-not-allowed disabled:opacity-60"
               >
                 Cancel
               </button>
@@ -322,9 +322,9 @@ export function ChatSidebar({ conversations = [], onSelect, onNewChat }) {
             <div className="space-y-5 overflow-y-auto">
               <section>
                 <h4 className="text-xs font-semibold uppercase tracking-wide text-slate-500">Account</h4>
-                <div className="mt-2 rounded-2xl border border-white/10 bg-white/5 p-3">
+                <div className="mt-2 rounded-xl border border-[#1e293b] bg-[#0f172a] p-3">
                   <div className="flex items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-[#3b82f6] to-[#8b5cf6] text-sm font-semibold text-white">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#1e293b] border border-[#2d4a6e] text-[#3b82f6] font-mono font-bold text-sm">
                       {initial}
                     </div>
                     <div>
@@ -337,7 +337,7 @@ export function ChatSidebar({ conversations = [], onSelect, onNewChat }) {
 
               <section>
                 <h4 className="text-xs font-semibold uppercase tracking-wide text-slate-500">Preferences</h4>
-                <div className="mt-2 space-y-2 rounded-2xl border border-white/10 bg-white/5 p-3 text-sm">
+                <div className="mt-2 space-y-2 rounded-xl border border-[#1e293b] bg-[#0f172a] p-3 text-sm">
                   <label className="flex cursor-pointer items-center justify-between text-slate-300">
                     Email notifications
                     <input
@@ -367,7 +367,7 @@ export function ChatSidebar({ conversations = [], onSelect, onNewChat }) {
 
               <section>
                 <h4 className="text-xs font-semibold uppercase tracking-wide text-slate-500">About</h4>
-                <div className="mt-2 rounded-2xl border border-white/10 bg-white/5 p-3 text-sm text-slate-300">
+                <div className="mt-2 rounded-xl border border-[#1e293b] bg-[#0f172a] p-3 text-sm text-slate-300">
                   <p>F1 Tax Helper v1.0</p>
                   <div className="mt-2 flex flex-col gap-1 text-blue-300">
                     <Link to="/privacy" onClick={() => setShowSettings(false)}>Privacy Policy</Link>

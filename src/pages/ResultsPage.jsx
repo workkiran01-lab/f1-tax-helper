@@ -23,22 +23,28 @@ export default function ResultsPage() {
     const lowered = item.toLowerCase()
     if (item.startsWith('⚠️') || lowered.includes('warning') || lowered.includes('risk') || lowered.includes('unauthorized')) {
       return {
+        cardBg: 'bg-[#f59e0b]/5',
         border: 'border-l-[#f59e0b]',
-        icon: <AlertTriangle className="h-5 w-5 text-[#f59e0b]" />,
+        icon: <AlertTriangle className="h-4 w-4 text-[#f59e0b]" />,
         title: 'Warning',
+        titleColor: 'text-[#f59e0b]',
       }
     }
     if (lowered.includes('must') || lowered.includes('required') || lowered.includes('crucial')) {
       return {
+        cardBg: 'bg-[#8b5cf6]/5',
         border: 'border-l-[#8b5cf6]',
-        icon: <Sparkles className="h-5 w-5 text-[#8b5cf6]" />,
+        icon: <Sparkles className="h-4 w-4 text-[#8b5cf6]" />,
         title: 'Important',
+        titleColor: 'text-[#8b5cf6]',
       }
     }
     return {
+      cardBg: 'bg-[#3b82f6]/5',
       border: 'border-l-[#3b82f6]',
-      icon: <Check className="h-5 w-5 text-[#3b82f6]" />,
+      icon: <Check className="h-4 w-4 text-[#3b82f6]" />,
       title: 'Summary',
+      titleColor: 'text-[#3b82f6]',
     }
   }
 
@@ -89,12 +95,12 @@ export default function ResultsPage() {
       </header>
 
       <main className="relative z-10 mx-auto w-full max-w-3xl flex-1 px-4 py-12">
-        <div className="rounded-2xl border border-[#1e293b] bg-[#0f172a] p-6 sm:p-8">
+        <div className="rounded-xl border border-[#1e293b] bg-[#0f172a] p-6 sm:p-8">
           <div className="mb-8">
             <span className="font-mono text-[10px] uppercase tracking-widest text-[#475569]">
               Your Results · Tax Year 2025
             </span>
-            <h1 className="mt-3 text-2xl font-bold tracking-tight text-[#f8fafc] sm:text-3xl">Here&apos;s your tax summary</h1>
+            <h1 className="mt-3 text-2xl font-semibold text-[#f8fafc]">Here&apos;s your tax summary</h1>
             <p className="mt-2 text-sm text-[#64748b]">Based on your answers, here&apos;s what you need to know</p>
             {syncWarning && (
               <p className="mt-4 rounded-xl border border-[#f59e0b]/20 bg-[#f59e0b]/10 px-4 py-3 text-sm text-[#f59e0b]">
@@ -107,12 +113,12 @@ export default function ResultsPage() {
             {actionItems.map((item, index) => (
               <div
                 key={`${item}-${index}`}
-                className={`rounded-xl border border-[#1e293b] bg-[#080c14] p-4 border-l-2 ${getResultStyle(item).border}`}
+                className={`rounded-xl border border-[#1e293b] border-l-2 p-4 ${getResultStyle(item).border} ${getResultStyle(item).cardBg}`}
               >
                 <div className="flex items-start gap-3">
                   <div className="mt-0.5">{getResultStyle(item).icon}</div>
                   <div>
-                    <p className="text-xs font-mono uppercase tracking-widest text-[#64748b]">{getResultStyle(item).title}</p>
+                    <p className={`text-[10px] font-mono uppercase tracking-widest ${getResultStyle(item).titleColor}`}>{getResultStyle(item).title}</p>
                     <p className="text-sm text-[#cbd5e1] leading-relaxed mt-1">{item}</p>
                   </div>
                 </div>

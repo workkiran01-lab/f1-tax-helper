@@ -49,7 +49,7 @@ export default function LoginPage() {
       </header>
 
       <section className="relative z-10 mx-auto flex min-h-[calc(100vh-4rem)] w-full max-w-6xl items-center justify-center px-4 py-16 sm:px-6 md:py-20">
-        <div className="w-full max-w-xl">
+        <div className="w-full max-w-md">
         <div className="mb-6">
           <Link
             to="/"
@@ -58,7 +58,7 @@ export default function LoginPage() {
             ← Back to Home
           </Link>
         </div>
-        <div className="rounded-xl border border-[#1e293b] bg-[#0f172a] p-8 sm:p-10">
+        <div className="w-full rounded-xl border border-[#1e293b] bg-[#0f172a] p-8">
           <span className="font-mono text-[10px] uppercase tracking-widest text-[#475569]">
             Sign in to continue
           </span>

@@ -282,7 +282,7 @@ export function ChatMain({ initialContext, navigationKey, onOpenChecklist, onMes
               placeholder="Ask about tax treaties, deductions, deadlines..."
               disabled={isLoading}
               maxLength={MAX_INPUT}
-              className="w-full rounded-2xl border border-[#1e293b] bg-[#080c14] px-4 py-3 pr-16 text-[#f8fafc] placeholder:text-[#475569] focus:border-[#3b82f6] focus:outline-none disabled:opacity-50"
+              className="w-full rounded-xl border border-[#1e293b] bg-[#080c14] px-4 py-3 pr-16 text-sm text-[#f8fafc] placeholder:text-[#475569] focus:border-[#3b82f6] focus:outline-none transition-colors disabled:opacity-50"
             />
             {input.length > 0 && (
               <span className={`absolute right-3 top-1/2 -translate-y-1/2 text-xs tabular-nums ${input.length > MAX_INPUT * 0.9 ? 'text-amber-400' : 'text-slate-600'}`}>

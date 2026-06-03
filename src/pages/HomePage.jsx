@@ -103,8 +103,8 @@ function TaxCheckupCard() {
   const profile = PROFILES[activeIndex]
 
   return (
-    <div className="card-base w-full max-w-sm p-6">
-      <div className="mb-4 font-mono text-xs uppercase tracking-widest text-[#64748b]">
+    <div className="card-base w-full max-w-sm p-6 bg-[#0d1117] border-[#2d4a6e]">
+      <div className="mb-4 font-mono text-xs uppercase tracking-widest text-[#475569]">
         F-1 Tax Checkup
       </div>
 
@@ -118,7 +118,7 @@ function TaxCheckupCard() {
             { label: 'Years',   value: String(profile.years) },
           ].map(({ label, value }) => (
             <div key={label}>
-              <div className="mb-1 text-[10px] font-medium uppercase tracking-widest text-[#64748b]">{label}</div>
+              <div className="mb-1 text-[10px] font-mono uppercase tracking-widest text-[#475569]">{label}</div>
               <div className="text-xs text-[#f8fafc]">{value}</div>
             </div>
           ))}
@@ -143,7 +143,7 @@ function TaxCheckupCard() {
         </div>
 
         {/* Next step */}
-        <div className="flex items-center gap-1.5 text-xs text-[#3b82f6]">
+        <div className="flex items-center gap-1.5 text-sm text-[#3b82f6]">
           <span>→</span>
           <span>{profile.next}</span>
         </div>
