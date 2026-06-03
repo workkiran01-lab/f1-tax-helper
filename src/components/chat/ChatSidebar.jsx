@@ -165,7 +165,7 @@ export function ChatSidebar({ conversations = [], onSelect, onNewChat }) {
 
   return (
     <>
-      <div className="flex h-full flex-col bg-[#080c14] border-r border-[#1e293b]">
+      <div className="flex h-full flex-col bg-[#0a0e1a] border-r border-[#1e293b]">
         <div className="flex items-center justify-between p-4">
           <div className="flex items-center gap-2">
             <div className="font-mono text-xs font-bold border border-[#1e293b] px-2 py-1 text-[#3b82f6]">F1</div>
@@ -199,7 +199,7 @@ export function ChatSidebar({ conversations = [], onSelect, onNewChat }) {
                     <button
                       key={conv.id}
                       onClick={() => onSelect && onSelect(conv)}
-                      className="w-full truncate rounded-md px-3 py-2 text-left text-sm text-[#64748b] transition-colors hover:bg-[#0f172a] hover:text-[#f8fafc]"
+                      className="w-full truncate rounded-md px-3 py-2 text-left text-sm text-[#64748b] transition-colors hover:bg-[#131c2e] hover:text-[#f8fafc]"
                     >
                       <MessageSquare className="inline-block w-4 h-4 mr-2 opacity-70" />
                       {conv.title}
@@ -212,7 +212,7 @@ export function ChatSidebar({ conversations = [], onSelect, onNewChat }) {
         </div>
 
         <div className="border-t border-[#1e293b] p-3">
-          <div className="rounded-xl border border-[#1e293b] bg-[#0f172a] p-3">
+          <div className="rounded-xl border border-[#1e293b] bg-[#0f1629] p-3">
             <div className="flex items-center gap-3">
               <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#1e293b] border border-[#2d4a6e] text-[#3b82f6] font-mono font-bold text-sm">
                 {initial}
@@ -305,7 +305,7 @@ export function ChatSidebar({ conversations = [], onSelect, onNewChat }) {
             aria-hidden
           />
           <div
-            className={`fixed right-0 top-0 z-50 flex h-full w-72 flex-col border-l border-white/10 bg-slate-900/95 p-5 backdrop-blur-xl transition-transform duration-300 ease-in-out ${
+            className={`fixed right-0 top-0 z-50 flex h-full w-72 flex-col border-l border-[#1e293b] bg-[#0a0e1a] p-5 transition-transform duration-300 ease-in-out ${
               showSettings ? 'translate-x-0' : 'translate-x-full'
             }`}
           >

@@ -165,7 +165,7 @@ export function ChatMain({ initialContext, navigationKey, onOpenChecklist, onMes
 
   return (
     <div className="flex h-[calc(100vh-4rem)] flex-col bg-transparent">
-      <div className="flex items-center justify-between border-b border-[#1e293b] bg-[#080c14] px-6 py-3 shrink-0">
+      <div className="flex items-center justify-between border-b border-[#1e293b] bg-[#0a0e1a] px-6 py-3 shrink-0">
         <div className="flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-[#3b82f6] to-[#8b5cf6] shadow-lg shadow-blue-500/20">
             <Bot className="h-5 w-5 text-white" />
@@ -191,7 +191,7 @@ export function ChatMain({ initialContext, navigationKey, onOpenChecklist, onMes
         </div>
       </div>
 
-      <div className="flex-1 space-y-4 overflow-y-auto p-4 bg-white/[0.02] px-4 py-6">
+      <div className="flex-1 space-y-4 overflow-y-auto p-4 bg-[#080c14] px-4 py-6">
         {messages.map((message) => (
           <div
             key={message.id}
@@ -209,7 +209,7 @@ export function ChatMain({ initialContext, navigationKey, onOpenChecklist, onMes
                 className={`group/bubble relative w-full rounded-2xl px-4 py-3 ${
                   message.role === 'user'
                     ? 'rounded-tr-sm bg-[#3b82f6] text-white'
-                    : 'rounded-tl-sm border border-[#1e293b] border-l-2 border-l-[#3b82f6] bg-[#0f172a] text-[#cbd5e1]'
+                    : 'rounded-tl-sm border border-[#1e293b] border-l-2 border-l-[#3b82f6] bg-[#0f1629] text-[#cbd5e1]'
                 }`}
               >
                 <div className="whitespace-pre-wrap text-sm leading-relaxed">
@@ -248,7 +248,7 @@ export function ChatMain({ initialContext, navigationKey, onOpenChecklist, onMes
         ))}
         {isLoading && (
           <div className="flex justify-start">
-            <div className="max-w-[85%] sm:max-w-[70%] rounded-2xl rounded-tl-sm border border-[#1e293b] border-l-2 border-l-[#3b82f6] bg-[#0f172a] px-4 py-3 text-[#cbd5e1]">
+            <div className="max-w-[85%] sm:max-w-[70%] rounded-2xl rounded-tl-sm border border-[#1e293b] border-l-2 border-l-[#3b82f6] bg-[#0f1629] px-4 py-3 text-[#cbd5e1]">
               <div className="flex items-center gap-1">
                 <span className="h-2 w-2 animate-bounce rounded-full bg-slate-300 [animation-delay:-0.3s]" />
                 <span className="h-2 w-2 animate-bounce rounded-full bg-slate-300 [animation-delay:-0.15s]" />
@@ -260,13 +260,13 @@ export function ChatMain({ initialContext, navigationKey, onOpenChecklist, onMes
         <div ref={messagesEndRef} />
       </div>
 
-      <div className="border-t border-[#1e293b] bg-[#080c14] px-4 py-4 shrink-0" style={{ paddingBottom: 'max(1rem, env(safe-area-inset-bottom))' }}>
+      <div className="border-t border-[#1e293b] bg-[#0a0e1a] px-4 py-4 shrink-0" style={{ paddingBottom: 'max(1rem, env(safe-area-inset-bottom))' }}>
         <div className="mb-3 hidden sm:flex flex-wrap gap-2">
           {suggestedQuestions.map((question) => (
             <button
               key={question}
               onClick={() => handleSuggestionClick(question)}
-              className="cursor-pointer rounded-full border border-[#1e293b] bg-transparent text-xs px-3 py-1.5 text-[#64748b] transition-colors hover:border-[#2d4a6e] hover:text-[#cbd5e1]"
+              className="cursor-pointer rounded-full border border-[#1e293b] bg-[#131c2e] text-xs px-3 py-1.5 text-[#64748b] transition-colors hover:bg-[#1a2540] hover:border-[#2d4a6e] hover:text-[#cbd5e1]"
             >
               {question}
             </button>
@@ -282,7 +282,7 @@ export function ChatMain({ initialContext, navigationKey, onOpenChecklist, onMes
               placeholder="Ask about tax treaties, deductions, deadlines..."
               disabled={isLoading}
               maxLength={MAX_INPUT}
-              className="w-full rounded-xl border border-[#1e293b] bg-[#080c14] px-4 py-3 pr-16 text-sm text-[#f8fafc] placeholder:text-[#475569] focus:border-[#3b82f6] focus:outline-none transition-colors disabled:opacity-50"
+              className="w-full rounded-xl border border-[#1e293b] bg-[#131c2e] px-4 py-3 pr-16 text-sm text-[#f8fafc] placeholder:text-[#475569] focus:border-[#3b82f6] focus:outline-none transition-colors disabled:opacity-50"
             />
             {input.length > 0 && (
               <span className={`absolute right-3 top-1/2 -translate-y-1/2 text-xs tabular-nums ${input.length > MAX_INPUT * 0.9 ? 'text-amber-400' : 'text-slate-600'}`}>
@@ -294,7 +294,7 @@ export function ChatMain({ initialContext, navigationKey, onOpenChecklist, onMes
             type="button"
             onClick={handleSend}
             disabled={isLoading || !input.trim()}
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#3b82f6] text-white transition-all hover:bg-[#2563eb] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#3b82f6] text-white transition-all hover:bg-[#2563eb] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
           >
             ➤
             <span className="sr-only">Send message</span>

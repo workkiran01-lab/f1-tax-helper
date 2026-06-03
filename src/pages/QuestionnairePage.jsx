@@ -552,7 +552,7 @@ export default function QuestionnairePage() {
 
       <main className="relative z-10 flex flex-1 items-center justify-center px-4 py-8 sm:px-6">
         <div className="w-full max-w-2xl">
-          <div className="rounded-2xl border border-[#1e293b] bg-[#0f172a]">
+          <div className="rounded-2xl border border-[#1e293b] bg-[#0f1629]">
             <div
               className={cn(
                 'p-4 sm:p-6 transition-all duration-300',
@@ -646,14 +646,14 @@ function Question1({ onAnswer }) {
         <button
           type="button"
           onClick={() => onAnswer(true)}
-          className="w-full rounded-xl border border-[#1e293b] bg-transparent px-4 py-3 text-left text-sm text-[#cbd5e1] transition-all duration-150 hover:border-[#2d4a6e] hover:text-[#f8fafc] active:scale-[0.99]"
+          className="w-full rounded-xl border border-[#1e293b] bg-[#131c2e] px-4 py-3 text-left text-sm text-[#cbd5e1] transition-all duration-150 hover:bg-[#1a2540] hover:border-[#2d4a6e] hover:text-[#f8fafc] active:scale-[0.99]"
         >
           Yes, I am
         </button>
         <button
           type="button"
           onClick={() => onAnswer(false)}
-          className="w-full rounded-xl border border-[#1e293b] bg-transparent px-4 py-3 text-left text-sm text-[#cbd5e1] transition-all duration-150 hover:border-[#2d4a6e] hover:text-[#f8fafc] active:scale-[0.99]"
+          className="w-full rounded-xl border border-[#1e293b] bg-[#131c2e] px-4 py-3 text-left text-sm text-[#cbd5e1] transition-all duration-150 hover:bg-[#1a2540] hover:border-[#2d4a6e] hover:text-[#f8fafc] active:scale-[0.99]"
         >
           No, I'm not
         </button>
@@ -678,14 +678,14 @@ function Question2({ onAnswer }) {
         <button
           type="button"
           onClick={() => onAnswer(true)}
-          className="w-full rounded-xl border border-[#1e293b] bg-transparent px-4 py-3 text-left text-sm text-[#cbd5e1] transition-all duration-150 hover:border-[#2d4a6e] hover:text-[#f8fafc] active:scale-[0.99]"
+          className="w-full rounded-xl border border-[#1e293b] bg-[#131c2e] px-4 py-3 text-left text-sm text-[#cbd5e1] transition-all duration-150 hover:bg-[#1a2540] hover:border-[#2d4a6e] hover:text-[#f8fafc] active:scale-[0.99]"
         >
           Yes, I had income
         </button>
         <button
           type="button"
           onClick={() => onAnswer(false)}
-          className="w-full rounded-xl border border-[#1e293b] bg-transparent px-4 py-3 text-left text-sm text-[#cbd5e1] transition-all duration-150 hover:border-[#2d4a6e] hover:text-[#f8fafc] active:scale-[0.99]"
+          className="w-full rounded-xl border border-[#1e293b] bg-[#131c2e] px-4 py-3 text-left text-sm text-[#cbd5e1] transition-all duration-150 hover:bg-[#1a2540] hover:border-[#2d4a6e] hover:text-[#f8fafc] active:scale-[0.99]"
         >
           No, I had no income
         </button>
@@ -724,7 +724,7 @@ function Question3({ selected, onToggle, onContinue }) {
                 'flex w-full items-center justify-between rounded-xl border bg-transparent px-4 py-3 text-left text-sm transition-all duration-150 active:scale-[0.99]',
                 isSelected
                   ? 'border-[#3b82f6] bg-[#3b82f6]/10 text-[#f8fafc]'
-                  : 'border-[#1e293b] text-[#cbd5e1] hover:border-[#2d4a6e] hover:text-[#f8fafc]',
+                  : 'border-[#1e293b] bg-[#131c2e] text-[#cbd5e1] hover:bg-[#1a2540] hover:border-[#2d4a6e] hover:text-[#f8fafc]',
                 type.id === '1099' && isSelected ? 'border-[#f59e0b]/40 bg-[#f59e0b]/10 text-[#f59e0b]' : ''
               )}
             >
@@ -794,14 +794,14 @@ function Question4({ onAnswer }) {
           <button
             key={option.id}
             onClick={() => onAnswer(option.id)}
-            className="w-full rounded-xl border border-[#1e293b] bg-transparent px-4 py-3 text-left text-sm text-[#cbd5e1] transition-all duration-150 hover:border-[#2d4a6e] hover:text-[#f8fafc] active:scale-[0.99]"
+            className="w-full rounded-xl border border-[#1e293b] bg-[#131c2e] px-4 py-3 text-left text-sm text-[#cbd5e1] transition-all duration-150 hover:bg-[#1a2540] hover:border-[#2d4a6e] hover:text-[#f8fafc] active:scale-[0.99]"
           >
             {option.text}
           </button>
         ))}
         <button
           onClick={() => onAnswer(0)}
-          className="w-full rounded-xl border border-[#1e293b] bg-transparent px-4 py-3 text-left text-sm text-[#cbd5e1] transition-all duration-150 hover:border-[#2d4a6e] hover:text-[#f8fafc] active:scale-[0.99]"
+          className="w-full rounded-xl border border-[#1e293b] bg-[#131c2e] px-4 py-3 text-left text-sm text-[#cbd5e1] transition-all duration-150 hover:bg-[#1a2540] hover:border-[#2d4a6e] hover:text-[#f8fafc] active:scale-[0.99]"
         >
           I'm not sure / It's complicated
         </button>
@@ -833,7 +833,7 @@ function Question5({ onSelect, selectedCountry, onContinue }) {
 
       <div className="relative">
         <div
-          className="flex cursor-pointer items-center gap-3 rounded-xl border border-[#1e293b] bg-transparent px-4 py-3 transition-colors hover:border-[#2d4a6e]"
+          className="flex items-center gap-3 rounded-xl border border-[#1e293b] bg-[#131c2e] px-4 py-3 transition-colors hover:border-[#2d4a6e]"
           onClick={() => setIsOpen(!isOpen)}
           role="combobox"
           aria-controls="country-listbox"
