@@ -523,12 +523,22 @@ export default function QuestionnairePage() {
           </div>
         </header>
         <main className="relative z-10 flex flex-1 items-center justify-center px-4 py-8 text-center sm:px-6">
-          <div className="w-full max-w-xl rounded-2xl border border-[#1e293b] bg-[#0f172a] p-8">
-            <AlertTriangle className="mx-auto mb-4 h-12 w-12 text-[#f59e0b]" />
-            <h2 className="mb-2 text-lg font-semibold text-[#f8fafc]">Important Notice</h2>
-            <p className="text-sm text-[#64748b]">
-              This tool is designed specifically for students on an F-1 visa. For other visa types, tax rules can be very different. Please consult a qualified tax professional for assistance.
-            </p>
+          <div>
+            <div className="w-full max-w-xl rounded-2xl border border-[#1e293b] bg-[#0f172a] p-8">
+              <AlertTriangle className="mx-auto mb-4 h-12 w-12 text-[#f59e0b]" />
+              <h2 className="mb-2 text-lg font-semibold text-[#f8fafc]">Important Notice</h2>
+              <p className="text-sm text-[#64748b]">
+                This tool is designed specifically for students on an F-1 visa. For other visa types, tax rules can be very different. Please consult a qualified tax professional for assistance.
+              </p>
+            </div>
+            <div className="mt-6 text-center">
+              <Link
+                to="/"
+                className="inline-flex items-center gap-1.5 text-xs text-[#475569] hover:text-[#64748b] transition-colors"
+              >
+                ← Back to Home
+              </Link>
+            </div>
           </div>
         </main>
       </div>
@@ -851,7 +861,8 @@ function Question5({ onSelect, selectedCountry, onContinue }) {
           <input
             type="text"
             placeholder="Search for your country..."
-            className="flex-1 bg-transparent text-sm text-[#f8fafc] outline-none placeholder:text-[#475569]"
+            className="flex-1 bg-[#131c2e] text-sm text-[#f8fafc] outline-none placeholder:text-[#475569]"
+            style={{ backgroundColor: '#131c2e', colorScheme: 'dark' }}
             value={search}
             onChange={(e) => {
               setSearch(e.target.value)
