@@ -156,7 +156,7 @@ export default function HomePage() {
       <main>
 
         {/* ── HERO ── */}
-        <section className="bg-grid relative border-b border-[#1e293b]">
+        <section className="bg-grid relative overflow-hidden border-b border-[#1e293b]">
           <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6 sm:py-28">
             <div className="flex flex-col gap-16 lg:flex-row lg:items-center">
 
@@ -182,6 +182,12 @@ export default function HomePage() {
                   <Link to="/form-8843" className="btn-ghost">
                     Generate Form 8843
                   </Link>
+                  <Link
+                    to="/login"
+                    className="w-full sm:w-auto rounded-xl border border-[#1e293b] bg-transparent px-7 py-3.5 text-sm font-medium text-[#64748b] transition-colors hover:border-[#2d4a6e] hover:text-[#f8fafc]"
+                  >
+                    Sign In →
+                  </Link>
                 </div>
 
                 <p className="flex flex-wrap gap-2 text-xs text-[#475569]">
@@ -194,7 +200,7 @@ export default function HomePage() {
               </div>
 
               {/* Right — 45%, desktop only */}
-              <div className="hidden flex-[45] items-center justify-end lg:flex">
+              <div className="hidden max-w-full flex-[45] items-center justify-end lg:flex">
                 <TaxCheckupCard />
               </div>
 

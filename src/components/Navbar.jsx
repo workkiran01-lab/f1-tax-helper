@@ -136,10 +136,10 @@ export function Navbar() {
                 <>
                   <Link
                     to="/login"
-                    className="btn-ghost w-full justify-center py-2 text-xs"
+                    className="w-full rounded-xl bg-[#3b82f6] px-4 py-2.5 text-sm font-semibold text-white text-center"
                     onClick={closeMenu}
                   >
-                    {loading ? 'Loading…' : 'Sign In'}
+                    Sign In
                   </Link>
                   <Link
                     to="/status-checker"
