@@ -9,6 +9,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@fontsource/inter": "^5.2.8",
+    "@fontsource/jetbrains-mono": "^5.2.8",
     "@sentry/react": "^10.49.0",
     "@supabase/supabase-js": "^2.99.3",
     "@upstash/redis": "^1.37.0",

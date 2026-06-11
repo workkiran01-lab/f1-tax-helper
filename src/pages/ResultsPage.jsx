@@ -4,6 +4,7 @@ import { Check, Download, MessageCircle, AlertTriangle, Sparkles } from 'lucide-
 import Button from '../components/ui/Button'
 import DisclaimerBanner from '../components/DisclaimerBanner'
 import FloatingChatButton from '../components/FloatingChatButton'
+import ReadinessCard from '../components/ReadinessCard'
 import useAuth from '../hooks/useAuth'
 
 export default function ResultsPage() {
@@ -67,6 +68,9 @@ export default function ResultsPage() {
           <div className="w-full max-w-xl rounded-2xl border border-[#1e293b] bg-[#0f172a] p-8">
             <h2 className="mb-2 text-lg font-semibold text-[#f8fafc]">No results yet</h2>
             <p className="mb-6 text-sm text-[#64748b]">Complete the questionnaire to generate your personalized tax summary.</p>
+            <div className="mb-6 text-left">
+              <ReadinessCard uid={user?.id || 'guest'} questionnaire={answers ? { answers } : null} />
+            </div>
             <button
               onClick={() => navigate('/questionnaire')}
               className="w-full rounded-xl bg-[#3b82f6] px-6 py-3 text-sm font-semibold text-white transition-all duration-150 hover:bg-[#2563eb] active:scale-[0.98]"
@@ -107,6 +111,10 @@ export default function ResultsPage() {
                 {syncWarning}
               </p>
             )}
+          </div>
+
+          <div className="mb-6">
+            <ReadinessCard uid={user?.id || 'guest'} questionnaire={answers ? { answers } : null} />
           </div>
 
           <div className="space-y-3">

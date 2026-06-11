@@ -44,8 +44,8 @@ export default function AuthCallbackPage() {
   }, [navigate])
 
   return (
-    <div className="flex h-screen items-center justify-center">
-      <p className="text-gray-500">Signing you in...</p>
+    <div className="flex h-screen items-center justify-center bg-[#080c14]">
+      <p className="text-[#64748b]">Signing you in...</p>
     </div>
   )
 }

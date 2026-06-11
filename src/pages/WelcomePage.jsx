@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import supabase from '../utils/supabase'
 import useAuth from '../hooks/useAuth'
+import ReadinessCard from '../components/ReadinessCard'
 
 export default function WelcomePage() {
   const navigate = useNavigate()
@@ -128,6 +129,14 @@ export default function WelcomePage() {
             <p className="mt-2 text-center text-sm text-[#64748b]">
               {university} · F-1 Student
             </p>
+
+            <div className="mt-6">
+              <ReadinessCard
+                compact
+                uid={uid}
+                questionnaire={user?.user_metadata?.questionnaire || null}
+              />
+            </div>
 
             <div className="my-6 border-t border-[#1e293b]" />
 

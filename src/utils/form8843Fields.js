@@ -1,4 +1,5 @@
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib'
+import { buildNameField, buildUsAddress, buildSchoolLine, buildDsoLine } from './form8843Display'
 
 // Field mapping verified against form8843.pdf coordinate dump (April 2026)
 // Page size: 611.976 x 791.968 pts.  All y-coords are from bottom-left.
@@ -47,27 +48,11 @@ export async function fillForm8843(pdfBytes, formData) {
     const page = pdf.getPages()[0]
     const font = await pdf.embedFont(StandardFonts.Helvetica)
 
-    // ── Derived values ────────────────────────────────────────────────────────
-    const nameField = formData.middleInitial
-      ? `${formData.firstName} ${formData.middleInitial}`
-      : formData.firstName
-
-    const stateZip = [formData.usState, formData.usZip].filter(Boolean).join(' ')
-    const usAddress = [formData.usStreet, formData.usCity, stateZip].filter(Boolean).join(', ')
-
-    const schoolCityLine = [
-      formData.schoolCity,
-      [formData.schoolState, formData.schoolZip].filter(Boolean).join(' '),
-    ].filter(Boolean).join(', ')
-    const schoolLine = [formData.schoolName, formData.schoolStreet, schoolCityLine, formData.schoolPhone]
-      .filter(Boolean).join(', ')
-
-    const dsoCityLine = [
-      formData.dsoCity,
-      [formData.dsoState, formData.dsoZip].filter(Boolean).join(' '),
-    ].filter(Boolean).join(', ')
-    const dsoAddress = [formData.dsoStreet, dsoCityLine].filter(Boolean).join(', ')
-    const dsoLine = [formData.dsoName, dsoAddress, formData.dsoPhone].filter(Boolean).join(', ')
+    // ── Derived values (shared with the live preview — see form8843Display.js) ─
+    const nameField = buildNameField(formData)
+    const usAddress = buildUsAddress(formData)
+    const schoolLine = buildSchoolLine(formData)
+    const dsoLine = buildDsoLine(formData)
 
     // ── Header ────────────────────────────────────────────────────────────────
     setText(form, `${P1}.f1_03[0]`, String(formData.taxYear || '2025').slice(-2))

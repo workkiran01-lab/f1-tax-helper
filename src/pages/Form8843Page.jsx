@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { fillForm8843 } from '../utils/form8843Fields'
 import DisclaimerBanner from '../components/DisclaimerBanner'
+import { FormPreview } from '../components/form8843/FormPreview'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Constants
@@ -298,7 +299,7 @@ function SuccessScreen({ taxYear, onReset, onDownloadAgain }) {
         </button>
         <Link
           to="/"
-          className="rounded-xl bg-gradient-to-r from-blue-500 to-violet-500 px-6 py-2.5 text-center text-sm font-semibold text-white shadow-md shadow-blue-600/20 transition-all duration-150 active:scale-[0.98] hover:shadow-lg"
+          className="rounded-xl bg-[#3b82f6] px-6 py-2.5 text-center text-sm font-semibold text-white transition-all duration-150 hover:bg-[#2563eb] active:scale-[0.98]"
         >
           Go to Home
         </Link>
@@ -535,6 +536,7 @@ export default function Form8843Page() {
       const filled = await generatePDF()
       triggerDownload(filled)
       setSuccess(true)
+      try { localStorage.setItem('f1_8843_generated', 'true') } catch {}
       sessionStorage.removeItem(STORAGE_KEY)
     } catch (err) {
       setGenError(err.message || 'Failed to generate PDF. Please try again.')
@@ -593,11 +595,8 @@ export default function Form8843Page() {
 
   if (success) {
     return (
-      <div className="relative min-h-screen bg-[#0f172a] text-slate-100">
-        <div className="pointer-events-none fixed inset-0 overflow-hidden">
-          <div className="absolute -left-32 top-20  h-96 w-96 rounded-full bg-blue-600/15   blur-3xl" />
-          <div className="absolute -right-24 top-40 h-96 w-96 rounded-full bg-violet-600/15 blur-3xl" />
-        </div>
+      <div className="relative min-h-screen bg-[#080c14] text-slate-100">
+        <div className="pointer-events-none fixed inset-0 bg-grid opacity-30" />
         <div className="relative z-10 px-4 sm:px-8">
           <SuccessScreen
             taxYear={formData.taxYear}
@@ -610,7 +609,7 @@ export default function Form8843Page() {
   }
 
   return (
-    <div className="relative min-h-screen bg-[#0f172a] text-slate-100">
+    <div className="relative min-h-screen bg-[#080c14] text-slate-100">
       <style>{`
         @keyframes slideIn {
           from { opacity: 0; transform: translateX(14px); }
@@ -619,20 +618,14 @@ export default function Form8843Page() {
         .step-enter { animation: slideIn 0.22s ease-out; }
       `}</style>
 
-      <div className="pointer-events-none fixed inset-0 overflow-hidden">
-        <div className="absolute -left-32 top-20  h-96 w-96 rounded-full bg-blue-600/15   blur-3xl" />
-        <div className="absolute -right-24 top-40 h-96 w-96 rounded-full bg-violet-600/15 blur-3xl" />
-        <div className="absolute bottom-0 left-1/2 h-64 w-96 -translate-x-1/2 rounded-full bg-cyan-600/10 blur-3xl" />
-      </div>
+      <div className="pointer-events-none fixed inset-0 bg-grid opacity-30" />
 
       <div className="relative z-10 flex min-h-screen">
 
         {/* ── LEFT SIDEBAR (desktop) ────────────────────────────────────────── */}
         <aside className="hidden lg:flex w-72 flex-shrink-0 flex-col border-r border-[#1e293b] bg-[#080c14] px-6 py-8">
           <Link to="/" className="mb-10 flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-violet-500 text-sm font-bold text-white shadow-lg shadow-blue-500/30">
-              F1
-            </div>
+            <div className="font-mono text-xs font-bold border border-[#1e293b] px-2 py-1 text-[#3b82f6]">F1</div>
             <span className="text-base font-semibold text-slate-100">F1 Tax Helper</span>
           </Link>
 
@@ -697,9 +690,7 @@ export default function Form8843Page() {
           <header className="sticky top-0 z-20 border-b border-[#1e293b] bg-[#080c14]/80 backdrop-blur">
             <div className="flex h-14 items-center justify-between px-4 sm:px-8">
               <Link to="/" className="flex items-center gap-2 lg:hidden">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-violet-500 text-xs font-bold text-white">
-                  F1
-                </div>
+                <div className="font-mono text-xs font-bold border border-[#1e293b] px-2 py-1 text-[#3b82f6]">F1</div>
                 <span className="text-sm font-semibold">F1 Tax Helper</span>
               </Link>
               <Link to="/" className="hidden text-sm text-slate-400 transition-colors hover:text-slate-200 lg:block">
@@ -769,6 +760,8 @@ export default function Form8843Page() {
 
           {/* Scroll area */}
           <main className="flex-1 overflow-y-auto px-4 py-8 sm:px-8 lg:px-10">
+            <div className="flex items-start gap-8">
+            <div className="w-full lg:w-[55%]">
             <div className="max-w-2xl">
 
               {/* Page title */}
@@ -1188,7 +1181,7 @@ export default function Form8843Page() {
                       type="button"
                       onClick={handleGenerate}
                       disabled={generating}
-                      className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-blue-500 to-violet-500 py-4 text-sm font-semibold text-white shadow-lg shadow-blue-600/30 transition-all duration-150 active:scale-[0.98] hover:shadow-xl hover:shadow-violet-500/40 disabled:cursor-not-allowed disabled:opacity-70"
+                      className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[#3b82f6] py-4 text-sm font-semibold text-white transition-all duration-150 hover:bg-[#2563eb] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-70"
                     >
                       {generating ? (
                         <>
@@ -1231,13 +1224,25 @@ export default function Form8843Page() {
                   <button
                     type="button"
                     onClick={handleNext}
-                    className="rounded-xl bg-gradient-to-r from-blue-500 to-violet-500 px-6 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-600/20 transition-all duration-150 active:scale-[0.98] hover:shadow-lg"
+                    className="rounded-xl bg-[#3b82f6] px-6 py-2.5 text-sm font-semibold text-white transition-all duration-150 hover:bg-[#2563eb] active:scale-[0.98]"
                   >
                     {step === 4 ? 'Review →' : 'Next →'}
                   </button>
                 )}
               </div>
 
+            </div>
+            </div>
+
+            {/* ── LIVE PREVIEW (desktop only) ─────────────────────────────── */}
+            <div className="hidden lg:block lg:w-[45%] lg:sticky lg:top-20">
+              <p className="mb-3 font-mono text-[10px] uppercase tracking-widest text-[#475569]">
+                LIVE PREVIEW · FORM 8843 (2025)
+              </p>
+              <div className="rounded-xl border border-[#1e293b] bg-[#0f1629] p-4">
+                <FormPreview formData={formData} activeStep={step} showReview={showReview} />
+              </div>
+            </div>
             </div>
           </main>
         </div>

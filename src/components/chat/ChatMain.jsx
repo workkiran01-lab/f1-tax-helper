@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, useRef, useCallback } from 'react'
 import { Link } from 'react-router-dom'
-import { Bot, ClipboardList, Copy, Check } from 'lucide-react'
+import { ChevronDown, ClipboardList, Copy, Check } from 'lucide-react'
 import { IRSDisclaimer } from './IRSDisclaimer'
 
 const MAX_INPUT = 2000
@@ -35,6 +35,162 @@ const suggestedQuestions = [
   'Do I qualify for a tax treaty?',
   'What is the filing deadline?',
 ]
+
+// ── Sectioned-answer parsing & rendering ────────────────────────────────────
+
+const SECTION_TYPES = {
+  Answer: 'answer',
+  Why: 'why',
+  'IRS Reference': 'reference',
+  'Next Step': 'next',
+}
+
+// Parses the full accumulated content on every render (cheap at these sizes).
+// A partially streamed header line (e.g. "### Ans") doesn't match the full-line
+// regex, so it stays attached to the previous section until it completes.
+function parseSections(content) {
+  const headerRe = /^### (Answer|Why|IRS Reference|Next Step)\s*$/
+  const lines = content.split('\n')
+  const raw = []
+  let current = { type: 'plain', lines: [] }
+  let sawHeader = false
+
+  for (const line of lines) {
+    const m = line.match(headerRe)
+    if (m) {
+      sawHeader = true
+      raw.push(current)
+      current = { type: SECTION_TYPES[m[1]], lines: [] }
+    } else {
+      current.lines.push(line)
+    }
+  }
+  raw.push(current)
+
+  if (!sawHeader) return { plain: content }
+
+  const sections = raw
+    .map((s) => ({ type: s.type, text: s.lines.join('\n').trim() }))
+    .filter((s) => s.type !== 'plain' || s.text)
+  return { sections }
+}
+
+function MarkdownLines({ text }) {
+  return (
+    <div className="whitespace-pre-wrap text-sm leading-relaxed">
+      {text.split('\n').map((line, i) => {
+        const parts = line.split(/(\*\*[^*]+\*\*)/g)
+        return (
+          <p key={i} className={i > 0 ? 'mt-2' : ''}>
+            {parts.map((part, j) => {
+              if (part.startsWith('**') && part.endsWith('**')) {
+                return (
+                  <strong key={j} className="font-semibold">
+                    {part.slice(2, -2)}
+                  </strong>
+                )
+              }
+              return part
+            })}
+          </p>
+        )
+      })}
+    </div>
+  )
+}
+
+function WhySection({ text, isStreaming }) {
+  // Expanded while streaming so text visibly arrives, collapsed once complete —
+  // unless the user toggled it themselves. Historical messages mount collapsed.
+  const [open, setOpen] = useState(isStreaming)
+  const userToggled = useRef(false)
+  const prevStreaming = useRef(isStreaming)
+
+  useEffect(() => {
+    if (prevStreaming.current && !isStreaming && !userToggled.current) {
+      setOpen(false)
+    }
+    prevStreaming.current = isStreaming
+  }, [isStreaming])
+
+  return (
+    <div>
+      <button
+        type="button"
+        onClick={() => {
+          userToggled.current = true
+          setOpen((v) => !v)
+        }}
+        className="flex items-center gap-1.5"
+      >
+        <span className="font-mono text-[10px] uppercase tracking-widest text-[#8b5cf6]">WHY</span>
+        <ChevronDown
+          className={`h-3 w-3 text-[#8b5cf6] transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
+        />
+      </button>
+      {open && (
+        <div className="mt-1.5 border-l-2 border-l-[#8b5cf6] pl-3">
+          <MarkdownLines text={text} />
+        </div>
+      )}
+    </div>
+  )
+}
+
+function ReferenceSection({ text }) {
+  const links = [...text.matchAll(/\[([^\]]+)\]\(([^)]+)\)/g)]
+  return (
+    <div className="rounded-lg border border-[#1e293b] bg-[#080c14] p-3">
+      <p className="mb-2 font-mono text-[10px] uppercase tracking-widest text-[#475569]">
+        IRS REFERENCE
+      </p>
+      {links.map(([, label, url], i) => (
+        <a
+          key={i}
+          href={url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="block font-mono text-xs text-[#3b82f6] hover:underline"
+        >
+          {label}
+        </a>
+      ))}
+    </div>
+  )
+}
+
+function StructuredMessage({ content, isStreaming }) {
+  const parsed = parseSections(content)
+
+  if (parsed.plain !== undefined) {
+    return <MarkdownLines text={parsed.plain} />
+  }
+
+  return (
+    <div className="space-y-3">
+      {parsed.sections.map((section, i) => {
+        switch (section.type) {
+          case 'plain':
+          case 'answer':
+            return <MarkdownLines key={i} text={section.text} />
+          case 'why':
+            return <WhySection key={i} text={section.text} isStreaming={isStreaming} />
+          case 'reference':
+            return <ReferenceSection key={i} text={section.text} />
+          case 'next':
+            return (
+              <div key={i} className="flex items-start gap-2">
+                <span className="text-[#3b82f6]">→</span>
+                <span className="text-sm font-medium text-[#3b82f6]">{section.text}</span>
+              </div>
+            )
+          default:
+            return null
+        }
+      })}
+    </div>
+  )
+}
 
 export function ChatMain({ initialContext, navigationKey, onOpenChecklist, onMessagesChange }) {
   const welcome = useMemo(
@@ -167,12 +323,10 @@ export function ChatMain({ initialContext, navigationKey, onOpenChecklist, onMes
     <div className="flex h-[calc(100vh-4rem)] flex-col bg-transparent">
       <div className="flex items-center justify-between border-b border-[#1e293b] bg-[#0a0e1a] px-6 py-3 shrink-0">
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-[#3b82f6] to-[#8b5cf6] shadow-lg shadow-blue-500/20">
-            <Bot className="h-5 w-5 text-white" />
-          </div>
+          <div className="font-mono text-xs font-bold border border-[#1e293b] px-2 py-1 text-[#3b82f6]">AX</div>
           <div>
-            <h1 className="font-semibold text-slate-100">AI Tax Assistant</h1>
-            <p className="text-xs text-slate-300">
+            <h1 className="font-mono text-[10px] uppercase tracking-widest text-[#3b82f6]">AI TAX ASSISTANT</h1>
+            <p className="text-xs text-[#64748b]">
               Ask me anything about F1 taxes
             </p>
           </div>
@@ -183,7 +337,7 @@ export function ChatMain({ initialContext, navigationKey, onOpenChecklist, onMes
           </span>
           <button
             onClick={onOpenChecklist}
-            className="hidden items-center gap-2 rounded-xl border border-white/20 bg-white/5 px-3 py-2 text-sm text-slate-100 transition-all hover:bg-white/10 md:flex"
+            className="hidden items-center gap-2 rounded-xl border border-[#1e293b] bg-transparent px-3 py-2 text-sm text-[#cbd5e1] transition-colors hover:border-[#2d4a6e] hover:text-[#f8fafc] md:flex"
           >
             <ClipboardList className="h-4 w-4" />
             My Checklist
@@ -198,13 +352,6 @@ export function ChatMain({ initialContext, navigationKey, onOpenChecklist, onMes
             className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
           >
             <div className={`max-w-[85%] sm:max-w-[70%] ${message.role === 'user' ? 'items-end' : 'items-start'} flex flex-col`}>
-              {message.role === 'assistant' && (
-                <div className="mb-1 flex items-center gap-2">
-                  <div className="flex h-6 w-6 items-center justify-center rounded-full bg-gradient-to-r from-[#3b82f6] to-[#8b5cf6] text-xs">
-                    🤖
-                  </div>
-                </div>
-              )}
               <div
                 className={`group/bubble relative w-full rounded-2xl px-4 py-3 ${
                   message.role === 'user'
@@ -212,25 +359,14 @@ export function ChatMain({ initialContext, navigationKey, onOpenChecklist, onMes
                     : 'rounded-tl-sm border border-[#1e293b] border-l-2 border-l-[#3b82f6] bg-[#0f1629] text-[#cbd5e1]'
                 }`}
               >
-                <div className="whitespace-pre-wrap text-sm leading-relaxed">
-                  {message.content.split('\n').map((line, i) => {
-                    const parts = line.split(/(\*\*[^*]+\*\*)/g)
-                    return (
-                      <p key={i} className={i > 0 ? 'mt-2' : ''}>
-                        {parts.map((part, j) => {
-                          if (part.startsWith('**') && part.endsWith('**')) {
-                            return (
-                              <strong key={j} className="font-semibold">
-                                {part.slice(2, -2)}
-                              </strong>
-                            )
-                          }
-                          return part
-                        })}
-                      </p>
-                    )
-                  })}
-                </div>
+                {message.role === 'assistant' ? (
+                  <StructuredMessage
+                    content={message.content}
+                    isStreaming={isLoading && message.id === messages[messages.length - 1].id && message.role === 'assistant'}
+                  />
+                ) : (
+                  <MarkdownLines text={message.content} />
+                )}
                 {message.role === 'assistant' && message.content && (
                   <button
                     onClick={() => copyMessage(message.id, message.content)}

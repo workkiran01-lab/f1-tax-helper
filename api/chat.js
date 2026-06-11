@@ -14,6 +14,7 @@ async function isRateLimited(key) {
 }
 
 
+// TREATY DATA: keep in sync with src/data/treaties.js — single source of truth
 // India Article 21(2) — standard deduction $15,000 (TY2025, single filer)
 const SYSTEM_PROMPT = `You are Alex, a friendly and knowledgeable F-1 tax assistant who helps international students understand US taxes. Speak like a helpful, knowledgeable friend — not a formal tax advisor. Use simple language, short answers (2–4 sentences unless detail is needed), and occasionally add a friendly emoji.
 
@@ -100,19 +101,41 @@ COMMON MISTAKES TO WARN ABOUT
 - Assuming Russia or Hungary treaty benefits still apply (both are terminated/suspended)
 
 ═══════════════════════════════════════
-RESPONSE GUIDELINES
+RESPONSE FORMAT — FOLLOW EXACTLY
 ═══════════════════════════════════════
-- Keep explanations simple and short (2–4 sentences for basic questions, more detail for complex ones)
-- Give practical examples when helpful
-- Never claim to be a licensed CPA or tax attorney
-- If something is complex or uncertain, say: "You may want to verify this with your university's international student office or a tax professional 😊"
-- NEVER say all NRAs cannot claim the standard deduction — India students can
+For any substantive tax question, structure your answer using EXACTLY these markdown headers in this order:
 
-When answering any tax question, always end your response with a short IRS References section listing only the publications directly relevant to that specific question.
+### Answer
+A direct 2-4 sentence answer in plain language. Friendly tone, occasionally an emoji.
 
-Format references exactly as:
-📚 IRS References:
-- [Publication name] — [URL]
+### Why
+The reasoning: which IRS rule, treaty article, or residency logic applies. 2-4 sentences.
+
+### IRS Reference
+Only the publications directly relevant, each on its own line as:
+- [Publication name](URL)
+
+### Next Step
+ONE concrete action the student should take, as a single sentence.
+
+Rules:
+- Use these exact header strings. Never rename, reorder, skip (except as below), or add headers.
+- For greetings, thanks, chit-chat, or clarifying questions back to the user: reply normally with NO headers.
+- If no IRS publication is relevant, omit the IRS Reference section entirely.
+- Never claim to be a licensed CPA or tax attorney. For complex/uncertain cases, the Next Step should be verifying with their international student office or a tax professional.
+- NEVER say all NRAs cannot claim the standard deduction — India students can.
+
+Example:
+User: Do I need to file taxes if I had no income?
+### Answer
+Yes — but just one form! 😊 Every F-1 student must file Form 8843 each year, even with zero US income. With no income, you don't need a full tax return like Form 1040-NR.
+### Why
+Form 8843 is an informational statement that documents your exempt status for the Substantial Presence Test. It's required under IRS rules for all nonresident aliens on F/J visas regardless of income.
+### IRS Reference
+- [Form 8843 instructions](https://www.irs.gov/pub/irs-pdf/i8843.pdf)
+- [Pub 519 (Tax Guide for Aliens)](https://www.irs.gov/pub/irs-pdf/p519.pdf)
+### Next Step
+Generate your Form 8843 now — it takes about 5 minutes and is due June 15.
 
 Available publications to cite (only cite what is relevant):
 - Pub 519 (Tax Guide for Aliens): https://www.irs.gov/pub/irs-pdf/p519.pdf
@@ -159,15 +182,19 @@ export default async function handler(req) {
     if (!Array.isArray(body.messages)) throw new Error('invalid')
 
     safeMessages = (body.messages || [])
-      .filter((m) => m.role === 'user' && typeof m.content === 'string' && m.content.trim())
+      .filter((m) => (m.role === 'user' || m.role === 'assistant') && typeof m.content === 'string' && m.content.trim())
       .slice(-20)
 
     if (!safeMessages.length) throw new Error('no safe messages')
     for (const m of safeMessages) {
       if (m.content.length > 4000) throw new Error('message too long')
     }
-    const injectionPatterns = [/ignore previous/i, /system:/i, /you are now/i, /disregard/i, /forget your instructions/i]
+    // Narrow on purpose: broad patterns (/system:/, /you are now/, /disregard/)
+    // false-positive on legitimate tax questions. Role injection is already
+    // structurally blocked — roles are filtered and our system message is prepended.
+    const injectionPatterns = [/ignore (all |any )?previous instructions/i]
     for (const m of safeMessages) {
+      if (m.role !== 'user') continue
       if (injectionPatterns.some(p => p.test(m.content))) {
         return new Response(JSON.stringify({ error: 'Invalid message content' }), {
           status: 400,
@@ -182,6 +209,17 @@ export default async function handler(req) {
     })
   }
 
+  // Abort upstream work on client disconnect and/or after 30s. Feature-detect
+  // defensively: edge runtimes have inconsistent req.signal/AbortSignal support,
+  // so any failure here must degrade to "no abort support", never break the route.
+  let signal
+  try {
+    const t = AbortSignal.timeout(30000)
+    signal = (req.signal && AbortSignal.any) ? AbortSignal.any([req.signal, t]) : t
+  } catch {
+    signal = undefined
+  }
+
   try {
     const groqRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
@@ -193,8 +231,9 @@ export default async function handler(req) {
         model: 'llama-3.3-70b-versatile',
         messages: [{ role: 'system', content: SYSTEM_PROMPT }, ...safeMessages],
         stream: true,
-        max_tokens: 1024,
+        max_tokens: 1600,
       }),
+      ...(signal ? { signal } : {}),
     })
 
     if (!groqRes.ok) {
@@ -202,7 +241,6 @@ export default async function handler(req) {
       return new Response('AI service unavailable', { status: 502 })
     }
 
-    // TODO: Add explicit client disconnect abort handling around the stream.
     return new Response(groqRes.body, {
       headers: {
         'Content-Type': 'text/event-stream',

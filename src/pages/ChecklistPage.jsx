@@ -199,30 +199,27 @@ export default function ChecklistPage() {
 
   if (!hasAnyData) {
     return (
-      <div className="relative flex min-h-screen flex-col overflow-hidden bg-[#0f172a] text-slate-100">
-        <div className="pointer-events-none absolute inset-0">
-          <div className="absolute -left-24 top-16 h-72 w-72 rounded-full bg-blue-500/20 blur-3xl animate-pulse [animation-duration:9s]" />
-          <div className="absolute -right-20 top-36 h-80 w-80 rounded-full bg-violet-500/20 blur-3xl animate-pulse [animation-duration:11s]" />
-        </div>
+      <div className="relative flex min-h-screen flex-col overflow-hidden bg-[#080c14] text-[#cbd5e1]">
+        <div className="absolute inset-0 bg-grid opacity-30 pointer-events-none" />
         <DisclaimerBanner />
-        <header className="sticky top-0 z-20 border-b border-white/10 bg-slate-900/50 backdrop-blur-xl">
+        <header className="sticky top-0 z-20 border-b border-[#1e293b] bg-[#080c14]/80 backdrop-blur">
           <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-4 sm:px-6">
             <Link to="/" className="flex items-center gap-3">
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-[#3b82f6] to-[#8b5cf6] text-sm font-bold text-white shadow-lg shadow-blue-500/30">F1</div>
-              <span className="text-base font-semibold tracking-wide text-slate-100 sm:text-lg">F1 Tax Helper</span>
+              <div className="font-mono text-xs font-bold border border-[#1e293b] px-2 py-1 text-[#3b82f6]">F1</div>
+              <span className="text-base font-semibold tracking-wide text-[#f8fafc] sm:text-lg">F1 Tax Helper</span>
             </Link>
           </div>
         </header>
         <main className="relative z-10 mx-auto flex w-full max-w-xl flex-1 flex-col items-center justify-center px-4 py-20 text-center sm:px-6">
-          <div className="rounded-3xl border border-white/20 bg-white/5 p-8 shadow-2xl backdrop-blur-xl">
+          <div className="rounded-xl border border-[#1e293b] bg-[#0f1629] p-8">
             <div className="mb-4 text-4xl">📋</div>
-            <h1 className="text-2xl font-bold text-slate-100">Get Your Personalized Checklist</h1>
-            <p className="mt-3 text-sm leading-6 text-slate-400">
+            <h1 className="text-2xl font-bold text-[#f8fafc]">Get Your Personalized Checklist</h1>
+            <p className="mt-3 text-sm leading-6 text-[#64748b]">
               Take the F-1 Status Checker first so we can show you exactly which documents you need.
             </p>
             <Link
               to="/status-checker"
-              className="mt-6 inline-block rounded-xl bg-gradient-to-r from-[#3b82f6] to-[#8b5cf6] px-6 py-3 text-sm font-semibold text-white transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl"
+              className="mt-6 inline-block rounded-xl bg-[#3b82f6] px-6 py-3 text-sm font-semibold text-white transition-all hover:bg-[#2563eb] active:scale-[0.98]"
             >
               Take the Status Checker →
             </Link>
@@ -233,18 +230,14 @@ export default function ChecklistPage() {
   }
 
   return (
-    <div className="relative flex min-h-screen flex-col overflow-hidden bg-[#0f172a] text-slate-100">
-      <div className="pointer-events-none absolute inset-0">
-        <div className="absolute -left-24 top-16 h-72 w-72 rounded-full bg-blue-500/20 blur-3xl animate-pulse [animation-duration:9s]" />
-        <div className="absolute -right-20 top-36 h-80 w-80 rounded-full bg-violet-500/20 blur-3xl animate-pulse [animation-duration:11s]" />
-        <div className="absolute bottom-0 left-1/2 h-96 w-96 -translate-x-1/2 rounded-full bg-cyan-500/10 blur-3xl animate-pulse [animation-duration:13s]" />
-      </div>
+    <div className="relative flex min-h-screen flex-col overflow-hidden bg-[#080c14] text-[#cbd5e1]">
+      <div className="absolute inset-0 bg-grid opacity-30 pointer-events-none" />
       <DisclaimerBanner />
-      <header className="sticky top-0 z-20 border-b border-white/10 bg-slate-900/50 backdrop-blur-xl">
+      <header className="sticky top-0 z-20 border-b border-[#1e293b] bg-[#080c14]/80 backdrop-blur">
         <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-4 sm:px-6">
           <Link to="/" className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-[#3b82f6] to-[#8b5cf6] text-sm font-bold text-white shadow-lg shadow-blue-500/30">F1</div>
-            <span className="text-base font-semibold tracking-wide text-slate-100 sm:text-lg">F1 Tax Helper</span>
+            <div className="font-mono text-xs font-bold border border-[#1e293b] px-2 py-1 text-[#3b82f6]">F1</div>
+            <span className="text-base font-semibold tracking-wide text-[#f8fafc] sm:text-lg">F1 Tax Helper</span>
           </Link>
         </div>
       </header>
@@ -252,22 +245,22 @@ export default function ChecklistPage() {
       <main className="relative z-10 mx-auto w-full max-w-3xl px-4 py-10 sm:px-6">
         {/* Header */}
         <div className="mb-8 space-y-3">
-          <h1 className="text-3xl font-bold tracking-tight text-slate-100 md:text-4xl">
+          <h1 className="text-3xl font-bold tracking-tight text-[#f8fafc] md:text-4xl">
             My Document Checklist
           </h1>
-          <p className="text-sm text-slate-400">
+          <p className="text-sm text-[#64748b]">
             {savedResult
               ? `Personalized for your status: ${savedResult.status}`
               : 'Based on your questionnaire answers'}
           </p>
           <div className="mt-4 space-y-2">
-            <div className="flex items-center justify-between text-xs text-slate-400">
+            <div className="flex items-center justify-between text-xs text-[#64748b]">
               <span>{completed} of {total} items collected</span>
               <span>{progress}% complete</span>
             </div>
-            <div className="h-2 overflow-hidden rounded-full bg-white/10">
+            <div className="h-2 overflow-hidden rounded-full bg-[#1e293b]">
               <div
-                className="h-full rounded-full bg-gradient-to-r from-[#3b82f6] to-[#8b5cf6] transition-all duration-500 ease-out"
+                className="h-full rounded-full bg-[#3b82f6] transition-all duration-500 ease-out"
                 style={{ width: `${progress}%` }}
               />
             </div>
@@ -277,7 +270,7 @@ export default function ChecklistPage() {
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
           {/* Section 1 — Filing documents */}
           <section className="space-y-3 md:col-span-2">
-            <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-500">
+            <h2 className="font-mono text-[10px] uppercase tracking-widest text-[#475569]">
               Documents You Need to File
             </h2>
             <div className="space-y-2">
@@ -294,7 +287,7 @@ export default function ChecklistPage() {
 
           {/* Section 2 — Identity documents */}
           <section className="space-y-3">
-            <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-500">
+            <h2 className="font-mono text-[10px] uppercase tracking-widest text-[#475569]">
               Identity Documents
             </h2>
             <div className="space-y-2">
@@ -311,10 +304,10 @@ export default function ChecklistPage() {
 
           {/* Section 3 — Filing Deadlines */}
           <section className="space-y-3">
-            <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-500">
+            <h2 className="font-mono text-[10px] uppercase tracking-widest text-[#475569]">
               Filing Deadlines
             </h2>
-            <div className="rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur-xl">
+            <div className="rounded-2xl border border-[#1e293b] bg-[#0f1629] p-4">
               <div className="space-y-2">
                 {DEADLINES.map((d, i) => (
                   <div key={i} className="flex items-start gap-3">
@@ -326,7 +319,7 @@ export default function ChecklistPage() {
                     >
                       {d.date}
                     </span>
-                    <p className="text-xs text-slate-300">{d.label}</p>
+                    <p className="text-xs text-[#cbd5e1]">{d.label}</p>
                   </div>
                 ))}
               </div>
@@ -339,7 +332,7 @@ export default function ChecklistPage() {
           <button
             type="button"
             onClick={handleDownload}
-            className="flex w-full items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/5 px-5 py-3 text-sm font-semibold text-slate-100 transition-all duration-300 hover:bg-white/10"
+            className="flex w-full items-center justify-center gap-2 rounded-xl border border-[#1e293b] bg-transparent px-5 py-3 text-sm font-semibold text-[#cbd5e1] transition-colors hover:border-[#2d4a6e] hover:text-[#f8fafc]"
           >
             <Download className="h-4 w-4" />
             Download My Checklist
@@ -347,7 +340,7 @@ export default function ChecklistPage() {
           <button
             type="button"
             onClick={() => navigate('/chat', { state: { answers, actionItems } })}
-            className="w-full rounded-xl bg-gradient-to-r from-[#3b82f6] to-[#8b5cf6] px-5 py-3 text-sm font-semibold text-white transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl"
+            className="w-full rounded-xl bg-[#3b82f6] px-5 py-3 text-sm font-semibold text-white transition-all hover:bg-[#2563eb] active:scale-[0.98]"
           >
             I&apos;ve gathered everything → Start Filing
           </button>
@@ -355,12 +348,12 @@ export default function ChecklistPage() {
             <button
               type="button"
               onClick={() => navigate('/results')}
-              className="w-full rounded-xl border border-white/20 bg-white/5 px-5 py-3 text-sm font-semibold text-slate-100 transition-all duration-300 hover:bg-white/10"
+              className="w-full rounded-xl border border-[#1e293b] bg-transparent px-5 py-3 text-sm font-semibold text-[#cbd5e1] transition-colors hover:border-[#2d4a6e] hover:text-[#f8fafc]"
             >
               ← Back to Results
             </button>
           )}
-          <p className="text-center text-xs text-slate-500">
+          <p className="text-center text-xs text-[#64748b]">
             Your progress is saved automatically
           </p>
         </div>
@@ -374,10 +367,10 @@ function CheckItem({ item, checked, onToggle }) {
   return (
     <div
       className={cn(
-        'flex items-start gap-3 rounded-2xl border p-4 text-sm backdrop-blur-xl transition-all',
+        'flex items-start gap-3 rounded-2xl border p-4 text-sm transition-all',
         checked
           ? 'border-green-500/30 bg-green-500/10'
-          : 'border-white/15 bg-white/5',
+          : 'border-[#1e293b] bg-[#0f1629] hover:border-[#2d4a6e]',
       )}
     >
       <button
@@ -386,8 +379,8 @@ function CheckItem({ item, checked, onToggle }) {
         className={cn(
           'mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 transition-colors',
           checked
-            ? 'border-none bg-gradient-to-r from-[#3b82f6] to-[#8b5cf6] text-white'
-            : 'border-white/30 bg-transparent',
+            ? 'border-none bg-[#3b82f6] text-white'
+            : 'border-[#475569] bg-transparent',
         )}
         aria-pressed={checked}
       >
@@ -395,7 +388,7 @@ function CheckItem({ item, checked, onToggle }) {
       </button>
       <div className="min-w-0 flex-1">
         <div className="flex items-start justify-between gap-2">
-          <p className={cn('font-medium text-slate-100', checked && 'line-through opacity-60')}>
+          <p className={cn('font-medium text-[#f8fafc]', checked && 'line-through opacity-60')}>
             {item.name}
           </p>
           <span
@@ -409,7 +402,7 @@ function CheckItem({ item, checked, onToggle }) {
             {item.required ? 'Required' : 'If applicable'}
           </span>
         </div>
-        <p className="mt-0.5 text-xs text-slate-400">{item.description}</p>
+        <p className="mt-0.5 text-xs text-[#64748b]">{item.description}</p>
         {item.link && (
           item.external ? (
             <a

@@ -92,24 +92,20 @@ export default function ChatPage() {
   }, [chatStorageKey, selectedConversation])
 
   return (
-    <div className="relative flex h-screen flex-col overflow-hidden bg-[#0f172a] text-slate-100">
-      <div className="pointer-events-none absolute inset-0">
-        <div className="absolute -left-24 top-16 h-72 w-72 rounded-full bg-blue-500/20 blur-3xl animate-pulse [animation-duration:9s]" />
-        <div className="absolute -right-20 top-36 h-80 w-80 rounded-full bg-violet-500/20 blur-3xl animate-pulse [animation-duration:11s]" />
-        <div className="absolute bottom-0 left-1/2 h-96 w-96 -translate-x-1/2 rounded-full bg-cyan-500/10 blur-3xl animate-pulse [animation-duration:13s]" />
-      </div>
+    <div className="relative flex h-screen flex-col overflow-hidden bg-[#080c14] text-[#cbd5e1]">
+      <div className="absolute inset-0 bg-grid opacity-30 pointer-events-none" />
       <DisclaimerBanner />
-      <header className="sticky top-0 z-20 border-b border-white/10 bg-slate-900/50 backdrop-blur-xl">
+      <header className="sticky top-0 z-20 border-b border-[#1e293b] bg-[#080c14]/80 backdrop-blur">
         <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-4 sm:px-6">
           <button
             onClick={() => navigate('/questionnaire')}
-            className="text-sm font-medium text-slate-300 transition-colors hover:text-slate-100"
+            className="text-sm font-medium text-[#cbd5e1] transition-colors hover:text-[#f8fafc]"
           >
             ← Back to my results
           </button>
           <div className="flex items-center gap-3">
             <div className="font-mono text-xs font-bold border border-[#1e293b] px-2 py-1 text-[#3b82f6] shrink-0">F1</div>
-            <span className="text-base font-semibold tracking-wide text-slate-100 sm:text-lg">F1 Tax Helper</span>
+            <span className="text-base font-semibold tracking-wide text-[#f8fafc] sm:text-lg">F1 Tax Helper</span>
           </div>
         </div>
       </header>
@@ -137,35 +133,31 @@ export default function ChatPage() {
       <div className="flex min-w-0 flex-1 flex-col">
         {selectedConversation ? (
           <div id="past-conversation-view" className="relative z-10 flex h-full flex-1 flex-col overflow-hidden rounded-none bg-transparent">
-            <div className="hidden items-center gap-3 border-b border-white/10 bg-white/5 p-4 backdrop-blur-xl lg:flex">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-[#3b82f6] to-[#8b5cf6] font-bold text-white">
-                <span className="text-sm">F1</span>
-              </div>
+            <div className="hidden items-center gap-3 border-b border-[#1e293b] bg-[#0f1629] p-4 lg:flex">
+              <div className="font-mono text-xs font-bold border border-[#1e293b] px-2 py-1 text-[#3b82f6]">F1</div>
               <div>
-                <h1 className="font-semibold text-slate-100">F1 Tax Assistant</h1>
-                <p className="text-xs text-slate-400">{selectedConversation.title}</p>
+                <h1 className="font-semibold text-[#f8fafc]">F1 Tax Assistant</h1>
+                <p className="text-xs text-[#64748b]">{selectedConversation.title}</p>
               </div>
             </div>
 
-            <div className="flex items-center gap-3 border-b border-white/10 bg-white/5 p-4 backdrop-blur-xl lg:hidden">
+            <div className="flex items-center gap-3 border-b border-[#1e293b] bg-[#0f1629] p-4 lg:hidden">
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={handleOpenSidebar}
-                className="text-slate-100"
+                className="text-[#cbd5e1]"
               >
                 <Menu className="h-5 w-5" />
                 <span className="sr-only">Open sidebar</span>
               </Button>
               <div className="flex items-center gap-2">
-                <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-[#3b82f6] to-[#8b5cf6]">
-                  <span className="text-sm font-semibold text-white">F1</span>
-                </div>
-                <span className="font-semibold text-slate-100">Past Conversation</span>
+                <div className="font-mono text-xs font-bold border border-[#1e293b] px-2 py-1 text-[#3b82f6]">F1</div>
+                <span className="font-semibold text-[#f8fafc]">Past Conversation</span>
               </div>
             </div>
 
-            <div className="flex-1 space-y-4 overflow-y-auto p-4 bg-white/[0.02]">
+            <div className="flex-1 space-y-4 overflow-y-auto p-4 bg-[#080c14]">
               {selectedConversation.messages.map((message) => (
                 <div
                   key={message.id}
@@ -174,8 +166,8 @@ export default function ChatPage() {
                   <div
                     className={`max-w-[85%] rounded-2xl px-4 py-3 md:max-w-[70%] ${
                       message.role === 'user'
-                        ? 'rounded-tr-sm bg-gradient-to-r from-[#3b82f6] to-[#8b5cf6] text-white'
-                        : 'rounded-tl-sm border border-white/10 bg-white/5 text-slate-200'
+                        ? 'rounded-tr-sm bg-[#3b82f6] text-white'
+                        : 'rounded-tl-sm border border-[#1e293b] bg-[#0f1629] text-[#cbd5e1]'
                     }`}
                   >
                     <div className="whitespace-pre-wrap text-sm leading-relaxed">
@@ -186,27 +178,25 @@ export default function ChatPage() {
               ))}
             </div>
 
-            <div className="flex shrink-0 justify-center border-t border-white/10 bg-slate-900/80 p-4 backdrop-blur-xl">
-              <p className="text-sm text-slate-400">This is a past conversation. Click &quot;New Chat&quot; to start a new one.</p>
+            <div className="flex shrink-0 justify-center border-t border-[#1e293b] bg-[#0a0e1a] p-4">
+              <p className="text-sm text-[#64748b]">This is a past conversation. Click &quot;New Chat&quot; to start a new one.</p>
             </div>
           </div>
         ) : (
           <div className="relative z-10 flex h-full flex-1 flex-col overflow-hidden">
-            <div className="flex items-center gap-3 border-b border-white/10 bg-white/5 p-4 backdrop-blur-xl lg:hidden shrink-0">
+            <div className="flex items-center gap-3 border-b border-[#1e293b] bg-[#0f1629] p-4 lg:hidden shrink-0">
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={handleOpenSidebar}
-                className="text-slate-100"
+                className="text-[#cbd5e1]"
               >
                 <Menu className="h-5 w-5" />
                 <span className="sr-only">Open sidebar</span>
               </Button>
               <div className="flex items-center gap-2">
-                <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-[#3b82f6] to-[#8b5cf6]">
-                  <span className="text-sm font-semibold text-white">F1</span>
-                </div>
-                <span className="font-semibold text-slate-100">F1 Tax Assistant</span>
+                <div className="font-mono text-xs font-bold border border-[#1e293b] px-2 py-1 text-[#3b82f6]">F1</div>
+                <span className="font-semibold text-[#f8fafc]">F1 Tax Assistant</span>
               </div>
             </div>
 
@@ -223,15 +213,15 @@ export default function ChatPage() {
       </div>
 
       <div
-        className={`fixed inset-y-0 right-0 z-50 w-[280px] transform border-l border-white/10 bg-slate-900/95 shadow-2xl backdrop-blur-xl transition-transform duration-300 ease-in-out sm:w-[380px] lg:relative lg:shadow-none ${
+        className={`fixed inset-y-0 right-0 z-50 w-[280px] transform border-l border-[#1e293b] bg-[#0a0e1a] shadow-2xl transition-transform duration-300 ease-in-out sm:w-[380px] lg:relative lg:shadow-none ${
           checklistOpen ? 'translate-x-0' : 'translate-x-full lg:hidden'
         }`}
       >
-        <div className="flex h-16 items-center justify-between border-b border-white/10 px-4">
-          <h2 className="font-semibold text-slate-100">My Checklist</h2>
+        <div className="flex h-16 items-center justify-between border-b border-[#1e293b] px-4">
+          <h2 className="font-semibold text-[#f8fafc]">My Checklist</h2>
           <button
             onClick={() => setChecklistOpen(false)}
-            className="rounded-md p-2 text-slate-400 transition-colors hover:bg-white/10 hover:text-slate-100"
+            className="rounded-md p-2 text-[#64748b] transition-colors hover:bg-[#131c2e] hover:text-[#f8fafc]"
           >
             <X className="h-5 w-5" />
           </button>
