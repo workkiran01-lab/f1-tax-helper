@@ -1,3 +1,6 @@
+import { TAX_YEAR, DEADLINES, DEADLINE_NOTE, SOURCES } from '../data/taxSeason.js'
+import { currentQuestionnaire, readStored, writeStored, seasonKey } from '../utils/storage.js'
+import SeasonNotice from '../components/SeasonNotice'
 import { useMemo } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { Check, Download, MessageCircle, AlertTriangle, Sparkles } from 'lucide-react'
@@ -12,17 +15,24 @@ export default function ResultsPage() {
   const location = useLocation()
   const { user } = useAuth()
 
-  const storedQuestionnaire = user?.user_metadata?.questionnaire || null
+  const storedQuestionnaire = currentQuestionnaire(user)
   const answers = location.state?.answers || storedQuestionnaire?.answers || null
   const actionItems = location.state?.actionItems || storedQuestionnaire?.actionItems || []
-  const hasTreatyBenefit = Boolean(location.state?.hasTreatyBenefit ?? storedQuestionnaire?.hasTreatyBenefit)
+  const hasTreatyBenefit = Boolean(
+    location.state?.hasTreatyBenefit ?? storedQuestionnaire?.hasTreatyBenefit,
+  )
   const syncWarning = location.state?.syncWarning || null
 
   const chatState = useMemo(() => ({ answers, actionItems }), [answers, actionItems])
 
   const getResultStyle = (item) => {
     const lowered = item.toLowerCase()
-    if (item.startsWith('⚠️') || lowered.includes('warning') || lowered.includes('risk') || lowered.includes('unauthorized')) {
+    if (
+      item.startsWith('⚠️') ||
+      lowered.includes('warning') ||
+      lowered.includes('risk') ||
+      lowered.includes('unauthorized')
+    ) {
       return {
         cardBg: 'bg-[#f59e0b]/5',
         border: 'border-l-[#f59e0b]',
@@ -60,16 +70,23 @@ export default function ResultsPage() {
               <span className="font-mono text-xs font-bold border border-[#3b82f6]/50 text-[#3b82f6] px-2 py-1 rounded">
                 F1
               </span>
-              <span className="text-base font-semibold tracking-wide text-slate-100 sm:text-lg">F1 Tax Helper</span>
+              <span className="text-base font-semibold tracking-wide text-slate-100 sm:text-lg">
+                F1 Tax Helper
+              </span>
             </Link>
           </div>
         </header>
         <main className="relative z-10 flex flex-1 items-center justify-center px-4 py-8 text-center sm:px-6">
           <div className="w-full max-w-xl rounded-2xl border border-[#1e293b] bg-[#0f172a] p-8">
             <h2 className="mb-2 text-lg font-semibold text-[#f8fafc]">No results yet</h2>
-            <p className="mb-6 text-sm text-[#64748b]">Complete the questionnaire to generate your personalized tax summary.</p>
+            <p className="mb-6 text-sm text-[#64748b]">
+              Complete the questionnaire to generate your personalized tax summary.
+            </p>
             <div className="mb-6 text-left">
-              <ReadinessCard uid={user?.id || 'guest'} questionnaire={answers ? { answers } : null} />
+              <ReadinessCard
+                uid={user?.id || 'guest'}
+                questionnaire={answers ? { answers, taxYear: TAX_YEAR } : null}
+              />
             </div>
             <button
               onClick={() => navigate('/questionnaire')}
@@ -93,19 +110,25 @@ export default function ResultsPage() {
             <span className="font-mono text-xs font-bold border border-[#3b82f6]/50 text-[#3b82f6] px-2 py-1 rounded">
               F1
             </span>
-            <span className="text-base font-semibold tracking-wide text-slate-100 sm:text-lg">F1 Tax Helper</span>
+            <span className="text-base font-semibold tracking-wide text-slate-100 sm:text-lg">
+              F1 Tax Helper
+            </span>
           </Link>
         </div>
       </header>
 
-      <main className="relative z-10 mx-auto w-full max-w-3xl flex-1 px-4 py-12">
+      <main className="animate-fade-up relative z-10 mx-auto w-full max-w-3xl flex-1 px-4 py-12">
         <div className="rounded-xl border border-[#1e293b] bg-[#0f172a] p-6 sm:p-8">
           <div className="mb-8">
             <span className="font-mono text-[10px] uppercase tracking-widest text-[#475569]">
-              Your Results · Tax Year 2025
+              Your Results · Tax Year {TAX_YEAR}
             </span>
-            <h1 className="mt-3 text-2xl font-semibold text-[#f8fafc]">Here&apos;s your tax summary</h1>
-            <p className="mt-2 text-sm text-[#64748b]">Based on your answers, here&apos;s what you need to know</p>
+            <h1 className="mt-3 text-2xl font-semibold text-[#f8fafc]">
+              Here&apos;s your tax summary
+            </h1>
+            <p className="mt-2 text-sm text-[#64748b]">
+              Based on your answers, here&apos;s what you need to know
+            </p>
             {syncWarning && (
               <p className="mt-4 rounded-xl border border-[#f59e0b]/20 bg-[#f59e0b]/10 px-4 py-3 text-sm text-[#f59e0b]">
                 {syncWarning}
@@ -114,7 +137,10 @@ export default function ResultsPage() {
           </div>
 
           <div className="mb-6">
-            <ReadinessCard uid={user?.id || 'guest'} questionnaire={answers ? { answers } : null} />
+            <ReadinessCard
+              uid={user?.id || 'guest'}
+              questionnaire={answers ? { answers, taxYear: TAX_YEAR } : null}
+            />
           </div>
 
           <div className="space-y-3">
@@ -126,7 +152,11 @@ export default function ResultsPage() {
                 <div className="flex items-start gap-3">
                   <div className="mt-0.5">{getResultStyle(item).icon}</div>
                   <div>
-                    <p className={`text-[10px] font-mono uppercase tracking-widest ${getResultStyle(item).titleColor}`}>{getResultStyle(item).title}</p>
+                    <p
+                      className={`text-[10px] font-mono uppercase tracking-widest ${getResultStyle(item).titleColor}`}
+                    >
+                      {getResultStyle(item).title}
+                    </p>
                     <p className="text-sm text-[#cbd5e1] leading-relaxed mt-1">{item}</p>
                   </div>
                 </div>
@@ -136,9 +166,13 @@ export default function ResultsPage() {
 
           {hasTreatyBenefit && (
             <div className="mt-6 rounded-xl border border-[#3b82f6]/20 bg-[#3b82f6]/5 p-5">
-              <h3 className="text-base font-semibold text-[#f8fafc]">You may qualify for a tax treaty benefit</h3>
+              <h3 className="text-base font-semibold text-[#f8fafc]">
+                You may qualify for a tax treaty benefit
+              </h3>
               <p className="text-sm text-[#94a3b8] mt-2 leading-relaxed">
-                We detected that your country may have treaty-based exemptions. Review your checklist for Form 8833 and treaty claim details.
+                We detected that your country may have treaty-based exemptions. Verify treaty
+                residence, income limits and disclosure exceptions with the IRS. Form 8833 is not
+                required for every student treaty claim.
               </p>
             </div>
           )}

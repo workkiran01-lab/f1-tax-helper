@@ -1,1252 +1,627 @@
-import { useState, useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { fillForm8843 } from '../utils/form8843Fields'
-import DisclaimerBanner from '../components/DisclaimerBanner'
+import { ArrowLeft, Check, Download, ShieldCheck } from 'lucide-react'
+import pdfFontUrl from '@fontsource/inter/files/inter-latin-400-normal.woff?url'
+import {
+  blank8843,
+  restore8843,
+  validate8843,
+  visaYears,
+  presenceYears,
+} from '../utils/form8843Model.js'
+import { TAX_YEAR, canGenerate8843, SOURCES, filingDeadline } from '../data/taxSeason.js'
+import { readStored, writeStored, removeStored, seasonKey } from '../utils/storage.js'
 import { FormPreview } from '../components/form8843/FormPreview'
+import DisclaimerBanner from '../components/DisclaimerBanner'
+import SeasonNotice from '../components/SeasonNotice'
+import useAuth from '../hooks/useAuth'
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Constants
-// ─────────────────────────────────────────────────────────────────────────────
-
-const STORAGE_KEY = 'f1_form8843_v3'
-
-const STEP_META = [
-  { label: 'Your Information', sub: 'Name, citizenship & passport',    section: 'Header + Part I' },
-  { label: 'Your Address',     sub: 'US mailing address',              section: 'Header' },
-  { label: 'Your School',      sub: 'Academic institution',            section: 'Part III, Line 9' },
-  { label: 'Your DSO',         sub: 'Designated School Official',      section: 'Part III, Line 10' },
-  { label: 'Visa & Presence',  sub: 'Entry date, days & status',       section: 'Part I + Part III' },
+const STEPS = ['Your information', 'Your addresses', 'Your school', 'Your DSO', 'Visa & presence']
+const FIELDS = [
+  [
+    ['firstName', 'First name'],
+    ['middleInitial', 'Middle initial (optional)'],
+    ['lastName', 'Last name'],
+    ['countryOfCitizenship', 'Country or countries of citizenship'],
+    ['passportCountry', 'Passport issuing country'],
+    ['passportNumber', 'Passport number'],
+    ['tinOrSSN', 'SSN or ITIN, if you have one (optional)'],
+  ],
+  [
+    ['foreignAddress', 'Address in country of residence'],
+    ['usStreet', 'US street address, if applicable'],
+    ['usCity', 'US city'],
+    ['usState', 'US state'],
+    ['usZip', 'US ZIP code'],
+  ],
+  [
+    ['schoolName', 'School / university name'],
+    ['schoolStreet', 'School street address'],
+    ['schoolCity', 'School city'],
+    ['schoolState', 'School state'],
+    ['schoolZip', 'School ZIP code'],
+    ['schoolPhone', 'School phone'],
+  ],
+  [
+    ['dsoName', 'DSO / academic director name'],
+    ['dsoStreet', 'DSO office street address'],
+    ['dsoCity', 'DSO office city'],
+    ['dsoState', 'DSO office state'],
+    ['dsoZip', 'DSO office ZIP code'],
+    ['dsoPhone', 'DSO phone'],
+  ],
+  [
+    ['currentEntryDate', 'Most recent F-1 entry by year-end (MM/DD/YYYY)'],
+    ['currentImmigrationStatus', 'Status at year-end; include date and previous status if changed'],
+  ],
 ]
-
-const LABELS = {
-  firstName:            'First Name',
-  middleInitial:        'Middle Initial',
-  lastName:             'Last Name',
-  countryOfCitizenship: 'Country of Citizenship',
-  tinOrSSN:             'SSN or ITIN (optional)',
-  passportCountry:      'Passport Issuing Country',
-  passportNumber:       'Passport Number',
-  currentImmigrationStatus: 'Visa Type',
-  usStreet:             'US Street Address',
-  usCity:               'City',
-  usState:              'State',
-  usZip:                'ZIP Code',
-  foreignAddress:       'Address in Country of Residence',
-  schoolName:           'School / University Name',
-  schoolStreet:         'School Street Address',
-  schoolCity:           'School City',
-  schoolState:          'School State',
-  schoolZip:            'School ZIP Code',
-  schoolPhone:          'School Phone Number',
-  dsoName:              'DSO Full Name',
-  dsoStreet:            'DSO Office Address',
-  dsoCity:              'DSO Office City',
-  dsoState:             'DSO Office State',
-  dsoZip:               'DSO Office ZIP',
-  dsoPhone:             'DSO Phone Number',
-  currentEntryDate:     'Date of Most Recent U.S. Entry',
-  daysIn2025:           'Days Present in U.S. in 2025',
-  daysIn2024:           'Days Present in U.S. in 2024',
-  daysIn2023:           'Days Present in U.S. in 2023',
-  daysToExclude:        'Exempt Days to Exclude (F-1)',
-  line14Explanation:    'Explanation (Line 14)',
-}
-
-const REQUIRED_BY_STEP = {
-  0: ['firstName', 'lastName', 'countryOfCitizenship'],
-  1: ['usStreet', 'usCity', 'usState', 'usZip'],
-  2: ['schoolName', 'schoolStreet', 'schoolCity', 'schoolState', 'schoolZip', 'schoolPhone'],
-  3: ['dsoName', 'dsoPhone'],
-  4: ['currentEntryDate'],
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Initial data
-// ─────────────────────────────────────────────────────────────────────────────
-
-function blankData() {
-  return {
-    firstName: '', middleInitial: '', lastName: '',
-    tinOrSSN: '',
-    countryOfCitizenship: '', taxYear: '2025',
-    passportCountry: '', passportNumber: '',
-    currentImmigrationStatus: 'F-1',
-    usStreet: '', usCity: '', usState: '', usZip: '',
-    foreignAddress: '',
-    schoolName: '', schoolStreet: '', schoolCity: '', schoolState: '', schoolZip: '', schoolPhone: '',
-    dsoName: '', dsoStreet: '', dsoCity: '', dsoState: '', dsoZip: '', dsoPhone: '',
-    currentEntryDate: '',
-    daysIn2025: '', daysIn2024: '', daysIn2023: '', daysToExclude: '',
-    line12Answer: '', line13Answer: '', line14Explanation: '',
-  }
-}
-
-function getInitialData() {
-  const saved = sessionStorage.getItem(STORAGE_KEY)
-  if (saved) {
-    try { return { ...blankData(), ...JSON.parse(saved) } } catch {}
-  }
-  const storedName = sessionStorage.getItem('f1_user_name') || ''
-  const parts = storedName.trim().split(' ')
-  return {
-    ...blankData(),
-    firstName: parts.slice(0, -1).join(' ') || storedName,
-    lastName: parts.length > 1 ? parts[parts.length - 1] : '',
-  }
-}
-
-function hasSavedProgress() {
-  const saved = sessionStorage.getItem(STORAGE_KEY)
-  if (!saved) return false
-  try {
-    const p = JSON.parse(saved)
-    return !!(p.firstName?.trim() || p.lastName?.trim() || p.schoolName?.trim())
-  } catch { return false }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Formatters
-// ─────────────────────────────────────────────────────────────────────────────
-
-function formatPhone(raw) {
-  const d = raw.replace(/\D/g, '').slice(0, 10)
-  if (!d.length) return ''
-  if (d.length <= 3) return `(${d}`
-  if (d.length <= 6) return `(${d.slice(0, 3)}) ${d.slice(3)}`
-  return `(${d.slice(0, 3)}) ${d.slice(3, 6)}-${d.slice(6)}`
-}
-
-function formatDate(raw) {
-  const d = raw.replace(/\D/g, '').slice(0, 8)
-  if (d.length <= 2) return d
-  if (d.length <= 4) return `${d.slice(0, 2)}/${d.slice(2)}`
-  return `${d.slice(0, 2)}/${d.slice(2, 4)}/${d.slice(4)}`
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Sub-components
-// ─────────────────────────────────────────────────────────────────────────────
-
-const inputBase =
-  'w-full rounded-xl border border-[#1e293b] bg-[#0f172a] px-4 py-3 text-sm text-[#f8fafc] placeholder:text-[#475569] focus:border-[#3b82f6] focus:outline-none focus:ring-1 focus:ring-[#3b82f6]/20 transition-colors'
-
-function Field({ name, placeholder, type = 'text', value, onChange, error, required, helper, maxLength }) {
+const inputClass =
+  'mt-2 w-full rounded-xl border border-border bg-background px-3 py-3 text-sm text-headline placeholder:text-muted focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20'
+function Field({ name, label, value, onChange, error, multiline = false, ...rest }) {
+  const Input = multiline ? 'textarea' : 'input'
   return (
-    <div>
-      <label className="mb-1.5 block text-[11px] font-medium uppercase tracking-[0.08em] text-[#64748b]">
-        {LABELS[name]}
-        {required && <span className="ml-1 text-red-400">*</span>}
+    <div className={multiline ? 'sm:col-span-2' : ''}>
+      <label htmlFor={name} className="text-xs font-medium text-body">
+        {label}
       </label>
-      <input
-        type={type}
-        value={value}
+      <Input
+        id={name}
+        name={name}
+        value={value || ''}
         onChange={onChange}
-        placeholder={placeholder}
-        maxLength={maxLength}
-        className={`${inputBase} ${error ? 'border-red-500/60 focus:border-red-500/60' : ''}`}
+        className={inputClass}
+        aria-invalid={Boolean(error)}
+        aria-describedby={error ? `${name}-error` : undefined}
+        {...(multiline ? { rows: 3 } : { type: 'text' })}
+        {...rest}
       />
-      {error  && <p className="mt-1 text-xs text-red-400">{error}</p>}
-      {!error && helper && <p className="mt-1 text-xs text-slate-500">{helper}</p>}
+      {error && (
+        <p id={`${name}-error`} className="mt-1 text-xs text-danger">
+          {error}
+        </p>
+      )}
     </div>
   )
 }
-
-function YesNoField({ label, name, value, onChange, error, required, helper }) {
+function YesNo({ name, label, data, set, error }) {
   return (
-    <div>
-      <label className="mb-2 block text-xs font-medium text-slate-400">
-        {label}
-        {required && <span className="ml-1 text-red-400">*</span>}
-      </label>
-      <div className="flex gap-6">
-        {['yes', 'no'].map((opt) => (
-          <label key={opt} className="flex cursor-pointer items-center gap-2">
+    <fieldset className="rounded-xl border border-border p-4">
+      <legend className="px-1 text-sm text-body">{label}</legend>
+      <div className="mt-2 flex gap-5">
+        {['yes', 'no'].map((value) => (
+          <label key={value} className="flex items-center gap-2 text-sm capitalize">
             <input
               type="radio"
               name={name}
-              value={opt}
-              checked={value === opt}
-              onChange={() => onChange(opt)}
-              className="h-4 w-4 accent-blue-500"
+              value={value}
+              checked={data[name] === value}
+              onChange={() => set(name, value)}
+              className="accent-primary"
             />
-            <span className="text-sm text-slate-200 capitalize">{opt}</span>
+            {value}
           </label>
         ))}
       </div>
-      {error  && <p className="mt-1 text-xs text-red-400">{error}</p>}
-      {!error && helper && <p className="mt-1 text-xs text-slate-500">{helper}</p>}
-    </div>
+      {error && <p className="mt-2 text-xs text-danger">{error}</p>}
+    </fieldset>
   )
 }
-
-function InfoBanner({ children }) {
-  return (
-    <div className="flex items-start gap-2 rounded-xl border border-blue-500/20 bg-blue-500/10 px-4 py-3">
-      <span className="shrink-0">ℹ️</span>
-      <p className="text-xs leading-5 text-blue-300">{children}</p>
-    </div>
-  )
-}
-
-function SummaryCard({ title, icon, rows, onEdit }) {
-  return (
-    <div className="rounded-2xl border border-[#1e293b] bg-[#0f172a] p-5">
-      <div className="mb-3 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <span>{icon}</span>
-          <h4 className="text-sm font-semibold text-white">{title}</h4>
-        </div>
-        <button
-          type="button"
-          onClick={onEdit}
-          className="rounded-lg border border-white/20 bg-white/5 px-3 py-1 text-xs font-medium text-slate-300 transition-colors hover:bg-white/10"
-        >
-          Edit
-        </button>
-      </div>
-      <dl className="space-y-2">
-        {rows.map(([label, val]) => (
-          <div key={label}>
-            <dt className="text-xs text-slate-500">{label}</dt>
-            <dd className="mt-0.5 break-words text-xs font-medium text-slate-200">{val || '—'}</dd>
-          </div>
-        ))}
-      </dl>
-    </div>
-  )
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Success screen
-// ─────────────────────────────────────────────────────────────────────────────
-
-function SuccessScreen({ taxYear, onReset, onDownloadAgain }) {
-  const [copied, setCopied] = useState(false)
-  const irsAddress = `Department of the Treasury\nInternal Revenue Service Center\nAustin, TX 73301-0215`
-
-  function copyAddress() {
-    navigator.clipboard.writeText(irsAddress).then(() => {
-      setCopied(true)
-      setTimeout(() => setCopied(false), 2000)
-    })
-  }
-
-  return (
-    <div className="step-enter mx-auto max-w-2xl space-y-6 py-8">
-      <div className="flex flex-col items-center gap-3 text-center">
-        <div className="flex h-20 w-20 items-center justify-center rounded-full border-4 border-green-500/30 bg-green-500/10">
-          <svg className="h-10 w-10 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-          </svg>
-        </div>
-        <h1 className="text-2xl font-extrabold tracking-tight text-white sm:text-3xl">
-          Your Form 8843 is ready!
-        </h1>
-        <p className="text-sm text-slate-400">
-          Your completed Form 8843 for tax year {taxYear || '2025'} has been downloaded to your device.
-        </p>
-      </div>
-
-      <h2 className="text-sm font-semibold uppercase tracking-widest text-slate-500">What's next?</h2>
-
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <div className="rounded-2xl border border-[#1e293b] bg-[#0f172a] p-5">
-          <div className="mb-2 text-2xl">✍️</div>
-          <h3 className="text-sm font-semibold text-white">Sign & Date Your Form</h3>
-          <p className="mt-1.5 text-xs leading-5 text-slate-400">
-            Sign the bottom of page 1 before filing. The IRS will reject unsigned forms.
-          </p>
-        </div>
-
-        <div className="rounded-2xl border border-[#1e293b] bg-[#0f172a] p-5">
-          <div className="mb-2 text-2xl">📬</div>
-          <h3 className="mb-2 text-sm font-semibold text-white">Mail to the IRS</h3>
-          <p className="mb-2 text-xs text-slate-400">If filing separately (no income), mail to:</p>
-          <div className="rounded-lg border border-white/10 bg-white/5 px-3 py-2 font-mono text-[11px] leading-5 text-slate-300 whitespace-pre">
-            {irsAddress}
-          </div>
-          <button
-            type="button"
-            onClick={copyAddress}
-            className="mt-2 w-full rounded-lg border border-white/20 bg-white/5 py-1.5 text-xs font-medium text-slate-300 transition-colors hover:bg-white/10"
-          >
-            {copied ? '✓ Copied!' : 'Copy Address'}
-          </button>
-        </div>
-
-        <div className="rounded-2xl border border-[#1e293b] bg-[#0f172a] p-5">
-          <div className="mb-2 text-2xl">📅</div>
-          <h3 className="text-sm font-semibold text-white">Filing Deadline</h3>
-          <p className="mt-1.5 text-xs leading-5 text-slate-400">
-            Form 8843 is due by{' '}
-            <span className="font-semibold text-slate-200">June 15, 2026</span>{' '}
-            (or April 15 if you have US income).
-          </p>
-        </div>
-      </div>
-
-      <p className="rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-center text-xs leading-5 text-slate-500">
-        🔒 Your data was not stored on our servers. It existed only in your browser session.
-      </p>
-
-      <div className="flex flex-col gap-3 sm:flex-row sm:justify-center">
-        <button
-          type="button"
-          onClick={onDownloadAgain}
-          className="rounded-xl border border-white/20 bg-white/5 px-6 py-2.5 text-sm font-medium text-slate-100 transition-colors hover:bg-white/10"
-        >
-          Download Again
-        </button>
-        <Link
-          to="/"
-          className="rounded-xl bg-[#3b82f6] px-6 py-2.5 text-center text-sm font-semibold text-white transition-all duration-150 hover:bg-[#2563eb] active:scale-[0.98]"
-        >
-          Go to Home
-        </Link>
-      </div>
-
-      <button type="button" onClick={onReset} className="block w-full text-center text-xs text-slate-600 underline hover:text-slate-400">
-        Fill out another form
-      </button>
-    </div>
-  )
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Main page
-// ─────────────────────────────────────────────────────────────────────────────
-
 export default function Form8843Page() {
-  const [step, setStep]                           = useState(0)
-  const [showReview, setShowReview]               = useState(false)
-  const [formData, setFormData]                   = useState(getInitialData)
-  const [showRestoreBanner, setShowRestoreBanner] = useState(hasSavedProgress)
-  const [errors, setErrors]                       = useState({})
-  const [generating, setGenerating]               = useState(false)
-  const [success, setSuccess]                     = useState(false)
-  const [genError, setGenError]                   = useState('')
-  const [lastFilledBytes, setLastFilledBytes]     = useState(null)
-  const [clearLabel, setClearLabel]               = useState('Clear Data')
+  const { user } = useAuth()
+  const uid = user?.id || 'guest'
+  const [year, setYear] = useState(TAX_YEAR)
+  const key = seasonKey('8843-draft-v4', uid, year)
+  const [data, setData] = useState(() => restore8843(readStored(key, null, 'sessionStorage'), year))
+  const [loadedKey, setLoadedKey] = useState(key)
+  const [step, setStep] = useState(0)
+  const [review, setReview] = useState(false)
+  const [errors, setErrors] = useState({})
+  const [generating, setGenerating] = useState(false)
+  const [notice, setNotice] = useState('')
+  const [success, setSuccess] = useState(false)
+  const heading = useRef(null)
+  const generatingRef = useRef(false)
+  const ready = canGenerate8843(year)
 
   useEffect(() => {
-    try { sessionStorage.setItem(STORAGE_KEY, JSON.stringify(formData)) } catch {}
-  }, [formData])
-
-  // Auto-sum Line 4b from Line 4a values; only overwrite if user hasn't manually changed it
-  const autoExcludeRef = useRef(formData.daysToExclude)
+    setData(restore8843(readStored(key, null, 'sessionStorage'), year))
+    setLoadedKey(key)
+    setStep(0)
+    setReview(false)
+    setErrors({})
+    setSuccess(false)
+  }, [key, year])
   useEffect(() => {
-    const sum = (parseInt(formData.daysIn2025, 10) || 0)
-              + (parseInt(formData.daysIn2024, 10) || 0)
-              + (parseInt(formData.daysIn2023, 10) || 0)
-    const next = sum > 0 ? String(sum) : ''
-    if (formData.daysToExclude === '' || formData.daysToExclude === autoExcludeRef.current) {
-      autoExcludeRef.current = next
-      setFormData(p => ({ ...p, daysToExclude: next }))
+    if (key === loadedKey && !success && !writeStored(key, data, 'sessionStorage'))
+      setNotice(
+        'Draft saving is unavailable in this browser. Keep this tab open while preparing your form.',
+      )
+  }, [data, key, loadedKey, success])
+  useEffect(() => {
+    heading.current?.focus({ preventScroll: true })
+  }, [step, review])
+  function set(name, value) {
+    setData((previous) => ({ ...previous, [name]: value }))
+    setErrors((previous) => ({ ...previous, [name]: undefined }))
+  }
+  function next() {
+    const result = validate8843(data, step)
+    setErrors(result)
+    if (Object.keys(result).length) {
+      setNotice('Check the highlighted fields before continuing.')
+      return
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [formData.daysIn2025, formData.daysIn2024, formData.daysIn2023])
-
-  // ── Field setters ─────────────────────────────────────────────────────────
-
-  const set = (field) => (e) => {
-    setFormData((prev) => ({ ...prev, [field]: e.target.value }))
-    setErrors((prev) => ({ ...prev, [field]: undefined }))
+    setNotice('')
+    if (step === 4) setReview(true)
+    else setStep(step + 1)
   }
-
-  const setUpper = (f) => (e) => {
-    const v = e.target.value.toUpperCase().replace(/[^A-Z]/g, '').slice(0, 2)
-    setFormData((p) => ({ ...p, [f]: v }))
-    if (errors[f]) setErrors((p) => ({ ...p, [f]: undefined }))
-  }
-
-  const setZip = (f) => (e) => {
-    const v = e.target.value.replace(/\D/g, '').slice(0, 5)
-    setFormData((p) => ({ ...p, [f]: v }))
-    if (errors[f]) setErrors((p) => ({ ...p, [f]: undefined }))
-  }
-
-  const setPhone = (f) => (e) => {
-    const v = formatPhone(e.target.value)
-    setFormData((p) => ({ ...p, [f]: v }))
-    if (errors[f]) setErrors((p) => ({ ...p, [f]: undefined }))
-  }
-
-  const setDate = (f) => (e) => {
-    const v = formatDate(e.target.value)
-    setFormData((p) => ({ ...p, [f]: v }))
-    if (errors[f]) setErrors((p) => ({ ...p, [f]: undefined }))
-  }
-
-  const setDays = (f) => (e) => {
-    const v = e.target.value.replace(/\D/g, '').slice(0, 3)
-    setFormData((p) => ({ ...p, [f]: v }))
-    if (errors[f]) setErrors((p) => ({ ...p, [f]: undefined }))
-  }
-
-  const setRadio = (f, v) => {
-    setFormData((p) => ({ ...p, [f]: v }))
-    setErrors((p) => ({ ...p, [f]: undefined }))
-  }
-
-  // ── Validation ────────────────────────────────────────────────────────────
-
-  function validate(stepIndex) {
-    const next = {}
-    const letters = /^[a-zA-Z\s'-]+$/
-
-    if (stepIndex === 0) {
-      if (!formData.firstName.trim())              next.firstName = 'Required'
-      else if (formData.firstName.length > 20)     next.firstName = 'Max 20 characters'
-      else if (!letters.test(formData.firstName))  next.firstName = 'Letters only (hyphens and apostrophes allowed)'
-
-      if (formData.middleInitial && !/^[a-zA-Z]$/.test(formData.middleInitial))
-        next.middleInitial = 'Single letter only'
-
-      if (!formData.lastName.trim())               next.lastName = 'Required'
-      else if (formData.lastName.length > 25)      next.lastName = 'Max 25 characters'
-      else if (!letters.test(formData.lastName))   next.lastName = 'Letters only (hyphens and apostrophes allowed)'
-
-      if (!formData.countryOfCitizenship.trim())   next.countryOfCitizenship = 'Required'
-      else if (!letters.test(formData.countryOfCitizenship)) next.countryOfCitizenship = 'Letters only'
-    }
-
-    if (stepIndex === 1) {
-      if (!formData.usStreet.trim())               next.usStreet = 'Required'
-      else if (formData.usStreet.length > 35)      next.usStreet = 'Max 35 characters'
-
-      if (!formData.usCity.trim())                 next.usCity = 'Required'
-      else if (formData.usCity.length > 22)        next.usCity = 'Max 22 characters'
-
-      if (!formData.usState)                       next.usState = 'Required'
-      else if (!/^[A-Z]{2}$/.test(formData.usState)) next.usState = 'Enter 2-letter state code (e.g. CA)'
-
-      if (!formData.usZip)                         next.usZip = 'Required'
-      else if (!/^\d{5}$/.test(formData.usZip))   next.usZip = 'Must be exactly 5 digits'
-    }
-
-    if (stepIndex === 2) {
-      if (!formData.schoolName.trim())             next.schoolName = 'Required'
-      else if (formData.schoolName.length > 60)    next.schoolName = 'Max 60 characters'
-
-      if (!formData.schoolStreet.trim())           next.schoolStreet = 'Required'
-      else if (formData.schoolStreet.length > 35)  next.schoolStreet = 'Max 35 characters'
-
-      if (!formData.schoolCity.trim())             next.schoolCity = 'Required'
-      else if (formData.schoolCity.length > 22)    next.schoolCity = 'Max 22 characters'
-
-      if (!formData.schoolState)                   next.schoolState = 'Required'
-      else if (!/^[A-Z]{2}$/.test(formData.schoolState)) next.schoolState = '2-letter state code'
-
-      if (!formData.schoolZip)                     next.schoolZip = 'Required'
-      else if (!/^\d{5}$/.test(formData.schoolZip)) next.schoolZip = 'Must be exactly 5 digits'
-
-      if (!formData.schoolPhone.trim())            next.schoolPhone = 'Required'
-      else if (!/^\(\d{3}\) \d{3}-\d{4}$/.test(formData.schoolPhone))
-        next.schoolPhone = 'Enter full 10-digit number, e.g. (310) 825-4321'
-    }
-
-    if (stepIndex === 3) {
-      if (!formData.dsoName.trim())                next.dsoName = 'Required'
-      else if (formData.dsoName.length > 50)       next.dsoName = 'Max 50 characters'
-
-      if (!formData.dsoPhone.trim())               next.dsoPhone = 'Required'
-      else if (!/^\(\d{3}\) \d{3}-\d{4}$/.test(formData.dsoPhone))
-        next.dsoPhone = 'Enter full 10-digit number, e.g. (310) 825-0000'
-    }
-
-    if (stepIndex === 4) {
-      const today   = new Date(); today.setHours(0, 0, 0, 0)
-      const parse   = (str) => {
-        if (!/^\d{2}\/\d{2}\/\d{4}$/.test(str)) return null
-        const [m, d, y] = str.split('/').map(Number)
-        const dt = new Date(y, m - 1, d)
-        return dt.getFullYear() === y && dt.getMonth() === m - 1 && dt.getDate() === d ? dt : null
-      }
-
-      const curDate = parse(formData.currentEntryDate)
-      if (!formData.currentEntryDate.trim())       next.currentEntryDate = 'Required'
-      else if (!curDate)                           next.currentEntryDate = 'Enter a valid date as MM/DD/YYYY'
-      else if (curDate > today)                    next.currentEntryDate = 'Date cannot be in the future'
-
-      const validateDays = (f, label) => {
-        if (!formData[f]?.trim()) return
-        const n = parseInt(formData[f], 10)
-        if (isNaN(n) || n < 0 || n > 366) next[f] = `${label} must be 0–366`
-      }
-      validateDays('daysIn2025', 'Days')
-      validateDays('daysIn2024', 'Days')
-      validateDays('daysIn2023', 'Days')
-      validateDays('daysToExclude', 'Days')
-
-      if (!formData.line12Answer) next.line12Answer = 'Please select Yes or No'
-      if (!formData.line13Answer) next.line13Answer = 'Please select Yes or No'
-      if (formData.line13Answer === 'yes' && !formData.line14Explanation?.trim())
-        next.line14Explanation = 'Required when Line 13 is Yes'
-    }
-
-    setErrors(next)
-    return Object.keys(next).length === 0
-  }
-
-  // ── Navigation ────────────────────────────────────────────────────────────
-
-  function handleNext() {
-    if (!validate(step)) return
-    if (step === 4) { setShowReview(true) }
-    else            { setStep((s) => s + 1); setErrors({}) }
-  }
-
-  function handleBack() {
+  function clear() {
+    if (!window.confirm('Clear this form draft from this tab?')) return
+    removeStored(key, 'sessionStorage')
+    setData(blank8843(year))
+    setStep(0)
+    setReview(false)
     setErrors({})
-    if (showReview) { setShowReview(false) }
-    else            { setStep((s) => s - 1) }
+    setSuccess(false)
+    setNotice('Draft cleared.')
   }
-
-  function goToStep(n) {
-    setErrors({})
-    setShowReview(false)
-    setStep(n)
-  }
-
-  // ── Generate ──────────────────────────────────────────────────────────────
-
-  async function generatePDF() {
-    const res = await fetch('/form8843.pdf')
-    if (!res.ok) throw new Error('Could not load base PDF.')
-    const pdfBytes = await res.arrayBuffer()
-    const filled   = await fillForm8843(pdfBytes, formData)
-    setLastFilledBytes(filled)
-    return filled
-  }
-
-  function triggerDownload(bytes) {
-    const blob = new Blob([bytes], { type: 'application/pdf' })
-    const url  = URL.createObjectURL(blob)
-    const a    = document.createElement('a')
-    a.href     = url
-    a.download = `Form_8843_${formData.taxYear || '2025'}.pdf`
-    a.click()
-    URL.revokeObjectURL(url)
-  }
-
-  async function handleGenerate() {
+  async function generate() {
+    if (!ready || generatingRef.current) return
+    const result = validate8843(data)
+    if (Object.keys(result).length) {
+      setErrors(result)
+      setReview(false)
+      setStep(0)
+      setNotice('Review the form before downloading.')
+      return
+    }
+    generatingRef.current = true
     setGenerating(true)
-    setGenError('')
+    setNotice('')
     try {
-      const filled = await generatePDF()
-      triggerDownload(filled)
+      const [{ fillForm8843 }, response, fontResponse] = await Promise.all([
+        import('../utils/form8843Fields.js'),
+        fetch('/form8843.pdf'),
+        fetch(pdfFontUrl),
+      ])
+      if (!response.ok || !fontResponse.ok)
+        throw new Error('Could not load the official form or its font. Please try again.')
+      const [pdfBytes, fontBytes] = await Promise.all([
+        response.arrayBuffer(),
+        fontResponse.arrayBuffer(),
+      ])
+      const bytes = await fillForm8843(pdfBytes, data, fontBytes)
+      const url = URL.createObjectURL(new Blob([bytes], { type: 'application/pdf' }))
+      const link = document.createElement('a')
+      link.href = url
+      link.download = `Form_8843_${year}.pdf`
+      document.body.appendChild(link)
+      link.click()
+      link.remove()
+      setTimeout(() => URL.revokeObjectURL(url), 1000)
+      writeStored(seasonKey('8843-generated', uid, year), true)
+      removeStored(key, 'sessionStorage')
       setSuccess(true)
-      try { localStorage.setItem('f1_8843_generated', 'true') } catch {}
-      sessionStorage.removeItem(STORAGE_KEY)
-    } catch (err) {
-      setGenError(err.message || 'Failed to generate PDF. Please try again.')
+    } catch (error) {
+      setNotice(error.message || 'The download failed. Please try again.')
     } finally {
+      generatingRef.current = false
       setGenerating(false)
     }
   }
-
-  function handleDownloadAgain() {
-    if (lastFilledBytes) {
-      triggerDownload(lastFilledBytes)
-    } else {
-      generatePDF().then(triggerDownload).catch(() => {})
-    }
-  }
-
-  function handleClearData() {
-    sessionStorage.removeItem(STORAGE_KEY)
-    sessionStorage.removeItem('f1_user_name')
-    setFormData(blankData())
-    setStep(0)
-    setShowReview(false)
-    setErrors({})
-    setClearLabel('Cleared!')
-    setTimeout(() => setClearLabel('Clear Data'), 2000)
-  }
-
-  function handleReset() {
-    const storedName = sessionStorage.getItem('f1_user_name') || ''
-    const parts = storedName.trim().split(' ')
-    setFormData({
-      ...blankData(),
-      firstName: parts.slice(0, -1).join(' ') || storedName,
-      lastName: parts.length > 1 ? parts[parts.length - 1] : '',
-    })
-    setStep(0)
-    setShowReview(false)
-    setSuccess(false)
-    setErrors({})
-    setGenError('')
-    setLastFilledBytes(null)
-    sessionStorage.removeItem(STORAGE_KEY)
-  }
-
-  const fp = (name) => ({
-    value:    formData[name] ?? '',
-    onChange: set(name),
-    error:    errors[name],
-    required: REQUIRED_BY_STEP[step]?.includes(name) ?? false,
-  })
-
-  // ── Render ────────────────────────────────────────────────────────────────
-
-  const TOTAL_STEPS = STEP_META.length
-  const progressPct = showReview ? 100 : ((step + 1) / TOTAL_STEPS) * 100
-
-  if (success) {
-    return (
-      <div className="relative min-h-screen bg-[#080c14] text-slate-100">
-        <div className="pointer-events-none fixed inset-0 bg-grid opacity-30" />
-        <div className="relative z-10 px-4 sm:px-8">
-          <SuccessScreen
-            taxYear={formData.taxYear}
-            onReset={handleReset}
-            onDownloadAgain={handleDownloadAgain}
-          />
-        </div>
-      </div>
-    )
-  }
-
   return (
-    <div className="relative min-h-screen bg-[#080c14] text-slate-100">
-      <style>{`
-        @keyframes slideIn {
-          from { opacity: 0; transform: translateX(14px); }
-          to   { opacity: 1; transform: translateX(0); }
-        }
-        .step-enter { animation: slideIn 0.22s ease-out; }
-      `}</style>
-
-      <div className="pointer-events-none fixed inset-0 bg-grid opacity-30" />
-
-      <div className="relative z-10 flex min-h-screen">
-
-        {/* ── LEFT SIDEBAR (desktop) ────────────────────────────────────────── */}
-        <aside className="hidden lg:flex w-72 flex-shrink-0 flex-col border-r border-[#1e293b] bg-[#080c14] px-6 py-8">
-          <Link to="/" className="mb-10 flex items-center gap-3">
-            <div className="font-mono text-xs font-bold border border-[#1e293b] px-2 py-1 text-[#3b82f6]">F1</div>
-            <span className="text-base font-semibold text-slate-100">F1 Tax Helper</span>
+    <div className="min-h-screen bg-background text-body">
+      <header className="sticky top-0 z-20 border-b border-border bg-background/90 backdrop-blur">
+        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
+          <Link to="/" className="flex items-center gap-2">
+            <span className="border border-border px-2 py-1 font-mono text-xs font-bold text-primary">
+              F1
+            </span>
+            <span className="text-sm font-medium text-headline">Tax Helper</span>
           </Link>
-
-          <p className="mb-4 font-mono text-[10px] uppercase tracking-widest text-[#475569]">
-            Form 8843 — Tax Year 2025
-          </p>
-
-          <div className="space-y-1">
-            {STEP_META.map((meta, i) => {
-              const isDone    = showReview || i < step
-              const isCurrent = !showReview && i === step
-              return (
-                <div
-                  key={meta.label}
-                  className={`flex items-start gap-3 rounded-xl p-3 transition-colors ${
-                    isCurrent ? 'bg-white/5' : isDone ? 'opacity-75' : 'opacity-60'
-                  }`}
-                >
-                  <div className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] font-bold ${
-                    isDone      ? 'border border-[#22c55e] text-[#22c55e]'
-                    : isCurrent ? 'bg-[#3b82f6] text-white'
-                    : 'border border-[#1e293b] text-[#475569]'
-                  }`}>
-                    {isDone ? '✓' : i + 1}
-                  </div>
-                  <div>
-                    <p className={`text-xs ${isCurrent ? 'font-medium text-[#f8fafc]' : 'text-[#475569]'}`}>
-                      {meta.label}
-                    </p>
-                    <p className="text-[11px] font-mono text-[#475569]">{meta.section}</p>
-                  </div>
-                </div>
-              )
-            })}
-
-            <div className={`flex items-start gap-3 rounded-xl p-3 transition-colors ${showReview ? 'bg-white/5' : 'opacity-60'}`}>
-              <div className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] font-bold ${
-                showReview ? 'bg-[#3b82f6] text-white' : 'border border-[#1e293b] text-[#475569]'
-              }`}>
-                ★
-              </div>
-              <div>
-                <p className={`text-xs ${showReview ? 'font-medium text-[#f8fafc]' : 'text-[#475569]'}`}>
-                  Review & Generate
-                </p>
-                <p className="text-[11px] font-mono text-[#475569]">Final check</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="mt-auto rounded-xl border border-yellow-500/20 bg-yellow-500/10 p-4">
-            <p className="text-[11px] leading-5 text-yellow-200/90">
-              Form 8843 is an informational statement — not a tax return. F-1 students with no US income must still file it by the tax deadline.
+          <button
+            type="button"
+            onClick={clear}
+            className="text-xs text-muted-foreground hover:text-body"
+          >
+            Clear data
+          </button>
+        </div>
+      </header>
+      <DisclaimerBanner />
+      <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
+        <div className="mb-6">
+          <SeasonNotice />
+        </div>
+        <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
+          <div>
+            <Link
+              to="/"
+              className="mb-4 inline-flex items-center gap-1 text-xs text-muted-foreground"
+            >
+              <ArrowLeft className="h-3 w-3" />
+              Back home
+            </Link>
+            <h1 className="text-2xl font-semibold text-headline sm:text-3xl">
+              Your Form 8843, one step at a time.
+            </h1>
+            <p className="mt-3 max-w-xl text-sm leading-relaxed text-muted-foreground">
+              For F-1 students claiming eligible day exclusions. Use your records for the selected
+              income year. Your form stays in this tab and is filled on your device.
             </p>
           </div>
-        </aside>
-
-        {/* ── MAIN CONTENT ────────────────────────────────────────────────── */}
-        <div className="flex flex-1 flex-col overflow-hidden">
-
-          {/* Topbar */}
-          <header className="sticky top-0 z-20 border-b border-[#1e293b] bg-[#080c14]/80 backdrop-blur">
-            <div className="flex h-14 items-center justify-between px-4 sm:px-8">
-              <Link to="/" className="flex items-center gap-2 lg:hidden">
-                <div className="font-mono text-xs font-bold border border-[#1e293b] px-2 py-1 text-[#3b82f6]">F1</div>
-                <span className="text-sm font-semibold">F1 Tax Helper</span>
-              </Link>
-              <Link to="/" className="hidden text-sm text-slate-400 transition-colors hover:text-slate-200 lg:block">
-                ← Back to Home
-              </Link>
-              <div className="flex items-center gap-3">
-                <span className="hidden text-xs text-slate-600 sm:block">Tax Year 2025 · Form 8843</span>
-                <button
-                  type="button"
-                  onClick={() => { try { sessionStorage.setItem(STORAGE_KEY, JSON.stringify(formData)) } catch {} }}
-                  className="rounded-lg border border-[#1e293b] bg-transparent px-3 py-1.5 text-xs text-[#64748b] transition-colors hover:border-[#2d4a6e] hover:text-[#f8fafc]"
+          <label className="text-xs text-muted-foreground">
+            Income year
+            <select
+              aria-label="Income year"
+              disabled={generating}
+              value={year}
+              onChange={(e) => {
+                setYear(Number(e.target.value))
+                setNotice('')
+              }}
+              className={inputClass}
+            >
+              <option value={2026}>2026 · prepare for 2027</option>
+              <option value={2025}>2025 · prior-year filing</option>
+            </select>
+          </label>
+        </div>
+        <div className="grid items-start gap-8 lg:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]">
+          <section className="min-w-0 rounded-2xl border border-border bg-surface p-5 sm:p-8">
+            {success ? (
+              <div className="animate-fade-up space-y-5">
+                <Check className="h-10 w-10 text-success" />
+                <h2 className="text-xl font-semibold text-headline">
+                  Your {year} form has downloaded.
+                </h2>
+                <p className="text-sm leading-relaxed">
+                  Review every entry and any supporting statements. When filing standalone, print,
+                  sign and date page 2. If filing a tax return, attach Form 8843 as instructed. This
+                  app does not submit anything to the IRS.
+                </p>
+                <p className="text-sm text-warning">
+                  For {year}, the usual standalone no-return deadline was{' '}
+                  {filingDeadline(false, year)}. If filing late, review the IRS instructions or seek
+                  qualified help; generating a form does not establish eligibility.
+                </p>
+                <a
+                  href={SOURCES.form8843}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block text-sm text-primary hover:underline"
                 >
-                  Save Progress
-                </button>
+                  Check the IRS filing and mailing instructions →
+                </a>
                 <button
-                  type="button"
-                  onClick={handleClearData}
-                  className="rounded-lg border border-[#1e293b] bg-transparent px-3 py-1.5 text-xs text-[#64748b] transition-colors hover:border-[#2d4a6e] hover:text-[#f8fafc]"
+                  className="btn-ghost"
+                  onClick={() => {
+                    setSuccess(false)
+                    setReview(true)
+                  }}
                 >
-                  {clearLabel}
+                  Review or download again
                 </button>
               </div>
-            </div>
-
-            <div className="h-px w-full bg-[#1e293b]">
-              <div
-                className="h-full bg-[#3b82f6] transition-all duration-500"
-                style={{ width: `${progressPct}%` }}
-              />
-            </div>
-          </header>
-
-          <DisclaimerBanner />
-
-          {/* Data safety badge */}
-          <div className="border-b border-green-500/10 bg-green-500/5 px-4 py-2 sm:px-8">
-            <div className="flex items-center gap-2">
-              <svg className="h-3.5 w-3.5 shrink-0 text-green-400" viewBox="0 0 24 24" fill="currentColor">
-                <path fillRule="evenodd" d="M12 1.5a5.25 5.25 0 00-5.25 5.25v3a3 3 0 00-3 3v6.75a3 3 0 003 3h10.5a3 3 0 003-3v-6.75a3 3 0 00-3-3v-3A5.25 5.25 0 0012 1.5zm-3.75 8.25v-3a3.75 3.75 0 117.5 0v3h-7.5z" clipRule="evenodd" />
-              </svg>
-              <p className="text-xs text-green-400">
-                Your form data is stored temporarily in your browser and cleared when you close the tab. Nothing is sent to our servers.
-              </p>
-            </div>
-          </div>
-
-          {/* Restore banner */}
-          {showRestoreBanner && (
-            <div className="border-b border-blue-500/20 bg-blue-500/10 px-4 py-2.5 sm:px-8">
-              <div className="flex items-center justify-between gap-4">
-                <p className="text-xs text-blue-300">📋 Saved progress found. Continue where you left off?</p>
-                <div className="flex shrink-0 items-center gap-3">
-                  <button onClick={() => setShowRestoreBanner(false)} className="text-xs font-semibold text-blue-300 underline">
-                    Yes, restore
-                  </button>
-                  <span className="text-xs text-slate-700">·</span>
-                  <button
-                    onClick={() => { setShowRestoreBanner(false); handleReset() }}
-                    className="text-xs text-slate-500 underline"
+            ) : (
+              <>
+                <div className="mb-6">
+                  <div className="mb-3 flex justify-between text-xs text-muted-foreground">
+                    <span>{review ? 'Final review' : `Step ${step + 1} of ${STEPS.length}`}</span>
+                    <span>Tax year {year}</span>
+                  </div>
+                  <div
+                    role="progressbar"
+                    aria-label="Form preparation progress"
+                    aria-valuemin={0}
+                    aria-valuemax={100}
+                    aria-valuenow={review ? 100 : step * 20}
+                    className="h-1 overflow-hidden rounded-full bg-border"
                   >
-                    Start fresh
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Scroll area */}
-          <main className="flex-1 overflow-y-auto px-4 py-8 sm:px-8 lg:px-10">
-            <div className="flex items-start gap-8">
-            <div className="w-full lg:w-[55%]">
-            <div className="max-w-2xl">
-
-              {/* Page title */}
-              <div className="mb-6">
-                <span className="font-mono text-[10px] uppercase tracking-widest text-[#475569]">
-                  Free · No Login Required
-                </span>
-                <h1 className="mt-1 text-xl font-semibold text-[#f8fafc]">
-                  {showReview ? 'Review & Generate' : STEP_META[step].label}
-                </h1>
-                {!showReview && (
-                  <p className="mt-1 text-sm text-slate-500">
-                    {STEP_META[step].section} · {STEP_META[step].sub}
-                  </p>
-                )}
-              </div>
-
-              {/* Mobile step bar */}
-              <div className="mb-6 lg:hidden">
-                <div className="flex gap-1">
-                  {STEP_META.map((m, i) => (
                     <div
-                      key={m.label}
-                      className={`flex flex-1 flex-col items-center gap-1 rounded-xl py-1.5 text-[10px] font-medium transition-colors ${
-                        (!showReview && i === step) ? 'bg-[#3b82f6]/10 text-[#3b82f6]'
-                        : (showReview || i < step)  ? 'text-[#22c55e]'
-                        : 'text-[#64748b]'
-                      }`}
+                      className="h-full bg-primary transition-all duration-500"
+                      style={{ width: `${review ? 100 : step * 20}%` }}
+                    />
+                  </div>
+                </div>
+                <div key={`${step}:${review}`} className="animate-fade-up">
+                  <h2
+                    ref={heading}
+                    tabIndex={-1}
+                    className="mb-6 text-xl font-semibold text-headline outline-none"
+                  >
+                    {review ? 'Review your information' : STEPS[step]}
+                  </h2>
+                  {notice && (
+                    <p
+                      role="alert"
+                      className="mb-5 rounded-xl border border-warning/30 bg-warning-soft p-3 text-sm text-warning"
                     >
-                      <span className="text-xs">
-                        {showReview || i < step ? '✓' : i + 1}
-                      </span>
-                      <span className="hidden sm:block">{m.label.split(' ')[0]}</span>
-                    </div>
-                  ))}
-                  <div className={`flex flex-1 flex-col items-center gap-1 rounded-xl py-1.5 text-[10px] font-medium ${showReview ? 'bg-[#3b82f6]/10 text-[#3b82f6]' : 'text-[#64748b]'}`}>
-                    <span className="text-xs">★</span>
-                    <span className="hidden sm:block">Review</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* ── STEP 0: Your Information ─────────────────────────────────── */}
-              {step === 0 && !showReview && (
-                <div key="step0" className="step-enter space-y-5">
-                  <div className="rounded-2xl border border-[#1e293b] bg-[#0f172a] p-4 sm:p-6">
-                    <h2 className="mb-4 text-sm font-semibold text-white">
-                      Personal Details
-                      <span className="ml-2 text-xs font-normal text-slate-500">as shown on your passport</span>
-                    </h2>
-                    <div className="space-y-4">
-                      <div className="grid grid-cols-[1fr_80px] gap-3">
-                        <Field
-                          name="firstName" placeholder="e.g. Kiran" maxLength={20}
-                          helper="As shown on your passport"
-                          {...fp('firstName')}
-                        />
-                        <Field
-                          name="middleInitial" placeholder="K" maxLength={1}
-                          value={formData.middleInitial}
-                          onChange={(e) => {
-                            const v = e.target.value.replace(/[^a-zA-Z]/g, '').slice(0, 1).toUpperCase()
-                            setFormData((p) => ({ ...p, middleInitial: v }))
-                            if (errors.middleInitial) setErrors((p) => ({ ...p, middleInitial: undefined }))
-                          }}
-                          error={errors.middleInitial}
-                          required={false}
-                        />
-                      </div>
-                      <Field
-                        name="lastName" placeholder="e.g. Shahi" maxLength={25}
-                        helper="As shown on your passport"
-                        {...fp('lastName')}
-                      />
-                      <Field
-                        name="countryOfCitizenship" placeholder="e.g. India"
-                        helper="Country that issued your passport"
-                        {...fp('countryOfCitizenship')}
-                      />
-                      <Field
-                        name="currentImmigrationStatus" placeholder="e.g. F-1"
-                        helper="Most international students select F-1."
-                        value={formData.currentImmigrationStatus} onChange={set('currentImmigrationStatus')}
-                        error={errors.currentImmigrationStatus} required={false}
-                      />
-                      <div>
-                        <label className="mb-1.5 block text-xs font-medium text-slate-400">Tax Year</label>
-                        <div className="inline-flex h-11 items-center rounded-xl border border-blue-500/30 bg-blue-500/10 px-4">
-                          <span className="text-sm font-bold text-blue-300">2025</span>
-                        </div>
-                      </div>
-                      <Field
-                        name="tinOrSSN" placeholder="e.g. 123-45-6789"
-                        helper="Leave blank if you don't have one."
-                        value={formData.tinOrSSN} onChange={set('tinOrSSN')}
-                        error={errors.tinOrSSN} required={false}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="rounded-2xl border border-[#1e293b] bg-[#0f172a] p-4 sm:p-6">
-                    <h2 className="mb-1 text-sm font-semibold text-white">Passport Details</h2>
-                    <p className="mb-4 text-xs text-slate-500">Optional — fills Lines 3a and 3b of Form 8843</p>
-                    <div className="space-y-4">
-                      <Field
-                        name="passportCountry" placeholder="e.g. India"
-                        helper="Country that issued your passport"
-                        value={formData.passportCountry} onChange={set('passportCountry')}
-                        error={errors.passportCountry} required={false}
-                      />
-                      <Field
-                        name="passportNumber" placeholder="e.g. A1234567"
-                        helper="As shown on the bio-data page of your passport"
-                        value={formData.passportNumber} onChange={set('passportNumber')}
-                        error={errors.passportNumber} required={false}
-                      />
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* ── STEP 1: Your Address ──────────────────────────────────────── */}
-              {step === 1 && !showReview && (
-                <div key="step1" className="step-enter space-y-5">
-                  <div className="rounded-2xl border border-[#1e293b] bg-[#0f172a] p-4 sm:p-6">
-                    <h2 className="mb-4 text-sm font-semibold text-white">US Mailing Address</h2>
-                    <div className="space-y-4">
-                      <Field
-                        name="usStreet" placeholder="e.g. 123 Main St, Apt 4B" maxLength={35}
-                        helper="Your current US address"
-                        {...fp('usStreet')}
-                      />
-                      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-                        <Field name="usCity" placeholder="e.g. Los Angeles" maxLength={22} {...fp('usCity')} />
-                        <Field
-                          name="usState" placeholder="CA" maxLength={2}
-                          {...fp('usState')} onChange={setUpper('usState')}
-                          helper="2-letter code"
-                        />
-                        <Field
-                          name="usZip" placeholder="90024" maxLength={5}
-                          {...fp('usZip')} onChange={setZip('usZip')}
-                          helper="5-digit ZIP"
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="rounded-2xl border border-[#1e293b] bg-[#0f172a] p-4 sm:p-6">
-                    <h2 className="mb-1 text-sm font-semibold text-white">Foreign Address</h2>
-                    <p className="mb-4 text-xs text-slate-500">Optional — your address in your home country (Line 7 of Form 8843)</p>
-                    <div>
-                      <label className="mb-1.5 block text-xs font-medium text-slate-400">
-                        {LABELS.foreignAddress}
-                      </label>
-                      <textarea
-                        value={formData.foreignAddress}
-                        onChange={set('foreignAddress')}
-                        placeholder="e.g. 45 Park Street, Mumbai 400001, India"
-                        rows={3}
-                        maxLength={200}
-                        className="w-full rounded-xl border border-[#1e293b] bg-[#0f172a] px-4 py-3 text-sm text-[#f8fafc] placeholder:text-[#475569] focus:border-[#3b82f6] focus:outline-none focus:ring-1 focus:ring-[#3b82f6]/20 transition-colors resize-none"
-                      />
-                      <p className="mt-1 text-xs text-slate-500">Street, city, country</p>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* ── STEP 2: Your School ───────────────────────────────────────── */}
-              {step === 2 && !showReview && (
-                <div key="step2" className="step-enter space-y-5">
-                  <InfoBanner>
-                    F-1 students complete Part III of Form 8843. Enter your school's official information exactly as it appears on your I-20.
-                  </InfoBanner>
-                  <div className="rounded-2xl border border-[#1e293b] bg-[#0f172a] p-4 sm:p-6">
-                    <h2 className="mb-4 text-sm font-semibold text-white">Academic Institution Information</h2>
-                    <div className="space-y-4">
-                      <Field
-                        name="schoolName" placeholder="e.g. University of California, Los Angeles"
-                        maxLength={60} helper="Full official name of your institution"
-                        {...fp('schoolName')}
-                      />
-                      <Field
-                        name="schoolStreet" placeholder="e.g. 405 Hilgard Ave" maxLength={35}
-                        {...fp('schoolStreet')}
-                      />
-                      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-                        <Field name="schoolCity" placeholder="e.g. Los Angeles" maxLength={22} {...fp('schoolCity')} />
-                        <Field
-                          name="schoolState" placeholder="CA" maxLength={2}
-                          {...fp('schoolState')} onChange={setUpper('schoolState')}
-                          helper="2-letter code"
-                        />
-                        <Field
-                          name="schoolZip" placeholder="90024" maxLength={5}
-                          {...fp('schoolZip')} onChange={setZip('schoolZip')}
-                          helper="5-digit ZIP"
-                        />
-                      </div>
-                      <Field
-                        name="schoolPhone" placeholder="(310) 825-4321" type="tel"
-                        helper="Main campus or international office number"
-                        {...fp('schoolPhone')} onChange={setPhone('schoolPhone')}
-                      />
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* ── STEP 3: Your DSO ──────────────────────────────────────────── */}
-              {step === 3 && !showReview && (
-                <div key="step3" className="step-enter space-y-5">
-                  <InfoBanner>
-                    Your DSO (Designated School Official) is listed on your I-20 document. Enter their contact information as it appears there.
-                  </InfoBanner>
-                  <div className="rounded-2xl border border-[#1e293b] bg-[#0f172a] p-4 sm:p-6">
-                    <h2 className="mb-4 text-sm font-semibold text-white">Designated School Official (DSO)</h2>
-                    <div className="space-y-4">
-                      <Field
-                        name="dsoName" placeholder="e.g. Jane Smith" maxLength={50}
-                        helper="Name of your international student advisor"
-                        {...fp('dsoName')}
-                      />
-                      <Field
-                        name="dsoPhone" placeholder="(310) 825-0000" type="tel"
-                        helper="Found on your I-20 or school website"
-                        {...fp('dsoPhone')} onChange={setPhone('dsoPhone')}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="rounded-2xl border border-[#1e293b] bg-[#0f172a] p-4 sm:p-6">
-                    <h2 className="mb-1 text-sm font-semibold text-white">DSO Office Address</h2>
-                    <p className="mb-4 text-xs text-slate-500">Optional — enter if available on your I-20</p>
-                    <div className="space-y-4">
-                      <Field
-                        name="dsoStreet" placeholder="e.g. 405 Hilgard Ave, Suite 200" maxLength={35}
-                        value={formData.dsoStreet} onChange={set('dsoStreet')}
-                        error={errors.dsoStreet} required={false}
-                      />
-                      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-                        <Field
-                          name="dsoCity" placeholder="e.g. Los Angeles" maxLength={22}
-                          value={formData.dsoCity} onChange={set('dsoCity')}
-                          error={errors.dsoCity} required={false}
-                        />
-                        <Field
-                          name="dsoState" placeholder="CA" maxLength={2}
-                          value={formData.dsoState} onChange={setUpper('dsoState')}
-                          error={errors.dsoState} required={false}
-                          helper="2-letter code"
-                        />
-                        <Field
-                          name="dsoZip" placeholder="90024" maxLength={5}
-                          value={formData.dsoZip} onChange={setZip('dsoZip')}
-                          error={errors.dsoZip} required={false}
-                          helper="5-digit ZIP"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* ── STEP 4: Visa & Presence ───────────────────────────────────── */}
-              {step === 4 && !showReview && (
-                <div key="step4" className="step-enter space-y-5">
-                  <div className="rounded-2xl border border-[#1e293b] bg-[#0f172a] p-4 sm:p-6">
-                    <h2 className="mb-4 text-sm font-semibold text-white">Visa & Entry</h2>
-                    <div className="space-y-4">
-                      <Field
-                        name="currentEntryDate" placeholder="MM/DD/YYYY"
-                        helper="Your most recent U.S. entry — check your I-94 at cbp.dhs.gov"
-                        {...fp('currentEntryDate')} onChange={setDate('currentEntryDate')}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="rounded-2xl border border-[#1e293b] bg-[#0f172a] p-4 sm:p-6">
-                    <h2 className="mb-1 text-sm font-semibold text-white">Days Present in the U.S.</h2>
-                    <p className="mb-4 text-xs text-slate-500">Optional — Part I, Line 4. F-1 students are typically exempt and leave these blank.</p>
-                    <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-                      {['daysIn2025', 'daysIn2024', 'daysIn2023', 'daysToExclude'].map((f) => (
-                        <div key={f}>
-                          <label className="mb-1.5 block text-xs font-medium text-slate-400">
-                            {f === 'daysToExclude' ? 'Exempt Days' : LABELS[f].replace('Days Present in U.S. in ', '')}
-                          </label>
-                          <input
-                            type="text"
-                            inputMode="numeric"
-                            value={formData[f]}
-                            onChange={setDays(f)}
-                            placeholder="0"
-                            maxLength={3}
-                            className={`${inputBase} ${errors[f] ? 'border-red-500/60' : ''}`}
-                          />
-                          {errors[f] && <p className="mt-1 text-xs text-red-400">{errors[f]}</p>}
-                          {f === 'daysToExclude' && !errors[f] && (
-                            <p className="mt-1 text-xs text-slate-500">For most F-1 students in their first 5 years, this equals your total days present above.</p>
-                          )}
+                      {notice}
+                    </p>
+                  )}
+                  {review ? (
+                    <div className="space-y-5">
+                      {FIELDS.map((fields, index) => (
+                        <div key={index} className="rounded-xl border border-border p-4">
+                          <div className="mb-3 flex items-center justify-between">
+                            <h3 className="text-sm font-semibold text-headline">{STEPS[index]}</h3>
+                            <button
+                              onClick={() => {
+                                setStep(index)
+                                setReview(false)
+                              }}
+                              className="text-xs text-primary"
+                            >
+                              Edit
+                            </button>
+                          </div>
+                          <dl className="space-y-2 text-sm">
+                            {fields.map(([name, label]) => (
+                              <div key={name} className="grid gap-1 sm:grid-cols-2">
+                                <dt className="text-muted-foreground">{label}</dt>
+                                <dd className="break-words">
+                                  {name === 'tinOrSSN' && data[name]
+                                    ? `Ending ${data[name].slice(-4)}`
+                                    : data[name] || 'Not provided'}
+                                </dd>
+                              </div>
+                            ))}
+                          </dl>
                         </div>
                       ))}
+                      <div className="rounded-xl border border-border p-4 text-sm">
+                        <p>
+                          {presenceYears(year)
+                            .map(
+                              (y, i) =>
+                                `${y}: ${data[['daysCurrent', 'daysPrevious', 'daysPrior'][i]]} days`,
+                            )
+                            .join(' · ')}
+                        </p>
+                        <p className="mt-2">
+                          {year} days excluded: {data.daysToExclude}
+                        </p>
+                        <p className="mt-2">
+                          Prior visa history:{' '}
+                          {visaYears(year)
+                            .map((y) => `${y}: ${data.visaHistory[y]}`)
+                            .join(', ')}
+                        </p>
+                        <p className="mt-2">
+                          Line 12 (more than five exempt years): {data.line12Answer}. Line 13
+                          (permanent-residence steps): {data.line13Answer}.
+                        </p>
+                        {[data.visaChanges, data.line12Explanation, data.line14Explanation]
+                          .filter(Boolean)
+                          .map((v, i) => (
+                            <p key={i} className="mt-2 whitespace-pre-wrap break-words">
+                              {v}
+                            </p>
+                          ))}
+                      </div>
+                      {!ready && (
+                        <p className="rounded-xl border border-warning/30 bg-warning-soft p-4 text-sm text-warning">
+                          Preparation only. The final {year} IRS form is not yet verified for
+                          download. Your draft stays in this tab. Review your actual full-year
+                          information before filing.
+                        </p>
+                      )}
+                      <button
+                        onClick={generate}
+                        disabled={!ready || generating}
+                        className="btn-primary w-full justify-center disabled:cursor-not-allowed disabled:opacity-50"
+                      >
+                        <Download className="h-4 w-4" />
+                        {generating
+                          ? 'Preparing PDF…'
+                          : ready
+                            ? `Generate & download ${year} form`
+                            : 'Awaiting final 2026 IRS form'}
+                      </button>
                     </div>
-                  </div>
-
-                  <div className="rounded-2xl border border-[#1e293b] bg-[#0f172a] p-4 sm:p-6">
-                    <h2 className="mb-1 text-sm font-semibold text-white">Status Questions</h2>
-                    <p className="mb-4 text-xs text-slate-500">Part III, Lines 12–14. Most F-1 students answer No to both.</p>
-                    <div className="space-y-5">
-                      <YesNoField
-                        name="line12Answer"
-                        label="Line 12: Have you previously applied to be a lawful permanent resident of the United States, or ever filed Form I-508?"
-                        value={formData.line12Answer}
-                        onChange={(v) => setRadio('line12Answer', v)}
-                        error={errors.line12Answer}
-                        required
-                        helper="Answer Yes only if you have applied for a green card"
-                      />
-                      <YesNoField
-                        name="line13Answer"
-                        label="Line 13: Have you ever been exempt from counting days of presence in the U.S. as a student, teacher, or trainee before the current year?"
-                        value={formData.line13Answer}
-                        onChange={(v) => setRadio('line13Answer', v)}
-                        error={errors.line13Answer}
-                        required
-                        helper="Answer Yes if you previously claimed exempt status on an earlier Form 8843"
-                      />
-                      {formData.line13Answer === 'yes' && (
-                        <div>
-                          <label className="mb-1.5 block text-xs font-medium text-slate-400">
-                            {LABELS.line14Explanation}
-                            <span className="ml-1 text-red-400">*</span>
-                          </label>
-                          <textarea
-                            value={formData.line14Explanation}
-                            onChange={set('line14Explanation')}
-                            placeholder="Explain the years and visa types for your prior exempt status..."
-                            rows={3}
-                            maxLength={300}
-                            className={`w-full rounded-xl border border-[#1e293b] bg-[#0f172a] px-4 py-3 text-sm text-[#f8fafc] placeholder:text-[#475569] focus:border-[#3b82f6] focus:outline-none focus:ring-1 focus:ring-[#3b82f6]/20 transition-colors resize-none ${errors.line14Explanation ? 'border-red-500/60' : ''}`}
+                  ) : (
+                    <>
+                      {step === 1 && (
+                        <p className="mb-5 text-sm text-muted-foreground">
+                          For a standalone form, enter your address in your country of residence and
+                          your US address if applicable. No US address? Leave those four fields
+                          blank.
+                        </p>
+                      )}
+                      {step === 3 && (
+                        <button
+                          onClick={() =>
+                            setData((p) => ({
+                              ...p,
+                              dsoStreet: p.schoolStreet,
+                              dsoCity: p.schoolCity,
+                              dsoState: p.schoolState,
+                              dsoZip: p.schoolZip,
+                            }))
+                          }
+                          className="mb-5 text-sm text-primary hover:underline"
+                        >
+                          Use my school's address for the DSO office
+                        </button>
+                      )}
+                      <div className="grid gap-5 sm:grid-cols-2">
+                        {FIELDS[step].map(([name, label]) => (
+                          <Field
+                            key={name}
+                            name={name}
+                            label={label}
+                            value={data[name]}
+                            error={errors[name]}
+                            onChange={(e) => set(name, e.target.value)}
+                            multiline={name === 'foreignAddress'}
+                            autoComplete={
+                              ['tinOrSSN', 'passportNumber'].includes(name) ? 'off' : undefined
+                            }
                           />
-                          {errors.line14Explanation && <p className="mt-1 text-xs text-red-400">{errors.line14Explanation}</p>}
+                        ))}
+                      </div>
+                      {step === 4 && (
+                        <div className="mt-7 space-y-6">
+                          <div>
+                            <h3 className="mb-3 text-sm font-semibold text-headline">
+                              Actual presence · Part I, line 4
+                            </h3>
+                            <p className="mb-4 text-xs leading-relaxed text-muted-foreground">
+                              Count actual days for each year. Enter 0 when you were absent. Line 4b
+                              uses only eligible excluded days in {year}, never the sum of all three
+                              years.
+                            </p>
+                            <div className="grid gap-4 sm:grid-cols-2">
+                              {['daysCurrent', 'daysPrevious', 'daysPrior', 'daysToExclude'].map(
+                                (name, i) => (
+                                  <Field
+                                    key={name}
+                                    name={name}
+                                    label={
+                                      i < 3
+                                        ? `Days present in ${year - i}`
+                                        : `Eligible days to exclude in ${year}`
+                                    }
+                                    value={data[name]}
+                                    error={errors[name]}
+                                    onChange={(e) => set(name, e.target.value)}
+                                    inputMode="numeric"
+                                    maxLength={3}
+                                  />
+                                ),
+                              )}
+                            </div>
+                          </div>
+                          <div>
+                            <h3 className="mb-3 text-sm font-semibold text-headline">
+                              Visa history · Part III, line 11
+                            </h3>
+                            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+                              {visaYears(year).map((y) => (
+                                <div key={y}>
+                                  <label htmlFor={`visa-${y}`} className="text-xs text-body">
+                                    {y}
+                                  </label>
+                                  <select
+                                    id={`visa-${y}`}
+                                    value={data.visaHistory[y]}
+                                    onChange={(e) =>
+                                      set('visaHistory', {
+                                        ...data.visaHistory,
+                                        [y]: e.target.value,
+                                      })
+                                    }
+                                    className={inputClass}
+                                    aria-invalid={Boolean(errors[`visa-${y}`])}
+                                  >
+                                    <option value="">Select</option>
+                                    {[
+                                      'F-1',
+                                      'F-2',
+                                      'J-1',
+                                      'J-2',
+                                      'M-1',
+                                      'Q-1',
+                                      'None',
+                                      'Changed',
+                                    ].map((v) => (
+                                      <option key={v}>{v}</option>
+                                    ))}
+                                  </select>
+                                  {errors[`visa-${y}`] && (
+                                    <p className="mt-1 text-xs text-danger">
+                                      {errors[`visa-${y}`]}
+                                    </p>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                            <p className="mt-3 text-xs text-muted-foreground">
+                              None means no F/J/M/Q status that year. Select Changed for multiple
+                              visa types and provide the dates below.
+                            </p>
+                          </div>
+                          <Field
+                            name="visaChanges"
+                            label="Visa changes and dates, if any (attached statement)"
+                            value={data.visaChanges}
+                            onChange={(e) => set('visaChanges', e.target.value)}
+                            error={errors.visaChanges}
+                            multiline
+                          />
+                          <YesNo
+                            name="line12Answer"
+                            label="Line 12: Were you exempt as a teacher, trainee or student for any part of more than five calendar years?"
+                            data={data}
+                            set={set}
+                            error={errors.line12Answer}
+                          />
+                          {data.line12Answer === 'yes' && (
+                            <Field
+                              name="line12Explanation"
+                              label="Facts supporting continued student day exclusions (attached statement). Review eligibility with a qualified preparer."
+                              value={data.line12Explanation}
+                              onChange={(e) => set('line12Explanation', e.target.value)}
+                              error={errors.line12Explanation}
+                              multiline
+                            />
+                          )}
+                          <YesNo
+                            name="line13Answer"
+                            label={`Line 13: During ${year}, did you apply, take affirmative steps to apply, or have a pending application for US lawful permanent residence?`}
+                            data={data}
+                            set={set}
+                            error={errors.line13Answer}
+                          />
+                          {data.line13Answer === 'yes' && (
+                            <Field
+                              name="line14Explanation"
+                              label="Line 14: Explain the application or steps taken (attached statement)"
+                              value={data.line14Explanation}
+                              onChange={(e) => set('line14Explanation', e.target.value)}
+                              error={errors.line14Explanation}
+                              multiline
+                            />
+                          )}
                         </div>
                       )}
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* ── REVIEW SCREEN ─────────────────────────────────────────────── */}
-              {showReview && (
-                <div key="review" className="step-enter space-y-4">
-                  <p className="text-sm text-slate-400">
-                    Check your details below. Click <strong className="text-slate-300">Edit</strong> on any card to make changes.
-                  </p>
-
-                  <SummaryCard
-                    title="Personal Information" icon="👤"
-                    onEdit={() => goToStep(0)}
-                    rows={[
-                      ['Full Name', `${formData.firstName}${formData.middleInitial ? ' ' + formData.middleInitial + '.' : ''} ${formData.lastName}`.trim()],
-                      ['Country of Citizenship', formData.countryOfCitizenship],
-                      ['Passport Country', formData.passportCountry || '—'],
-                      ['Passport Number', formData.passportNumber || '—'],
-                      ['Tax Year', formData.taxYear || '2025'],
-                    ]}
-                  />
-
-                  <SummaryCard
-                    title="Address" icon="🏠"
-                    onEdit={() => goToStep(1)}
-                    rows={[
-                      ['US Address', [formData.usStreet, formData.usCity, `${formData.usState} ${formData.usZip}`].filter(Boolean).join(', ')],
-                      ['Foreign Address', formData.foreignAddress || '—'],
-                    ]}
-                  />
-
-                  <SummaryCard
-                    title="School Information" icon="🏫"
-                    onEdit={() => goToStep(2)}
-                    rows={[
-                      ['School Name', formData.schoolName],
-                      ['School Address', [formData.schoolStreet, formData.schoolCity, `${formData.schoolState} ${formData.schoolZip}`].filter(Boolean).join(', ')],
-                      ['School Phone', formData.schoolPhone],
-                    ]}
-                  />
-
-                  <SummaryCard
-                    title="DSO Information" icon="📋"
-                    onEdit={() => goToStep(3)}
-                    rows={[
-                      ['DSO Name', formData.dsoName],
-                      ['DSO Phone', formData.dsoPhone],
-                      ['DSO Address', [formData.dsoStreet, formData.dsoCity, `${formData.dsoState} ${formData.dsoZip}`].filter(Boolean).join(', ') || '—'],
-                    ]}
-                  />
-
-                  <SummaryCard
-                    title="Visa & Presence" icon="✈️"
-                    onEdit={() => goToStep(4)}
-                    rows={[
-                      ['Visa Type', formData.currentImmigrationStatus || 'F-1'],
-                      ['Most Recent U.S. Entry', formData.currentEntryDate],
-                      ['Days Present 2025', formData.daysIn2025 || '—'],
-                      ['Days Present 2024', formData.daysIn2024 || '—'],
-                      ['Days Present 2023', formData.daysIn2023 || '—'],
-                      ['Exempt Days', formData.daysToExclude || '—'],
-                      ['Line 12 (Green card application)', formData.line12Answer?.toUpperCase() || '—'],
-                      ['Line 13 (Prior exempt status)', formData.line13Answer?.toUpperCase() || '—'],
-                      ...(formData.line13Answer === 'yes' ? [['Line 14 Explanation', formData.line14Explanation]] : []),
-                    ]}
-                  />
-
-                  <div className="pt-2">
+                      <button onClick={next} className="btn-primary mt-8 w-full justify-center">
+                        {step === 4 ? 'Review my information' : 'Continue →'}
+                      </button>
+                    </>
+                  )}
+                  {(step > 0 || review) && (
                     <button
-                      type="button"
-                      onClick={handleGenerate}
-                      disabled={generating}
-                      className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[#3b82f6] py-4 text-sm font-semibold text-white transition-all duration-150 hover:bg-[#2563eb] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-70"
+                      className="mt-5 text-sm text-muted-foreground hover:text-body"
+                      onClick={() => {
+                        if (review) setReview(false)
+                        else setStep(step - 1)
+                        setErrors({})
+                        setNotice('')
+                      }}
                     >
-                      {generating ? (
-                        <>
-                          <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
-                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
-                          </svg>
-                          Generating your Form 8843…
-                        </>
-                      ) : 'Generate & Download Form 8843 →'}
+                      ← Back
                     </button>
-
-                    {genError && <p className="mt-2 text-center text-xs text-red-400">{genError}</p>}
-
-                    <div className="mt-3 rounded-xl border border-yellow-500/20 bg-yellow-500/10 px-4 py-3">
-                      <p className="text-xs leading-5 text-yellow-200">
-                        ⚠️ Review all information carefully. Errors on Form 8843 can affect your immigration status.
-                      </p>
-                    </div>
-                    <p className="mt-2 text-center text-xs text-slate-600">
-                      Your form will be downloaded as a PDF. Sign and date it before filing.
-                    </p>
-                  </div>
+                  )}
                 </div>
-              )}
-
-              {/* Navigation buttons */}
-              <div className="mt-8 flex items-center justify-between">
-                {step > 0 || showReview ? (
-                  <button
-                    type="button"
-                    onClick={handleBack}
-                    className="rounded-xl border border-white/20 bg-white/5 px-5 py-2.5 text-sm font-medium text-slate-100 transition-colors hover:bg-white/10"
-                  >
-                    ← Back
-                  </button>
-                ) : <div />}
-
-                {!showReview && (
-                  <button
-                    type="button"
-                    onClick={handleNext}
-                    className="rounded-xl bg-[#3b82f6] px-6 py-2.5 text-sm font-semibold text-white transition-all duration-150 hover:bg-[#2563eb] active:scale-[0.98]"
-                  >
-                    {step === 4 ? 'Review →' : 'Next →'}
-                  </button>
-                )}
-              </div>
-
+              </>
+            )}
+          </section>
+          <aside className="min-w-0 lg:sticky lg:top-24">
+            <div className="mb-3 flex items-center justify-between text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
+              <span>Live preview · {year}</span>
+              <span>Preparation only</span>
             </div>
-            </div>
-
-            {/* ── LIVE PREVIEW (desktop only) ─────────────────────────────── */}
-            <div className="hidden lg:block lg:w-[45%] lg:sticky lg:top-20">
-              <p className="mb-3 font-mono text-[10px] uppercase tracking-widest text-[#475569]">
-                LIVE PREVIEW · FORM 8843 (2025)
-              </p>
-              <div className="rounded-xl border border-[#1e293b] bg-[#0f1629] p-4">
-                <FormPreview formData={formData} activeStep={step} showReview={showReview} />
-              </div>
-            </div>
-            </div>
-          </main>
+            <FormPreview formData={data} activeStep={step} showReview={review} />
+            <p className="mt-4 flex items-start gap-2 text-xs leading-relaxed text-muted-foreground">
+              <ShieldCheck className="h-4 w-4 shrink-0 text-primary" />
+              This preview is a guide, not an IRS form. Closing the tab or clearing data removes the
+              saved draft. Downloaded PDFs stay on your device.
+            </p>
+          </aside>
         </div>
-      </div>
+      </main>
     </div>
   )
 }

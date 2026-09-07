@@ -1,3 +1,5 @@
+import { seasonKey, removeStored } from '../../utils/storage.js'
+import { Link } from 'react-router-dom'
 import { useEffect, useMemo, useState } from 'react'
 import { Check, ChevronDown, X } from 'lucide-react'
 import { SECTIONS } from '../checklist/data'
@@ -17,9 +19,7 @@ const loadChecklistState = (allItemIds, storageKey) => {
       return Object.fromEntries(allItemIds.map((id) => [id, false]))
     }
     const parsed = JSON.parse(stored)
-    return Object.fromEntries(
-      allItemIds.map((id) => [id, Boolean(parsed[id])]),
-    )
+    return Object.fromEntries(allItemIds.map((id) => [id, parsed?.[id] === true]))
   } catch {
     return Object.fromEntries(allItemIds.map((id) => [id, false]))
   }
@@ -28,10 +28,7 @@ const loadChecklistState = (allItemIds, storageKey) => {
 const saveChecklistState = (state, storageKey) => {
   if (typeof window === 'undefined') return
   try {
-    window.localStorage.setItem(
-      storageKey,
-      JSON.stringify(state),
-    )
+    window.localStorage.setItem(storageKey, JSON.stringify(state))
   } catch {
     // ignore
   }
@@ -40,7 +37,7 @@ const saveChecklistState = (state, storageKey) => {
 export function ChatChecklistPanel({ onClose }) {
   const { user } = useAuth()
   const uid = user?.id || 'guest'
-  const checklistStorageKey = `${CHECKLIST_STORAGE_KEY}_${uid}`
+  const checklistStorageKey = seasonKey('reference-documents', uid)
   const allItemIds = useMemo(
     () => SECTIONS.flatMap((section) => section.items.map((item) => item.id)),
     [],
@@ -72,9 +69,7 @@ export function ChatChecklistPanel({ onClose }) {
   return (
     <div className="flex h-full flex-col bg-background">
       <div className="flex items-center justify-between border-b border-border px-4 py-3">
-        <h2 className="text-sm font-semibold text-foreground">
-          My Document Checklist
-        </h2>
+        <h2 className="text-sm font-semibold text-foreground">Document reference list</h2>
         <button
           type="button"
           onClick={onClose}
@@ -86,6 +81,13 @@ export function ChatChecklistPanel({ onClose }) {
       </div>
 
       <div className="border-b border-border px-4 py-3 text-xs text-muted-foreground">
+        <p className="mb-3">
+          Only collect documents that apply to you.{' '}
+          <Link to="/checklist" className="text-primary underline">
+            Open your personalized filing checklist
+          </Link>
+          .
+        </p>
         <div className="mb-1 flex items-center justify-between">
           <span>
             {completed} of {total} documents collected
@@ -108,9 +110,7 @@ export function ChatChecklistPanel({ onClose }) {
                 <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                   {section.title}
                 </h3>
-                <p className="text-[11px] text-muted-foreground/80">
-                  {section.description}
-                </p>
+                <p className="text-[11px] text-muted-foreground/80">{section.description}</p>
               </div>
               <ul className="space-y-3">
                 {section.items.map((item) => {
@@ -130,9 +130,9 @@ export function ChatChecklistPanel({ onClose }) {
                           onClick={() => toggleItem(item.id)}
                           className={cn(
                             'mt-0.5 flex h-4 w-4 items-center justify-center rounded border border-border bg-background transition-colors',
-                            isChecked &&
-                              'border-primary bg-primary text-primary-foreground',
+                            isChecked && 'border-primary bg-primary text-primary-foreground',
                           )}
+                          aria-label={`Mark ${item.name} collected`}
                           aria-pressed={isChecked}
                         >
                           {isChecked && <Check className="h-3 w-3" />}
@@ -140,9 +140,7 @@ export function ChatChecklistPanel({ onClose }) {
                         <div className="flex-1 space-y-1">
                           <div className="flex items-start justify-between gap-2">
                             <div>
-                              <p className="text-xs font-medium text-foreground">
-                                {item.name}
-                              </p>
+                              <p className="text-xs font-medium text-foreground">{item.name}</p>
                               <p className="text-[11px] text-muted-foreground">
                                 {item.description}
                               </p>
@@ -155,10 +153,7 @@ export function ChatChecklistPanel({ onClose }) {
                           >
                             <span>What is this?</span>
                             <ChevronDown
-                              className={cn(
-                                'h-3 w-3 transition-transform',
-                                isOpen && 'rotate-180',
-                              )}
+                              className={cn('h-3 w-3 transition-transform', isOpen && 'rotate-180')}
                             />
                           </button>
                           {isOpen && (
@@ -183,7 +178,7 @@ export function ChatChecklistPanel({ onClose }) {
         <button
           type="button"
           onClick={() => {
-            localStorage.removeItem(checklistStorageKey)
+            removeStored(checklistStorageKey)
             const reset = Object.fromEntries(allItemIds.map((id) => [id, false]))
             setChecked(reset)
           }}
@@ -195,4 +190,3 @@ export function ChatChecklistPanel({ onClose }) {
     </div>
   )
 }
-

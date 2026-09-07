@@ -1,11 +1,4 @@
-// Single source of truth for tax treaty data.
-// Consumers: QuestionnairePage.jsx (COUNTRIES, getTreatyByCountryName).
-// The SYSTEM_PROMPT in api/chat.js duplicates the treaty prose (edge functions
-// can't import from src/) — keep them in sync when editing either.
-//
-// verified: true  → data came from this repo (TREATY_COUNTRIES / SYSTEM_PROMPT),
-//                   originally sourced from IRS Publication 901.
-// verified: false → generated placeholder, never checked against Pub 901.
+import { TAX_YEAR, STANDARD_DEDUCTION_SINGLE, SOURCES } from './taxSeason.js'
 
 export const COUNTRIES = [
   'Nepal',
@@ -202,211 +195,93 @@ export const COUNTRIES = [
 ]
 
 function slugify(name) {
-  return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
+  return name
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '')
 }
 
-const SOURCE = 'IRS Publication 901'
-
-// Entries whose data existed in this repo (TREATY_COUNTRIES in
-// QuestionnairePage + the treaty section of the api/chat.js SYSTEM_PROMPT).
-const VERIFIED_TREATIES = {
-  'india': {
-    name: 'India', slug: 'india', status: 'active',
-    article: 'Article 21(2)', wageCap: null,
-    scholarshipExempt: true, form8833Required: true,
+// Country names alone never establish treaty eligibility. Unreviewed coverage is
+// deliberately distinct from a verified absence of an income tax treaty.
+const REVIEWED = {
+  india: {
+    name: 'India',
+    status: 'active',
+    article: 'Article 21(2)',
     highlights: [
-      'Standard deduction allowed: $15,000 (2025, single filer)',
-      'Scholarship/fellowship income generally exempt',
+      `Eligible students/business apprentices may claim the $${STANDARD_DEDUCTION_SINGLE[TAX_YEAR].toLocaleString('en-US')} single-filer standard deduction for ${TAX_YEAR}, subject to individual limits.`,
+      'Article 21 is not a blanket exemption for US-paid scholarships or wages.',
     ],
-    effectiveNote: null, source: SOURCE, verified: true,
   },
-  'china': {
-    name: 'China', slug: 'china', status: 'active',
-    article: 'Article 20(c)', wageCap: 5000,
-    scholarshipExempt: true, form8833Required: true,
+  china: {
+    name: 'China',
+    status: 'active',
+    article: 'Article 20',
     highlights: [
-      'Wage exemption up to $5,000',
-      'Scholarship/fellowship income generally exempt',
+      'Qualifying students may exclude up to $5,000 of compensation under Article 20(c). Verify prior residence, purpose of visit, duration and the saving clause.',
     ],
-    effectiveNote: null, source: SOURCE, verified: true,
   },
   'south-korea': {
-    name: 'South Korea', slug: 'south-korea', status: 'active',
-    article: 'Article 21(1)', wageCap: 2000,
-    scholarshipExempt: true, form8833Required: true,
+    name: 'South Korea',
+    status: 'active',
+    article: 'Article 21',
     highlights: [
-      'Wage exemption up to $2,000 (time limit from date of arrival)',
-      'Scholarship/fellowship income generally exempt',
+      'Student benefits have income, purpose and time limits. Review the treaty and your university payroll documents.',
     ],
-    effectiveNote: null, source: SOURCE, verified: true,
   },
-  'germany': {
-    name: 'Germany', slug: 'germany', status: 'active',
-    article: 'Article 20', wageCap: null,
-    scholarshipExempt: true, form8833Required: true,
+  russia: {
+    name: 'Russia',
+    status: 'suspended',
+    article: null,
     highlights: [
-      'Student/trainee exemption available with a time limit',
-      'Scholarship/fellowship income generally exempt',
+      'Relevant treaty provisions were suspended effective August 16, 2024. Verify current status with the IRS.',
     ],
-    effectiveNote: null, source: SOURCE, verified: true,
   },
-  'canada': {
-    name: 'Canada', slug: 'canada', status: 'active',
-    article: 'Article XX', wageCap: null,
-    scholarshipExempt: true, form8833Required: true,
-    highlights: ['Scholarship/fellowship income generally exempt'],
-    effectiveNote: null, source: SOURCE, verified: true,
+  hungary: {
+    name: 'Hungary',
+    status: 'terminated',
+    article: null,
+    highlights: ['The treaty ceased to have effect for applicable income from January 1, 2024.'],
   },
-  'thailand': {
-    name: 'Thailand', slug: 'thailand', status: 'active',
-    article: 'Article 22', wageCap: null,
-    scholarshipExempt: true, form8833Required: true,
-    highlights: ['Scholarship/fellowship income generally exempt'],
-    effectiveNote: null, source: SOURCE, verified: true,
-  },
-  'philippines': {
-    name: 'Philippines', slug: 'philippines', status: 'active',
-    article: 'Article 20', wageCap: null,
-    scholarshipExempt: true, form8833Required: true,
-    highlights: ['Scholarship/fellowship income generally exempt'],
-    effectiveNote: null, source: SOURCE, verified: true,
-  },
-  'indonesia': {
-    name: 'Indonesia', slug: 'indonesia', status: 'active',
-    article: 'Article 19', wageCap: null,
-    scholarshipExempt: true, form8833Required: true,
-    highlights: ['Scholarship/fellowship income generally exempt'],
-    effectiveNote: null, source: SOURCE, verified: true,
-  },
-  'france': {
-    name: 'France', slug: 'france', status: 'active',
-    article: 'Article 21', wageCap: null,
-    scholarshipExempt: true, form8833Required: true,
-    highlights: ['Scholarship/fellowship income generally exempt'],
-    effectiveNote: null, source: SOURCE, verified: true,
-  },
-  'netherlands': {
-    name: 'Netherlands', slug: 'netherlands', status: 'active',
-    article: 'Article 22', wageCap: null,
-    scholarshipExempt: true, form8833Required: true,
-    highlights: ['Scholarship/fellowship income generally exempt'],
-    effectiveNote: null, source: SOURCE, verified: true,
-  },
-  'united-kingdom': {
-    name: 'United Kingdom', slug: 'united-kingdom', status: 'active',
-    article: 'Article 20', wageCap: null,
-    scholarshipExempt: true, form8833Required: true,
-    highlights: ['Scholarship/fellowship income generally exempt'],
-    effectiveNote: null, source: SOURCE, verified: true,
-  },
-  'japan': {
-    name: 'Japan', slug: 'japan', status: 'active',
-    article: 'Article 20', wageCap: null,
-    scholarshipExempt: true, form8833Required: true,
-    highlights: ['Scholarship/fellowship income generally exempt'],
-    effectiveNote: null, source: SOURCE, verified: true,
-  },
-  'russia': {
-    name: 'Russia', slug: 'russia', status: 'suspended',
-    article: null, wageCap: null,
-    scholarshipExempt: false, form8833Required: false,
-    highlights: [],
-    effectiveNote: 'Suspended effective August 16, 2024',
-    source: SOURCE, verified: true,
-  },
-  'hungary': {
-    name: 'Hungary', slug: 'hungary', status: 'terminated',
-    article: null, wageCap: null,
-    scholarshipExempt: false, form8833Required: false,
-    highlights: [],
-    effectiveNote: 'Terminated effective January 1, 2024',
-    source: SOURCE, verified: true,
+  nepal: {
+    name: 'Nepal',
+    status: 'none',
+    article: null,
+    highlights: [
+      'Nepal is not listed as a US income tax treaty partner in the IRS treaty directory.',
+    ],
   },
 }
-
 export const TREATIES = Object.fromEntries(
   COUNTRIES.map((name) => {
     const slug = slugify(name)
     return [
       slug,
-      VERIFIED_TREATIES[slug] ?? {
+      {
         name,
         slug,
-        status: 'none',
+        status: 'unreviewed',
         article: null,
-        wageCap: null,
-        scholarshipExempt: false,
-        form8833Required: false,
         highlights: [],
-        effectiveNote: null,
-        source: SOURCE,
+        source: SOURCES.treaties,
         verified: false,
+        ...REVIEWED[slug],
+        verified: Boolean(REVIEWED[slug]),
       },
     ]
   }),
 )
-
 export function getTreatyByCountryName(name) {
-  if (!name) return null
-  return TREATIES[slugify(name)] ?? null
+  return typeof name === 'string' ? (TREATIES[slugify(name)] ?? null) : null
 }
-
-// Countries believed to have a US tax treaty with a student article that is
-// NOT yet covered by the verified data in this repo. Their entries stay
-// status: 'none' until manually verified against IRS Pub 901 — do not trust
-// this list as treaty confirmation.
-export const TREATIES_NEEDING_REVIEW = [
-  'armenia',        // former-USSR treaty may apply
-  'australia',
-  'austria',
-  'azerbaijan',     // former-USSR treaty may apply
-  'bangladesh',
-  'barbados',
-  'belarus',        // former-USSR treaty may apply
-  'belgium',
-  'bulgaria',
-  'chile',
-  'cyprus',
-  'czech-republic',
-  'denmark',
-  'egypt',
-  'estonia',
-  'finland',
-  'georgia',        // former-USSR treaty may apply
-  'greece',
-  'iceland',
-  'ireland',
-  'israel',
-  'italy',
-  'jamaica',
-  'kazakhstan',
-  'kyrgyzstan',     // former-USSR treaty may apply
-  'latvia',
-  'lithuania',
-  'luxembourg',
-  'malta',
-  'mexico',
-  'moldova',        // former-USSR treaty may apply
-  'morocco',
-  'new-zealand',
-  'norway',
-  'pakistan',
-  'poland',
-  'portugal',
-  'romania',
-  'slovakia',
-  'slovenia',
-  'south-africa',
-  'spain',
-  'sri-lanka',
-  'sweden',
-  'switzerland',
-  'tajikistan',     // former-USSR treaty may apply
-  'trinidad-and-tobago',
-  'tunisia',
-  'turkey',
-  'turkmenistan',   // former-USSR treaty may apply
-  'ukraine',
-  'uzbekistan',     // former-USSR treaty may apply
-  'venezuela',
-]
+export function treatyGuidance(name) {
+  const treaty = getTreatyByCountryName(name)
+  if (!name) return ''
+  if (!treaty || treaty.status === 'unreviewed')
+    return `Treaty coverage for ${name} has not been reviewed in this app. This does not mean no treaty exists. Check the IRS treaty directory and your residence immediately before visiting the US.`
+  if (treaty.status !== 'active') return treaty.highlights.join(' ')
+  return `${treaty.name} (${treaty.article}): ${treaty.highlights.join(' ')} Eligibility depends on treaty residence, income and other conditions, not citizenship alone. Form 8833 is not universally required: student, trainee and scholarship benefits often have disclosure exceptions. Check the IRS treaty-benefit instructions; Form 8233 or W-8BEN may instead apply to withholding.`
+}
+export const TREATIES_NEEDING_REVIEW = Object.values(TREATIES)
+  .filter((t) => !t.verified)
+  .map((t) => t.slug)

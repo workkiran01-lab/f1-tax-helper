@@ -1,3 +1,5 @@
+import { readChatStream, safeIRSUrl } from '../../utils/chatStream.js'
+import { TAX_YEAR, FILING_YEAR } from '../../data/taxSeason.js'
 import { useEffect, useMemo, useState, useRef, useCallback } from 'react'
 import { Link } from 'react-router-dom'
 import { ChevronDown, ClipboardList, Copy, Check } from 'lucide-react'
@@ -8,9 +10,7 @@ const MAX_INPUT = 2000
 function buildWelcomeMessage(initialContext) {
   if (initialContext?.answers) {
     const country = initialContext.answers.country || 'your home country'
-    const items = Array.isArray(initialContext.actionItems)
-      ? initialContext.actionItems
-      : []
+    const items = Array.isArray(initialContext.actionItems) ? initialContext.actionItems : []
     const itemsText = items.length ? items.map((i) => `- ${i}`).join('\n') : ''
 
     return {
@@ -27,7 +27,6 @@ function buildWelcomeMessage(initialContext) {
       "Hi! 👋 I'm your F1 Tax Helper. I help international students navigate US taxes. What questions do you have?",
   }
 }
-
 
 const suggestedQuestions = [
   'Do I need to file taxes?',
@@ -121,6 +120,7 @@ function WhySection({ text, isStreaming }) {
           userToggled.current = true
           setOpen((v) => !v)
         }}
+        aria-expanded={open}
         className="flex items-center gap-1.5"
       >
         <span className="font-mono text-[10px] uppercase tracking-widest text-[#8b5cf6]">WHY</span>
@@ -138,7 +138,9 @@ function WhySection({ text, isStreaming }) {
 }
 
 function ReferenceSection({ text }) {
-  const links = [...text.matchAll(/\[([^\]]+)\]\(([^)]+)\)/g)]
+  const links = [...text.matchAll(/\[([^\]]+)\]\(([^)]+)\)/g)].filter(([, , url]) =>
+    safeIRSUrl(url),
+  )
   return (
     <div className="rounded-lg border border-[#1e293b] bg-[#080c14] p-3">
       <p className="mb-2 font-mono text-[10px] uppercase tracking-widest text-[#475569]">
@@ -147,7 +149,7 @@ function ReferenceSection({ text }) {
       {links.map(([, label, url], i) => (
         <a
           key={i}
-          href={url}
+          href={safeIRSUrl(url)}
           target="_blank"
           rel="noopener noreferrer"
           className="block font-mono text-xs text-[#3b82f6] hover:underline"
@@ -159,7 +161,7 @@ function ReferenceSection({ text }) {
   )
 }
 
-function StructuredMessage({ content, isStreaming }) {
+export function StructuredMessage({ content, isStreaming }) {
   const parsed = parseSections(content)
 
   if (parsed.plain !== undefined) {
@@ -193,123 +195,100 @@ function StructuredMessage({ content, isStreaming }) {
 }
 
 export function ChatMain({ initialContext, navigationKey, onOpenChecklist, onMessagesChange }) {
-  const welcome = useMemo(
-    () => buildWelcomeMessage(initialContext),
-    [initialContext],
-  )
+  const welcome = useMemo(() => buildWelcomeMessage(initialContext), [initialContext])
   const [messages, setMessages] = useState([welcome])
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [copiedId, setCopiedId] = useState(null)
   const messagesEndRef = useRef(null)
+  const requestRef = useRef(null)
+  const nearBottom = useRef(true)
+  const [requestError, setRequestError] = useState('')
 
   const copyMessage = useCallback((id, content) => {
-    navigator.clipboard.writeText(content).then(() => {
-      setCopiedId(id)
-      setTimeout(() => setCopiedId(null), 2000)
-    })
+    navigator.clipboard
+      ?.writeText(content)
+      .then(() => {
+        setCopiedId(id)
+        setTimeout(() => setCopiedId(null), 2000)
+      })
+      .catch(() => setRequestError('Copy is unavailable. Select and copy the text instead.'))
   }, [])
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+    if (nearBottom.current)
+      messagesEndRef.current?.scrollIntoView({ behavior: 'auto', block: 'end' })
   }, [messages])
 
   useEffect(() => {
-    onMessagesChange?.(messages)
-  }, [messages, onMessagesChange])
+    if (!isLoading) onMessagesChange?.(messages)
+  }, [messages, isLoading, onMessagesChange])
 
   useEffect(() => {
+    requestRef.current?.abort()
+    requestRef.current = null
     setMessages([welcome])
     setInput('')
+    setIsLoading(false)
+    setRequestError('')
+    return () => {
+      requestRef.current?.abort()
+      requestRef.current = null
+    }
   }, [welcome, navigationKey])
 
   const handleSend = async () => {
     const text = input.trim()
-    if (!text) return
-
-    const userMessage = {
-      id: messages.length + 1,
-      role: 'user',
-      content: text,
-    }
+    if (!text || isLoading || requestRef.current) return
+    const controller = new AbortController()
+    requestRef.current = controller
+    const current = () => requestRef.current === controller && !controller.signal.aborted
+    const userMessage = { id: crypto.randomUUID(), role: 'user', content: text }
+    const responseId = crypto.randomUUID()
     setMessages((prev) => [...prev, userMessage])
     setInput('')
     setIsLoading(true)
-
+    setRequestError('')
+    nearBottom.current = true
     try {
       const apiMessages = [
-        ...messages.map((m) => ({ role: m.role, content: m.content })),
+        ...messages.filter((m) => !m.error).map((m) => ({ role: m.role, content: m.content })),
         { role: 'user', content: text },
-      ]
-
+      ].slice(-20)
       const res = await fetch('/api/chat', {
         method: 'POST',
+        signal: controller.signal,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ messages: apiMessages }),
       })
-
       if (!res.ok) {
-        const err = await res.json().catch(() => ({}))
-        throw new Error(err?.error?.message || `API error: ${res.status}`)
+        const body = await res.json().catch(() => ({}))
+        throw new Error(
+          typeof body.error === 'string'
+            ? body.error
+            : 'AI chat is temporarily unavailable. Please try again.',
+        )
       }
-
-      // Add placeholder assistant message for streaming
-      const streamMessageId = messages.length + 2
-      setMessages((prev) => [
-        ...prev,
-        { id: streamMessageId, role: 'assistant', content: '' },
-      ])
-
-      const reader = res.body.getReader()
-      const decoder = new TextDecoder()
-      let buffer = ''
-
-      while (true) {
-        const { done, value } = await reader.read()
-        if (done) break
-        buffer += decoder.decode(value, { stream: true })
-        const lines = buffer.split('\n')
-        buffer = lines.pop() ?? ''
-        for (const line of lines) {
-          if (line.startsWith('data: ')) {
-            const data = line.slice(6)
-            if (data === '[DONE]') continue
-            try {
-              const parsed = JSON.parse(data)
-              const delta = parsed?.choices?.[0]?.delta?.content
-              if (typeof delta === 'string') {
-                setMessages((prev) => {
-                  const next = [...prev]
-                  const last = next[next.length - 1]
-                  next[next.length - 1] = { ...last, content: last.content + delta }
-                  return next
-                })
-              }
-            } catch {
-              // ignore parse errors for incomplete chunks
-            }
-          }
-        }
+      if (!current()) return
+      setMessages((prev) => [...prev, { id: responseId, role: 'assistant', content: '' }])
+      let content = ''
+      for await (const delta of readChatStream(res.body)) {
+        if (!current()) return
+        content += delta
+        const value = content
+        setMessages((prev) => prev.map((m) => (m.id === responseId ? { ...m, content: value } : m)))
       }
-
-      // Trim final message in case of trailing whitespace
-      setMessages((prev) => {
-        const next = [...prev]
-        const last = next[next.length - 1]
-        next[next.length - 1] = { ...last, content: last.content.trim() || "I couldn't generate a response. Please try again." }
-        return next
-      })
-    } catch (err) {
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: prev.length + 1,
-          role: 'assistant',
-          content: `Sorry, something went wrong: ${err.message}. Please check your connection and try again.`,
-        },
-      ])
+      if (!content.trim()) throw new Error('The AI returned an empty answer. Please try again.')
+    } catch (error) {
+      if (!current()) return
+      setRequestError(error.message)
+      setInput(text)
+      setMessages((prev) => prev.filter((m) => m.id !== responseId && m.id !== userMessage.id))
     } finally {
-      setIsLoading(false)
+      if (requestRef.current === controller) {
+        requestRef.current = null
+        setIsLoading(false)
+      }
     }
   }
 
@@ -320,24 +299,26 @@ export function ChatMain({ initialContext, navigationKey, onOpenChecklist, onMes
   const timestamp = new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })
 
   return (
-    <div className="flex h-[calc(100vh-4rem)] flex-col bg-transparent">
+    <div className="flex h-full min-h-0 flex-col bg-transparent">
       <div className="flex items-center justify-between border-b border-[#1e293b] bg-[#0a0e1a] px-6 py-3 shrink-0">
         <div className="flex items-center gap-3">
-          <div className="font-mono text-xs font-bold border border-[#1e293b] px-2 py-1 text-[#3b82f6]">AX</div>
+          <div className="font-mono text-xs font-bold border border-[#1e293b] px-2 py-1 text-[#3b82f6]">
+            AX
+          </div>
           <div>
-            <h1 className="font-mono text-[10px] uppercase tracking-widest text-[#3b82f6]">AI TAX ASSISTANT</h1>
-            <p className="text-xs text-[#64748b]">
-              Ask me anything about F1 taxes
-            </p>
+            <h1 className="font-mono text-[10px] uppercase tracking-widest text-[#3b82f6]">
+              AI TAX ASSISTANT
+            </h1>
+            <p className="text-xs text-[#64748b]">Questions about {TAX_YEAR} income</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
           <span className="inline-flex items-center rounded-full border border-green-500/30 bg-green-500/20 px-3 py-1 text-xs font-medium text-green-400">
-            ● Online
+            {FILING_YEAR} season
           </span>
           <button
             onClick={onOpenChecklist}
-            className="hidden items-center gap-2 rounded-xl border border-[#1e293b] bg-transparent px-3 py-2 text-sm text-[#cbd5e1] transition-colors hover:border-[#2d4a6e] hover:text-[#f8fafc] md:flex"
+            className="inline-flex items-center gap-2 rounded-xl border border-[#1e293b] bg-transparent px-3 py-2 text-sm text-[#cbd5e1] transition-colors hover:border-[#2d4a6e] hover:text-[#f8fafc]"
           >
             <ClipboardList className="h-4 w-4" />
             My Checklist
@@ -345,13 +326,21 @@ export function ChatMain({ initialContext, navigationKey, onOpenChecklist, onMes
         </div>
       </div>
 
-      <div className="flex-1 space-y-4 overflow-y-auto p-4 bg-[#080c14] px-4 py-6">
+      <div
+        onScroll={(e) => {
+          const el = e.currentTarget
+          nearBottom.current = el.scrollHeight - el.scrollTop - el.clientHeight < 120
+        }}
+        className="min-h-0 flex-1 space-y-4 overflow-y-auto p-4 bg-[#080c14] px-4 py-6"
+      >
         {messages.map((message) => (
           <div
             key={message.id}
-            className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+            className={`animate-fade-in flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
           >
-            <div className={`max-w-[85%] sm:max-w-[70%] ${message.role === 'user' ? 'items-end' : 'items-start'} flex flex-col`}>
+            <div
+              className={`max-w-[85%] sm:max-w-[70%] ${message.role === 'user' ? 'items-end' : 'items-start'} flex flex-col`}
+            >
               <div
                 className={`group/bubble relative w-full rounded-2xl px-4 py-3 ${
                   message.role === 'user'
@@ -362,7 +351,11 @@ export function ChatMain({ initialContext, navigationKey, onOpenChecklist, onMes
                 {message.role === 'assistant' ? (
                   <StructuredMessage
                     content={message.content}
-                    isStreaming={isLoading && message.id === messages[messages.length - 1].id && message.role === 'assistant'}
+                    isStreaming={
+                      isLoading &&
+                      message.id === messages[messages.length - 1].id &&
+                      message.role === 'assistant'
+                    }
                   />
                 ) : (
                   <MarkdownLines text={message.content} />
@@ -370,10 +363,14 @@ export function ChatMain({ initialContext, navigationKey, onOpenChecklist, onMes
                 {message.role === 'assistant' && message.content && (
                   <button
                     onClick={() => copyMessage(message.id, message.content)}
-                    className="absolute right-2 top-2 rounded-md p-1 text-slate-500 opacity-0 transition-opacity group-hover/bubble:opacity-100 hover:bg-white/10 hover:text-slate-300"
+                    className="absolute right-2 top-2 rounded-md p-1 text-slate-500 opacity-0 transition-opacity group-hover/bubble:opacity-100 focus:opacity-100 hover:bg-white/10 hover:text-slate-300"
                     aria-label="Copy message"
                   >
-                    {copiedId === message.id ? <Check className="h-3.5 w-3.5 text-green-400" /> : <Copy className="h-3.5 w-3.5" />}
+                    {copiedId === message.id ? (
+                      <Check className="h-3.5 w-3.5 text-green-400" />
+                    ) : (
+                      <Copy className="h-3.5 w-3.5" />
+                    )}
                   </button>
                 )}
               </div>
@@ -396,7 +393,10 @@ export function ChatMain({ initialContext, navigationKey, onOpenChecklist, onMes
         <div ref={messagesEndRef} />
       </div>
 
-      <div className="border-t border-[#1e293b] bg-[#0a0e1a] px-4 py-4 shrink-0" style={{ paddingBottom: 'max(1rem, env(safe-area-inset-bottom))' }}>
+      <div
+        className="border-t border-[#1e293b] bg-[#0a0e1a] px-4 py-4 shrink-0"
+        style={{ paddingBottom: 'max(1rem, env(safe-area-inset-bottom))' }}
+      >
         <div className="mb-3 hidden sm:flex flex-wrap gap-2">
           {suggestedQuestions.map((question) => (
             <button
@@ -408,20 +408,30 @@ export function ChatMain({ initialContext, navigationKey, onOpenChecklist, onMes
             </button>
           ))}
         </div>
+        {requestError && (
+          <p role="alert" className="mb-3 text-sm text-warning">
+            {requestError}
+          </p>
+        )}
         <div className="flex items-center gap-2">
           <div className="relative flex-1">
             <input
+              aria-label="Your tax question"
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value.slice(0, MAX_INPUT))}
-              onKeyDown={(e) => e.key === 'Enter' && !isLoading && handleSend()}
+              onKeyDown={(e) =>
+                e.key === 'Enter' && !e.nativeEvent.isComposing && !isLoading && handleSend()
+              }
               placeholder="Ask about tax treaties, deductions, deadlines..."
               disabled={isLoading}
               maxLength={MAX_INPUT}
               className="w-full rounded-xl border border-[#1e293b] bg-[#131c2e] px-4 py-3 pr-16 text-sm text-[#f8fafc] placeholder:text-[#475569] focus:border-[#3b82f6] focus:outline-none transition-colors disabled:opacity-50"
             />
             {input.length > 0 && (
-              <span className={`absolute right-3 top-1/2 -translate-y-1/2 text-xs tabular-nums ${input.length > MAX_INPUT * 0.9 ? 'text-amber-400' : 'text-slate-600'}`}>
+              <span
+                className={`absolute right-3 top-1/2 -translate-y-1/2 text-xs tabular-nums ${input.length > MAX_INPUT * 0.9 ? 'text-amber-400' : 'text-slate-600'}`}
+              >
                 {MAX_INPUT - input.length}
               </span>
             )}
@@ -432,12 +442,13 @@ export function ChatMain({ initialContext, navigationKey, onOpenChecklist, onMes
             disabled={isLoading || !input.trim()}
             className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#3b82f6] text-white transition-all hover:bg-[#2563eb] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            ➤
+            <span aria-hidden="true">➤</span>
             <span className="sr-only">Send message</span>
           </button>
         </div>
         <p className="mt-2 text-center text-xs text-slate-500">
-          AI responses are for informational purposes only. Consult a tax professional for advice.
+          Do not share SSNs, passport numbers or tax documents here. AI answers can be wrong; verify
+          before filing.
         </p>
         <p className="mt-1 text-center text-xs text-slate-600">
           By using F1 Tax Helper you agree to our{' '}

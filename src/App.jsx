@@ -14,19 +14,22 @@ import TermsPage from './pages/TermsPage'
 import ContactPage from './pages/ContactPage'
 import NotFoundPage from './pages/NotFoundPage'
 import StatusCheckerPage from './pages/StatusCheckerPage'
-import useAuth from './hooks/useAuth'
+import useAuth, { AuthProvider } from './hooks/useAuth'
+import { MotionConfig } from 'framer-motion'
 
-const ChatPage     = lazy(() => import('./pages/ChatPage'))
+const ChatPage = lazy(() => import('./pages/ChatPage'))
 const Form8843Page = lazy(() => import('./pages/Form8843Page'))
-const AboutPage    = lazy(() => import('./pages/AboutPage'))
+const AboutPage = lazy(() => import('./pages/AboutPage'))
 
 function LazySuspense({ children }) {
   return (
-    <Suspense fallback={
-      <div className="min-h-screen bg-[#080c14] flex items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-white/20 border-t-white" />
-      </div>
-    }>
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-[#080c14] flex items-center justify-center">
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-white/20 border-t-white" />
+        </div>
+      }
+    >
       {children}
     </Suspense>
   )
@@ -75,7 +78,9 @@ function AppRoutes() {
         path="/chat"
         element={
           <ProtectedRoute>
-            <LazySuspense><ChatPage /></LazySuspense>
+            <LazySuspense>
+              <ChatPage />
+            </LazySuspense>
           </ProtectedRoute>
         }
       />
@@ -104,8 +109,22 @@ function AppRoutes() {
         }
       />
       <Route path="/status-checker" element={<StatusCheckerPage />} />
-      <Route path="/form-8843" element={<LazySuspense><Form8843Page /></LazySuspense>} />
-      <Route path="/about" element={<LazySuspense><AboutPage /></LazySuspense>} />
+      <Route
+        path="/form-8843"
+        element={
+          <LazySuspense>
+            <Form8843Page />
+          </LazySuspense>
+        }
+      />
+      <Route
+        path="/about"
+        element={
+          <LazySuspense>
+            <AboutPage />
+          </LazySuspense>
+        }
+      />
       <Route path="/disclaimer" element={<Disclaimer />} />
       <Route path="/privacy" element={<PrivacyPage />} />
       <Route path="/terms" element={<TermsPage />} />
@@ -125,7 +144,11 @@ function AppRoutes() {
 function App() {
   return (
     <BrowserRouter>
-      <AppRoutes />
+      <AuthProvider>
+        <MotionConfig reducedMotion="user">
+          <AppRoutes />
+        </MotionConfig>
+      </AuthProvider>
     </BrowserRouter>
   )
 }
