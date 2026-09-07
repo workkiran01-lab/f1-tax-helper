@@ -1,84 +1,109 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import {
-  ArrowRight,
-  Check,
-  ChevronDown,
-  Search,
-  AlertTriangle,
-} from 'lucide-react'
+import { ArrowRight, Check, ChevronDown, Search, AlertTriangle } from 'lucide-react'
 import { cn } from '../utils/cn'
 import DisclaimerBanner from '../components/DisclaimerBanner'
 import supabase from '../utils/supabase'
 import useAuth from '../hooks/useAuth'
-import { COUNTRIES, getTreatyByCountryName } from '../data/treaties'
-
-const STORAGE_KEY = 'f1-questionnaire-progress'
+import { COUNTRIES, getTreatyByCountryName, treatyGuidance } from '../data/treaties'
+import { TAX_YEAR } from '../data/taxSeason.js'
+import { buildActionItems, questionnaireResidency } from '../utils/taxRules.js'
+import { seasonKey, readStored, writeStored, removeStored } from '../utils/storage.js'
+import SeasonNotice from '../components/SeasonNotice'
 
 export default function QuestionnairePage() {
   const navigate = useNavigate()
   const { user } = useAuth()
+  const STORAGE_KEY = seasonKey('questionnaire-progress', user?.id)
 
-  const loadSaved = () => {
-    try {
-      const raw = sessionStorage.getItem(STORAGE_KEY)
-      return raw ? JSON.parse(raw) : null
-    } catch { return null }
-  }
-
-  const saved = loadSaved()
+  const [saved] = useState(() => {
+    const raw = readStored(STORAGE_KEY, null, 'sessionStorage')
+    if (
+      !raw ||
+      !Number.isInteger(raw.currentStep) ||
+      raw.currentStep < 1 ||
+      raw.currentStep > 5 ||
+      !raw.answers ||
+      !Array.isArray(raw.answers.incomeTypes)
+    )
+      return null
+    return raw
+  })
 
   const [currentStep, setCurrentStep] = useState(saved?.currentStep ?? 1)
   const [isTransitioning, setIsTransitioning] = useState(false)
   const [stopped, setStopped] = useState(saved?.stopped ?? false)
-  const [answers, setAnswers] = useState(saved?.answers ?? {
-    isF1Visa: null,
-    hasUSIncome: null,
-    incomeTypes: [],
-    yearsInUS: null,
-    country: null,
-    residencyStatus: null,
-  })
+  const [answers, setAnswers] = useState(
+    saved?.answers ?? {
+      isF1Visa: null,
+      hasUSIncome: null,
+      incomeTypes: [],
+      yearsInUS: null,
+      country: null,
+      residencyStatus: null,
+    },
+  )
 
   // Flags for personalized results
   const [needsW2Flow, setNeedsW2Flow] = useState(saved?.needsW2Flow ?? false)
   const [needs1042SFlow, setNeeds1042SFlow] = useState(saved?.needs1042SFlow ?? false)
   const [needs1099Flow, setNeeds1099Flow] = useState(saved?.needs1099Flow ?? false)
-  const [needsInvestmentFlow, setNeedsInvestmentFlow] = useState(saved?.needsInvestmentFlow ?? false)
-  const [needsResidencyCheck, setNeedsResidencyCheck] = useState(saved?.needsResidencyCheck ?? false)
+  const [needsInvestmentFlow, setNeedsInvestmentFlow] = useState(
+    saved?.needsInvestmentFlow ?? false,
+  )
+  const [needsResidencyCheck, setNeedsResidencyCheck] = useState(
+    saved?.needsResidencyCheck ?? false,
+  )
   const [saveWarning, setSaveWarning] = useState('')
 
   useEffect(() => {
-    sessionStorage.setItem(STORAGE_KEY, JSON.stringify({
-      currentStep, stopped, answers,
-      needsW2Flow, needs1042SFlow, needs1099Flow, needsInvestmentFlow, needsResidencyCheck,
-    }))
-  }, [currentStep, stopped, answers, needsW2Flow, needs1042SFlow, needs1099Flow, needsInvestmentFlow, needsResidencyCheck])
+    writeStored(
+      STORAGE_KEY,
+      {
+        currentStep,
+        stopped,
+        answers,
+        needsW2Flow,
+        needs1042SFlow,
+        needs1099Flow,
+        needsInvestmentFlow,
+        needsResidencyCheck,
+      },
+      'sessionStorage',
+    )
+  }, [
+    STORAGE_KEY,
+    currentStep,
+    stopped,
+    answers,
+    needsW2Flow,
+    needs1042SFlow,
+    needs1099Flow,
+    needsInvestmentFlow,
+    needsResidencyCheck,
+  ])
 
   const handleStartOver = useCallback(() => {
-    sessionStorage.removeItem(STORAGE_KEY)
+    removeStored(STORAGE_KEY, 'sessionStorage')
     setCurrentStep(1)
     setStopped(false)
-    setAnswers({ isF1Visa: null, hasUSIncome: null, incomeTypes: [], yearsInUS: null, country: null, residencyStatus: null })
+    setAnswers({
+      isF1Visa: null,
+      hasUSIncome: null,
+      incomeTypes: [],
+      yearsInUS: null,
+      country: null,
+      residencyStatus: null,
+    })
     setNeedsW2Flow(false)
     setNeeds1042SFlow(false)
     setNeeds1099Flow(false)
     setNeedsInvestmentFlow(false)
     setNeedsResidencyCheck(false)
-  }, [])
-
+  }, [STORAGE_KEY])
 
   const goToNextStep = useCallback(() => {
-    setIsTransitioning(true)
-    setTimeout(() => {
-      // Logic to skip steps 3 and 4 if no income
-      if (currentStep === 2 && answers.hasUSIncome === false) {
-        setCurrentStep(5) // Skip to country question
-      } else {
-        setCurrentStep((prev) => prev + 1)
-      }
-      setIsTransitioning(false)
-    }, 300)
+    setCurrentStep(currentStep === 2 && answers.hasUSIncome === false ? 4 : currentStep + 1)
   }, [answers.hasUSIncome, currentStep])
 
   const handleF1Answer = (answer) => {
@@ -91,27 +116,19 @@ export default function QuestionnairePage() {
   }
 
   const handleIncomeAnswer = (answer) => {
-    setAnswers((prev) => ({ ...prev, hasUSIncome: answer }))
-    if (answer === false) {
-      setIsTransitioning(true)
-      setTimeout(() => {
-        setCurrentStep(5)
-        setIsTransitioning(false)
-      }, 300)
-    } else {
-      goToNextStep()
+    setAnswers((prev) => ({
+      ...prev,
+      hasUSIncome: answer,
+      incomeTypes: answer ? prev.incomeTypes : [],
+    }))
+    if (!answer) {
+      setNeedsW2Flow(false)
+      setNeeds1042SFlow(false)
+      setNeeds1099Flow(false)
+      setNeedsInvestmentFlow(false)
     }
+    setCurrentStep(answer ? 3 : 4)
   }
-
-  useEffect(() => {
-    if (currentStep === 3 && answers.hasUSIncome === false) {
-      setIsTransitioning(true)
-      setTimeout(() => {
-        setCurrentStep(5)
-        setIsTransitioning(false)
-      }, 300)
-    }
-  }, [currentStep, answers.hasUSIncome])
 
   const handleIncomeTypeToggle = (type) => {
     setAnswers((prev) => {
@@ -131,106 +148,23 @@ export default function QuestionnairePage() {
   }
 
   const handleYearsInUSAnswer = (years) => {
-    setAnswers((prev) => ({ ...prev, yearsInUS: years }))
-    if (years >= 5) {
-      setNeedsResidencyCheck(true)
-      // In a real scenario, you'd ask more questions for SPT
-      setAnswers((prev) => ({ ...prev, residencyStatus: 'Resident Alien' }))
-    } else {
-      setAnswers((prev) => ({ ...prev, residencyStatus: 'Non-Resident Alien' }))
-    }
-    goToNextStep()
+    const residencyStatus = questionnaireResidency(years)
+    setAnswers((prev) => ({ ...prev, yearsInUS: years, residencyStatus }))
+    setNeedsResidencyCheck(residencyStatus === 'Residency review needed')
+    setCurrentStep(5)
   }
 
   const handleCountrySelect = (country) => {
     setAnswers((prev) => ({ ...prev, country }))
   }
 
-  const actionItems = useMemo(() => {
-    const items = []
-    const getTreatyMessage = () => {
-      if (!answers.country) return null
+  const actionItems = useMemo(
+    () => buildActionItems(answers, treatyGuidance(answers.country)),
+    [answers],
+  )
 
-      const treaty = getTreatyByCountryName(answers.country)
-
-      if (treaty?.status === 'suspended') {
-        return '⚠️ The US-Russia tax treaty was suspended on August 16, 2024. If you previously claimed treaty benefits, you may no longer be eligible. Consult a tax professional.'
-      }
-
-      if (treaty?.status === 'terminated') {
-        return '⚠️ The US-Hungary tax treaty was terminated on January 1, 2024. Treaty benefits are no longer available for Hungarian students. Consult a tax professional.'
-      }
-
-      if (!treaty || treaty.status !== 'active') {
-        return `Your country (${answers.country}) does not have a US tax treaty for students. You are not eligible for treaty-based exemptions.`
-      }
-
-      let treatyMessage = `Your country, ${answers.country}, has a tax treaty with the US (${treaty.article}). `
-      if (treaty.wageCap && needsW2Flow) {
-        treatyMessage += `You may be able to exclude up to $${treaty.wageCap} of your wages. `
-      }
-      if (treaty.scholarshipExempt && needs1042SFlow) {
-        treatyMessage += `Scholarship/fellowship income is generally exempt. `
-      }
-      if (treaty.form8833Required) {
-        treatyMessage += `You must file Form 8833 to claim these treaty benefits.`
-      }
-      return treatyMessage
-    }
-
-    const treatyMessage = getTreatyMessage()
-
-    // No income flow
-    if (answers.hasUSIncome === false) {
-      items.push('You are required to file Form 8843, Statement for Exempt Individuals and Individuals With a Medical Condition. This is true even if you had no income.')
-      items.push('Since you had no US-source income, you likely do not need to file a US tax return (like Form 1040-NR), but Form 8843 is mandatory.')
-      if (treatyMessage) {
-        items.push(treatyMessage)
-      }
-      items.push('Filing Form 8843 on time is important. The main consequence of not filing is that the IRS may count your exempt days toward the Substantial Presence Test, which could affect your tax residency status — not your visa directly.')
-      return items;
-    }
-
-    // Default NRA filing requirement
-    if (answers.residencyStatus === 'Non-Resident Alien') {
-      items.push('As a Non-Resident Alien, you will file Form 1040-NR and Form 8843.')
-    } else if (answers.residencyStatus === 'Resident Alien') {
-      items.push('Our analysis suggests you may qualify as a Resident Alien for tax purposes. You would file Form 1040, the standard US tax return.')
-    }
-
-    if (treatyMessage) {
-      items.push(treatyMessage)
-    }
-
-    if (needsW2Flow) {
-      items.push('Report your W-2 wages on Form 1040-NR.')
-    }
-    if (needs1042SFlow) {
-      items.push('Report your 1042-S income (scholarships, fellowships) on Form 1040-NR. A portion of this may be exempt under a tax treaty.')
-    }
-    if (needs1099Flow) {
-      items.push('Income reported on a 1099 (freelance/contract) is considered self-employment income. This may be unauthorized work under an F-1 visa and carries significant risk. You must still report it, but you should consult an immigration attorney.')
-    }
-    if (needsInvestmentFlow) {
-      items.push('Investment income may be taxed differently depending on the source. This adds complexity to your return.')
-    }
-
-    // 1098-T Advice
-    if (answers.residencyStatus === 'Resident Alien') {
-        items.push('Your 1098-T may make you eligible for education credits like the American Opportunity Credit or Lifetime Learning Credit on your Form 1040.')
-    } else { // Non-Resident Alien
-        items.push('Your university may issue a 1098-T documenting tuition paid. As a Non-Resident Alien filing Form 1040-NR, you generally cannot claim US education credits. Keep this form for your records and verify with your DSO.')
-    }
-
-
-    items.push('Always verify with a licensed tax professional and your DSO before filing.')
-
-
-    return items.slice(0, 4) // Show up to 4 items
-  }, [answers, needsW2Flow, needs1042SFlow, needs1099Flow, needsInvestmentFlow])
-
-  const totalSteps = 5;
-  const progressPercentage = Math.round((currentStep / totalSteps) * 100)
+  const totalSteps = 5
+  const progressPercentage = Math.min(100, Math.round((currentStep / totalSteps) * 100))
 
   const handleBack = useCallback(() => {
     if (currentStep <= 1) {
@@ -238,16 +172,31 @@ export default function QuestionnairePage() {
       return
     }
 
-    setCurrentStep((prev) => Math.max(1, prev - 1))
-  }, [currentStep, navigate])
+    setCurrentStep((prev) =>
+      prev === 4 && answers.hasUSIncome === false ? 2 : Math.max(1, prev - 1),
+    )
+  }, [answers.hasUSIncome, currentStep, navigate])
 
   useEffect(() => {
     if (currentStep !== 6) return
     let cancelled = false
 
     const persistAndContinue = async () => {
-      const hasTreatyBenefit = Boolean(answers.country && getTreatyByCountryName(answers.country)?.status === 'active')
-      let syncWarning = ''
+      const hasTreatyBenefit = Boolean(
+        answers.country && getTreatyByCountryName(answers.country)?.status === 'active',
+      )
+      const completed = {
+        taxYear: TAX_YEAR,
+        answers,
+        actionItems,
+        hasTreatyBenefit,
+        completedAt: new Date().toISOString(),
+      }
+      const savedLocally = writeStored(seasonKey('questionnaire', user?.id), completed)
+      writeStored(seasonKey('treaty-reviewed', user?.id), true)
+      let syncWarning = savedLocally
+        ? ''
+        : 'Browser storage is unavailable. Keep this page open or download your checklist.'
       const shouldSyncToSupabase = user?.id && user.id !== 'guest' && !user?.is_guest
 
       if (shouldSyncToSupabase) {
@@ -256,12 +205,7 @@ export default function QuestionnairePage() {
           const { error } = await supabase.auth.updateUser({
             data: {
               ...metadata,
-              questionnaire: {
-                answers,
-                actionItems,
-                hasTreatyBenefit,
-                completedAt: new Date().toISOString(),
-              },
+              questionnaire: completed,
             },
           })
           if (error) throw error
@@ -281,13 +225,15 @@ export default function QuestionnairePage() {
           if (result === 'timeout') {
             console.error('Failed to save to Supabase: request timed out')
           }
-          syncWarning = 'Progress saved locally. Sign in to sync across devices.'
+          syncWarning = savedLocally
+            ? 'Progress saved in this browser. Account sync is temporarily unavailable.'
+            : 'Progress could not be saved. Keep this page open and download your checklist.'
           if (!cancelled) setSaveWarning(syncWarning)
         }
       }
 
       if (cancelled) return
-      sessionStorage.removeItem(STORAGE_KEY)
+      removeStored(STORAGE_KEY, 'sessionStorage')
       navigate('/results', {
         replace: true,
         state: { answers, actionItems, hasTreatyBenefit, syncWarning },
@@ -298,20 +244,25 @@ export default function QuestionnairePage() {
     return () => {
       cancelled = true
     }
-  }, [actionItems, answers, currentStep, navigate, user?.id, user?.is_guest, user?.user_metadata])
+  }, [actionItems, answers, currentStep, navigate, user?.id, user?.is_guest, STORAGE_KEY])
 
   if (stopped) {
     return (
       <div className="relative flex min-h-screen flex-col overflow-hidden bg-[#080c14] text-slate-100">
         <div className="absolute inset-0 bg-grid opacity-30 pointer-events-none" />
         <DisclaimerBanner />
+        <div className="mx-auto w-full max-w-3xl px-4 pt-4">
+          <SeasonNotice compact />
+        </div>
         <header className="sticky top-0 z-20 border-b border-[#1e293b] bg-[#080c14]/80 backdrop-blur">
           <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-4 sm:px-6">
             <Link to="/" className="flex items-center gap-3">
               <span className="font-mono text-xs font-bold border border-[#3b82f6]/50 text-[#3b82f6] px-2 py-1 rounded">
                 F1
               </span>
-              <span className="text-base font-semibold tracking-wide text-slate-100 sm:text-lg">F1 Tax Helper</span>
+              <span className="text-base font-semibold tracking-wide text-slate-100 sm:text-lg">
+                F1 Tax Helper
+              </span>
             </Link>
           </div>
         </header>
@@ -321,7 +272,9 @@ export default function QuestionnairePage() {
               <AlertTriangle className="mx-auto mb-4 h-12 w-12 text-[#f59e0b]" />
               <h2 className="mb-2 text-lg font-semibold text-[#f8fafc]">Important Notice</h2>
               <p className="text-sm text-[#64748b]">
-                This tool is designed specifically for students on an F-1 visa. For other visa types, tax rules can be very different. Please consult a qualified tax professional for assistance.
+                This tool is designed specifically for students on an F-1 visa. For other visa
+                types, tax rules can be very different. Please consult a qualified tax professional
+                for assistance.
               </p>
             </div>
             <div className="mt-6 text-center">
@@ -342,13 +295,18 @@ export default function QuestionnairePage() {
     <div className="relative flex min-h-screen flex-col overflow-hidden bg-[#080c14] text-slate-100">
       <div className="absolute inset-0 bg-grid opacity-30 pointer-events-none" />
       <DisclaimerBanner />
+      <div className="mx-auto w-full max-w-3xl px-4 pt-4">
+        <SeasonNotice compact />
+      </div>
       <header className="sticky top-0 z-20 border-b border-[#1e293b] bg-[#080c14]/80 backdrop-blur">
         <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-4 sm:px-6">
           <Link to="/" className="flex items-center gap-3">
             <span className="font-mono text-xs font-bold border border-[#3b82f6]/50 text-[#3b82f6] px-2 py-1 rounded">
               F1
             </span>
-            <span className="text-base font-semibold tracking-wide text-slate-100 sm:text-lg">F1 Tax Helper</span>
+            <span className="text-base font-semibold tracking-wide text-slate-100 sm:text-lg">
+              F1 Tax Helper
+            </span>
           </Link>
         </div>
       </header>
@@ -359,9 +317,7 @@ export default function QuestionnairePage() {
             <div
               className={cn(
                 'p-4 sm:p-6 transition-all duration-300',
-                isTransitioning
-                  ? 'translate-y-4 opacity-0'
-                  : 'translate-y-0 opacity-100',
+                isTransitioning ? 'translate-y-4 opacity-0' : 'translate-y-0 opacity-100',
               )}
             >
               {currentStep <= totalSteps && (
@@ -401,7 +357,13 @@ export default function QuestionnairePage() {
                 />
               )}
               {currentStep === 4 && <Question4 onAnswer={handleYearsInUSAnswer} />}
-              {currentStep === 5 && <Question5 onSelect={handleCountrySelect} selectedCountry={answers.country} onContinue={goToNextStep} />}
+              {currentStep === 5 && (
+                <Question5
+                  onSelect={handleCountrySelect}
+                  selectedCountry={answers.country}
+                  onContinue={goToNextStep}
+                />
+              )}
               {currentStep === 6 && (
                 <div className="py-8 text-center">
                   <p className="text-sm text-[#475569]">Preparing your results…</p>
@@ -436,11 +398,9 @@ export default function QuestionnairePage() {
 function Question1({ onAnswer }) {
   return (
     <div>
-      <p className="mb-3 font-mono text-[10px] uppercase tracking-widest text-[#475569]">
-        STEP 1
-      </p>
+      <p className="mb-3 font-mono text-[10px] uppercase tracking-widest text-[#475569]">STEP 1</p>
       <h2 className="text-base sm:text-lg font-semibold text-[#f8fafc] mb-2">
-        Are you currently on an F-1 student visa?
+        Were you in the US under F-1 student status during 2026?
       </h2>
       <p className="text-sm text-[#64748b] mb-6">
         This helps us determine which tax forms and rules apply to you.
@@ -466,13 +426,11 @@ function Question1({ onAnswer }) {
 }
 
 function Question2({ onAnswer }) {
- return (
+  return (
     <div>
-      <p className="mb-3 font-mono text-[10px] uppercase tracking-widest text-[#475569]">
-        STEP 2
-      </p>
+      <p className="mb-3 font-mono text-[10px] uppercase tracking-widest text-[#475569]">STEP 2</p>
       <h2 className="text-base sm:text-lg font-semibold text-[#f8fafc] mb-2">
-        Did you have any US-source income in tax year 2025?
+        Did you have any US-source income in tax year 2026?
       </h2>
       <p className="text-sm text-[#64748b] mb-6">
         This includes wages, scholarships, freelance work, investments, etc.
@@ -501,14 +459,20 @@ function Question3({ selected, onToggle, onContinue }) {
   const incomeTypes = [
     { id: 'w2', title: 'W-2 Wages', description: 'From an employer (on-campus, CPT, OPT)' },
     { id: '1042s', title: '1042-S Income', description: 'Scholarships, fellowships, stipends' },
-    { id: '1099', title: '1099 / Freelance', description: 'Independent contractor or side jobs' },
-    { id: 'investment', title: 'Investment Income', description: 'Interest, dividends, capital gains' },
+    {
+      id: '1099',
+      title: 'Other 1099 income',
+      description: 'Check the form type: services, interest and other payments differ',
+    },
+    {
+      id: 'investment',
+      title: 'Investment Income',
+      description: 'Interest, dividends, capital gains',
+    },
   ]
   return (
     <div>
-      <p className="mb-3 font-mono text-[10px] uppercase tracking-widest text-[#475569]">
-        STEP 3
-      </p>
+      <p className="mb-3 font-mono text-[10px] uppercase tracking-widest text-[#475569]">STEP 3</p>
       <h2 className="text-base sm:text-lg font-semibold text-[#f8fafc] mb-2">
         What type of income did you receive?
       </h2>
@@ -528,25 +492,23 @@ function Question3({ selected, onToggle, onContinue }) {
                 isSelected
                   ? 'border-[#3b82f6] bg-[#3b82f6]/10 text-[#f8fafc]'
                   : 'border-[#1e293b] bg-[#131c2e] text-[#cbd5e1] hover:bg-[#1a2540] hover:border-[#2d4a6e] hover:text-[#f8fafc]',
-                type.id === '1099' && isSelected ? 'border-[#f59e0b]/40 bg-[#f59e0b]/10 text-[#f59e0b]' : ''
+                type.id === '1099' && isSelected
+                  ? 'border-[#f59e0b]/40 bg-[#f59e0b]/10 text-[#f59e0b]'
+                  : '',
               )}
             >
               <div>
-                <div className="font-medium">
-                  {type.title}
-                </div>
+                <div className="font-medium">{type.title}</div>
                 <div className="mt-1 text-xs opacity-70">{type.description}</div>
               </div>
               <div
                 className={cn(
                   'flex h-6 w-6 shrink-0 items-center justify-center rounded-md border transition-colors',
                   isSelected ? 'border-[#3b82f6] bg-[#3b82f6]' : 'border-[#334155]',
-                  type.id === '1099' && isSelected ? 'border-[#f59e0b] bg-[#f59e0b]' : ''
+                  type.id === '1099' && isSelected ? 'border-[#f59e0b] bg-[#f59e0b]' : '',
                 )}
               >
-                {isSelected && (
-                  <Check className="h-4 w-4 text-white" />
-                )}
+                {isSelected && <Check className="h-4 w-4 text-white" />}
               </div>
             </button>
           )
@@ -555,7 +517,8 @@ function Question3({ selected, onToggle, onContinue }) {
           <div className="flex items-start gap-3 rounded-xl border border-[#f59e0b]/20 bg-[#f59e0b]/10 px-4 py-3">
             <AlertTriangle className="h-5 w-5 flex-shrink-0 text-[#f59e0b]" />
             <p className="text-xs text-[#f59e0b]">
-              <strong>Warning:</strong> Freelance (1099) work may violate your F-1 status unless it is directly related to your studies and authorized CPT/OPT. This carries immigration risk. You must still report this income to the IRS.
+              A 1099 does not automatically mean self-employment. If you performed services, check
+              your specific work authorization with your DSO. Taxable income must still be reported.
             </p>
           </div>
         )}
@@ -575,21 +538,21 @@ function Question3({ selected, onToggle, onContinue }) {
 
 function Question4({ onAnswer }) {
   const options = [
-    { id: 1, text: 'Less than 1 year' },
-    { id: 2, text: '1-2 years' },
-    { id: 3, text: '3-4 years' },
-    { id: 5, text: '5 or more years' },
+    { id: 1, text: 'This is my first calendar year' },
+    { id: 2, text: '2 calendar years' },
+    { id: 3, text: '3–4 calendar years' },
+    { id: 5, text: '5 calendar years' },
+    { id: 6, text: '6 or more calendar years' },
   ]
   return (
     <div>
-      <p className="mb-3 font-mono text-[10px] uppercase tracking-widest text-[#475569]">
-        STEP 4
-      </p>
+      <p className="mb-3 font-mono text-[10px] uppercase tracking-widest text-[#475569]">STEP 4</p>
       <h2 className="text-base sm:text-lg font-semibold text-[#f8fafc] mb-2">
-        How many calendar years have you been in the US on F-1 status?
+        Including 2026, how many exempt student, teacher or trainee calendar years have you had?
       </h2>
       <p className="text-sm text-[#64748b] mb-6">
-        This helps determine your tax residency status (Non-Resident vs. Resident).
+        Count any part of a calendar year, including earlier F/J/M/Q visits. Years need not be
+        consecutive. Status changes or a green card require a separate review.
       </p>
 
       <div className="space-y-3">
@@ -624,14 +587,13 @@ function Question5({ onSelect, selectedCountry, onContinue }) {
 
   return (
     <div>
-      <p className="mb-3 font-mono text-[10px] uppercase tracking-widest text-[#475569]">
-        STEP 5
-      </p>
+      <p className="mb-3 font-mono text-[10px] uppercase tracking-widest text-[#475569]">STEP 5</p>
       <h2 className="text-base sm:text-lg font-semibold text-[#f8fafc] mb-2">
-        What is your country of citizenship?
+        Where were you a tax resident just before coming to the US?
       </h2>
       <p className="text-sm text-[#64748b] mb-6">
-        This is for checking potential tax treaty benefits.
+        Treaty eligibility usually depends on prior tax residence, which can differ from
+        citizenship. Choose the country to review; additional treaty conditions may apply.
       </p>
 
       <div className="relative">
@@ -644,7 +606,11 @@ function Question5({ onSelect, selectedCountry, onContinue }) {
           aria-label="Select your country"
           tabIndex={0}
           onKeyDown={(e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
+            if (e.key === 'Escape') {
+              setIsOpen(false)
+              return
+            }
+            if (e.target === e.currentTarget && (e.key === 'Enter' || e.key === ' ')) {
               e.preventDefault()
               setIsOpen(!isOpen)
             }
@@ -657,7 +623,9 @@ function Question5({ onSelect, selectedCountry, onContinue }) {
             className="flex-1 bg-[#131c2e] text-sm text-[#f8fafc] outline-none placeholder:text-[#475569]"
             style={{ backgroundColor: '#131c2e', colorScheme: 'dark' }}
             value={search}
+            aria-label="Search countries"
             onChange={(e) => {
+              onSelect(null)
               setSearch(e.target.value)
               setIsOpen(true)
             }}
@@ -667,10 +635,7 @@ function Question5({ onSelect, selectedCountry, onContinue }) {
             }}
           />
           <ChevronDown
-            className={cn(
-              'h-5 w-5 text-[#475569] transition-transform',
-              isOpen && 'rotate-180',
-            )}
+            className={cn('h-5 w-5 text-[#475569] transition-transform', isOpen && 'rotate-180')}
           />
         </div>
 
@@ -696,9 +661,7 @@ function Question5({ onSelect, selectedCountry, onContinue }) {
               </button>
             ))}
             {filteredCountries.length === 0 && (
-              <div className="px-4 py-3 text-sm text-[#475569]">
-                No countries found
-              </div>
+              <div className="px-4 py-3 text-sm text-[#475569]">No countries found</div>
             )}
           </div>
         )}

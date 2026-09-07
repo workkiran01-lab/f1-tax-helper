@@ -1,8 +1,9 @@
+import { readStored, writeStored, currentQuestionnaire, seasonKey } from '../utils/storage.js'
 import { useState, useMemo, useCallback, useRef, useEffect } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { Menu } from 'lucide-react'
 import { ChatSidebar } from '../components/chat/ChatSidebar'
-import { ChatMain } from '../components/chat/ChatMain'
+import { ChatMain, StructuredMessage } from '../components/chat/ChatMain'
 import { ChatChecklistPanel } from '../components/chat/ChatChecklistPanel'
 import DisclaimerBanner from '../components/DisclaimerBanner'
 import Button from '../components/ui/Button'
@@ -11,36 +12,53 @@ import useAuth from '../hooks/useAuth'
 
 const CHAT_STORAGE_KEY = 'f1-conversations'
 
-const loadConversations = (storageKey) => {
-  const stored = localStorage.getItem(storageKey)
-  if (!stored) return []
-
-  try {
-    return JSON.parse(stored)
-  } catch {
-    return []
-  }
+const loadConversations = (key) => {
+  const stored = readStored(key, [])
+  return Array.isArray(stored)
+    ? stored.filter(
+        (c) =>
+          c &&
+          typeof c.id === 'string' &&
+          Array.isArray(c.messages) &&
+          c.messages.every(
+            (m) => m && ['user', 'assistant'].includes(m.role) && typeof m.content === 'string',
+          ),
+      )
+    : []
 }
 
 export default function ChatPage() {
   const navigate = useNavigate()
   const { user } = useAuth()
   const uid = user?.id || 'guest'
-  const chatStorageKey = `${CHAT_STORAGE_KEY}_${uid}`
+  const chatStorageKey = seasonKey('conversations', uid)
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [checklistOpen, setChecklistOpen] = useState(false)
   const [conversations, setConversations] = useState(() => loadConversations(chatStorageKey))
   const [selectedConversation, setSelectedConversation] = useState(null)
-  
+
   const location = useLocation()
   const [navKey, setNavKey] = useState(location.key)
-  const sessionId = useRef(Date.now().toString())
-  
-  const { answers, actionItems } = location.state || {}
+  const sessionId = useRef(crypto.randomUUID())
 
-  const initialContext = useMemo(() => ({ answers, actionItems }), [answers, actionItems])
+  const stored = currentQuestionnaire(user)
+  const answers = location.state?.answers || stored?.answers
+  const actionItems = location.state?.actionItems || stored?.actionItems
+
+  const contextKey = JSON.stringify({ answers, actionItems })
+  const initialContext = useMemo(() => JSON.parse(contextKey), [contextKey])
   const handleOpenSidebar = useCallback(() => setSidebarOpen(true), [])
   const handleCloseSidebar = useCallback(() => setSidebarOpen(false), [])
+  useEffect(() => {
+    const escape = (e) => {
+      if (e.key === 'Escape') {
+        setSidebarOpen(false)
+        setChecklistOpen(false)
+      }
+    }
+    window.addEventListener('keydown', escape)
+    return () => window.removeEventListener('keydown', escape)
+  }, [])
 
   useEffect(() => {
     setConversations(loadConversations(chatStorageKey))
@@ -49,7 +67,7 @@ export default function ChatPage() {
   useEffect(() => {
     if (location.key) {
       setNavKey(location.key)
-      sessionId.current = Date.now().toString()
+      sessionId.current = crypto.randomUUID()
       setSelectedConversation(null)
       setChecklistOpen(false)
     }
@@ -62,174 +80,197 @@ export default function ChatPage() {
 
   const handleNewChat = useCallback(() => {
     setSelectedConversation(null)
-    setNavKey(Date.now().toString())
-    sessionId.current = Date.now().toString()
+    setNavKey(crypto.randomUUID())
+    sessionId.current = crypto.randomUUID()
     if (window.innerWidth < 1024) setSidebarOpen(false)
   }, [])
 
-  const handleMessagesChange = useCallback((msgs) => {
-    if (selectedConversation) return
-    const firstUser = msgs.find(m => m.role === 'user')
-    const lastMsg = msgs[msgs.length - 1]
-    if (!firstUser || lastMsg?.role !== 'assistant' || !lastMsg.content) return
+  const handleMessagesChange = useCallback(
+    (msgs) => {
+      if (selectedConversation) return
+      const firstUser = msgs.find((m) => m.role === 'user')
+      const lastMsg = msgs[msgs.length - 1]
+      if (!firstUser || lastMsg?.role !== 'assistant' || !lastMsg.content) return
 
-    const id = sessionId.current
-    const title = firstUser.content.slice(0, 40)
-    setConversations(prev => {
-      const existingIdx = prev.findIndex(c => c.id === id)
-      const newConv = {
-        id,
-        title,
-        timestamp: existingIdx >= 0 ? prev[existingIdx].timestamp : Date.now(),
-        messages: msgs,
-      }
-      const next = existingIdx >= 0
-        ? prev.map((c, i) => i === existingIdx ? newConv : c)
-        : [newConv, ...prev]
-      localStorage.setItem(chatStorageKey, JSON.stringify(next))
-      return next
-    })
-  }, [chatStorageKey, selectedConversation])
+      const id = sessionId.current
+      const title = firstUser.content.slice(0, 40)
+      setConversations((prev) => {
+        const existingIdx = prev.findIndex((c) => c.id === id)
+        const newConv = {
+          id,
+          title,
+          timestamp: existingIdx >= 0 ? prev[existingIdx].timestamp : Date.now(),
+          messages: msgs,
+        }
+        const next =
+          existingIdx >= 0
+            ? prev.map((c, i) => (i === existingIdx ? newConv : c))
+            : [newConv, ...prev]
+        writeStored(chatStorageKey, next.slice(0, 50))
+        return next
+      })
+    },
+    [chatStorageKey, selectedConversation],
+  )
 
   return (
-    <div className="relative flex h-screen flex-col overflow-hidden bg-[#080c14] text-[#cbd5e1]">
+    <div className="relative flex h-dvh flex-col overflow-hidden bg-[#080c14] text-[#cbd5e1]">
       <div className="absolute inset-0 bg-grid opacity-30 pointer-events-none" />
       <DisclaimerBanner />
       <header className="sticky top-0 z-20 border-b border-[#1e293b] bg-[#080c14]/80 backdrop-blur">
         <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-4 sm:px-6">
           <button
-            onClick={() => navigate('/questionnaire')}
+            onClick={() => navigate('/results')}
             className="text-sm font-medium text-[#cbd5e1] transition-colors hover:text-[#f8fafc]"
           >
             ← Back to my results
           </button>
           <div className="flex items-center gap-3">
-            <div className="font-mono text-xs font-bold border border-[#1e293b] px-2 py-1 text-[#3b82f6] shrink-0">F1</div>
-            <span className="text-base font-semibold tracking-wide text-[#f8fafc] sm:text-lg">F1 Tax Helper</span>
+            <div className="font-mono text-xs font-bold border border-[#1e293b] px-2 py-1 text-[#3b82f6] shrink-0">
+              F1
+            </div>
+            <span className="text-base font-semibold tracking-wide text-[#f8fafc] sm:text-lg">
+              F1 Tax Helper
+            </span>
           </div>
         </div>
       </header>
       <div className="relative z-10 flex flex-1 min-h-0">
-      {sidebarOpen && (
+        {sidebarOpen && (
+          <div
+            className="fixed inset-0 z-40 bg-black/60 lg:hidden"
+            onClick={handleCloseSidebar}
+            aria-hidden
+          />
+        )}
+
         <div
-          className="fixed inset-0 z-40 bg-black/60 lg:hidden"
-          onClick={handleCloseSidebar}
-          aria-hidden
-        />
-      )}
+          data-open={sidebarOpen}
+          className={`chat-sidebar-shell fixed inset-y-0 left-0 z-50 w-72 transform transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0 ${
+            sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+          }`}
+        >
+          <ChatSidebar
+            onClose={handleCloseSidebar}
+            conversations={conversations}
+            onSelect={handleSelectConversation}
+            onNewChat={handleNewChat}
+          />
+        </div>
 
-      <div
-        className={`fixed inset-y-0 left-0 z-50 w-72 transform transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0 ${
-          sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-        }`}
-      >
-        <ChatSidebar 
-          conversations={conversations} 
-          onSelect={handleSelectConversation}
-          onNewChat={handleNewChat}
-        />
-      </div>
-
-      <div className="flex min-w-0 flex-1 flex-col">
-        {selectedConversation ? (
-          <div id="past-conversation-view" className="relative z-10 flex h-full flex-1 flex-col overflow-hidden rounded-none bg-transparent">
-            <div className="hidden items-center gap-3 border-b border-[#1e293b] bg-[#0f1629] p-4 lg:flex">
-              <div className="font-mono text-xs font-bold border border-[#1e293b] px-2 py-1 text-[#3b82f6]">F1</div>
-              <div>
-                <h1 className="font-semibold text-[#f8fafc]">F1 Tax Assistant</h1>
-                <p className="text-xs text-[#64748b]">{selectedConversation.title}</p>
+        <div className="flex min-w-0 flex-1 flex-col">
+          {selectedConversation ? (
+            <div
+              id="past-conversation-view"
+              className="relative z-10 flex h-full flex-1 flex-col overflow-hidden rounded-none bg-transparent"
+            >
+              <div className="hidden items-center gap-3 border-b border-[#1e293b] bg-[#0f1629] p-4 lg:flex">
+                <div className="font-mono text-xs font-bold border border-[#1e293b] px-2 py-1 text-[#3b82f6]">
+                  F1
+                </div>
+                <div>
+                  <h1 className="font-semibold text-[#f8fafc]">F1 Tax Assistant</h1>
+                  <p className="text-xs text-[#64748b]">{selectedConversation.title}</p>
+                </div>
               </div>
-            </div>
 
-            <div className="flex items-center gap-3 border-b border-[#1e293b] bg-[#0f1629] p-4 lg:hidden">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={handleOpenSidebar}
-                className="text-[#cbd5e1]"
-              >
-                <Menu className="h-5 w-5" />
-                <span className="sr-only">Open sidebar</span>
-              </Button>
-              <div className="flex items-center gap-2">
-                <div className="font-mono text-xs font-bold border border-[#1e293b] px-2 py-1 text-[#3b82f6]">F1</div>
-                <span className="font-semibold text-[#f8fafc]">Past Conversation</span>
-              </div>
-            </div>
-
-            <div className="flex-1 space-y-4 overflow-y-auto p-4 bg-[#080c14]">
-              {selectedConversation.messages.map((message) => (
-                <div
-                  key={message.id}
-                  className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+              <div className="flex items-center gap-3 border-b border-[#1e293b] bg-[#0f1629] p-4 lg:hidden">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={handleOpenSidebar}
+                  className="text-[#cbd5e1]"
                 >
+                  <Menu className="h-5 w-5" />
+                  <span className="sr-only">Open sidebar</span>
+                </Button>
+                <div className="flex items-center gap-2">
+                  <div className="font-mono text-xs font-bold border border-[#1e293b] px-2 py-1 text-[#3b82f6]">
+                    F1
+                  </div>
+                  <span className="font-semibold text-[#f8fafc]">Past Conversation</span>
+                </div>
+              </div>
+
+              <div className="flex-1 space-y-4 overflow-y-auto p-4 bg-[#080c14]">
+                {selectedConversation.messages.map((message) => (
                   <div
-                    className={`max-w-[85%] rounded-2xl px-4 py-3 md:max-w-[70%] ${
-                      message.role === 'user'
-                        ? 'rounded-tr-sm bg-[#3b82f6] text-white'
-                        : 'rounded-tl-sm border border-[#1e293b] bg-[#0f1629] text-[#cbd5e1]'
-                    }`}
+                    key={message.id}
+                    className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
                   >
-                    <div className="whitespace-pre-wrap text-sm leading-relaxed">
-                      {message.content}
+                    <div
+                      className={`max-w-[85%] rounded-2xl px-4 py-3 md:max-w-[70%] ${
+                        message.role === 'user'
+                          ? 'rounded-tr-sm bg-[#3b82f6] text-white'
+                          : 'rounded-tl-sm border border-[#1e293b] bg-[#0f1629] text-[#cbd5e1]'
+                      }`}
+                    >
+                      <StructuredMessage content={message.content} isStreaming={false} />
                     </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
 
-            <div className="flex shrink-0 justify-center border-t border-[#1e293b] bg-[#0a0e1a] p-4">
-              <p className="text-sm text-[#64748b]">This is a past conversation. Click &quot;New Chat&quot; to start a new one.</p>
-            </div>
-          </div>
-        ) : (
-          <div className="relative z-10 flex h-full flex-1 flex-col overflow-hidden">
-            <div className="flex items-center gap-3 border-b border-[#1e293b] bg-[#0f1629] p-4 lg:hidden shrink-0">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={handleOpenSidebar}
-                className="text-[#cbd5e1]"
-              >
-                <Menu className="h-5 w-5" />
-                <span className="sr-only">Open sidebar</span>
-              </Button>
-              <div className="flex items-center gap-2">
-                <div className="font-mono text-xs font-bold border border-[#1e293b] px-2 py-1 text-[#3b82f6]">F1</div>
-                <span className="font-semibold text-[#f8fafc]">F1 Tax Assistant</span>
+              <div className="flex shrink-0 justify-center border-t border-[#1e293b] bg-[#0a0e1a] p-4">
+                <p className="text-sm text-[#64748b]">
+                  This is a past conversation. Click &quot;New Chat&quot; to start a new one.
+                </p>
               </div>
             </div>
+          ) : (
+            <div className="relative z-10 flex h-full flex-1 flex-col overflow-hidden">
+              <div className="flex items-center gap-3 border-b border-[#1e293b] bg-[#0f1629] p-4 lg:hidden shrink-0">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={handleOpenSidebar}
+                  className="text-[#cbd5e1]"
+                >
+                  <Menu className="h-5 w-5" />
+                  <span className="sr-only">Open sidebar</span>
+                </Button>
+                <div className="flex items-center gap-2">
+                  <div className="font-mono text-xs font-bold border border-[#1e293b] px-2 py-1 text-[#3b82f6]">
+                    F1
+                  </div>
+                  <span className="font-semibold text-[#f8fafc]">F1 Tax Assistant</span>
+                </div>
+              </div>
 
-            <div className="flex-1 overflow-hidden relative">
-              <ChatMain
-                initialContext={initialContext}
-                navigationKey={navKey}
-                onOpenChecklist={() => setChecklistOpen(true)}
-                onMessagesChange={handleMessagesChange}
-              />
+              <div className="flex-1 overflow-hidden relative">
+                <ChatMain
+                  key={`${uid}:${navKey}`}
+                  initialContext={initialContext}
+                  navigationKey={navKey}
+                  onOpenChecklist={() => setChecklistOpen(true)}
+                  onMessagesChange={handleMessagesChange}
+                />
+              </div>
             </div>
-          </div>
-        )}
-      </div>
+          )}
+        </div>
 
-      <div
-        className={`fixed inset-y-0 right-0 z-50 w-[280px] transform border-l border-[#1e293b] bg-[#0a0e1a] shadow-2xl transition-transform duration-300 ease-in-out sm:w-[380px] lg:relative lg:shadow-none ${
-          checklistOpen ? 'translate-x-0' : 'translate-x-full lg:hidden'
-        }`}
-      >
-        <div className="flex h-16 items-center justify-between border-b border-[#1e293b] px-4">
-          <h2 className="font-semibold text-[#f8fafc]">My Checklist</h2>
-          <button
-            onClick={() => setChecklistOpen(false)}
-            className="rounded-md p-2 text-[#64748b] transition-colors hover:bg-[#131c2e] hover:text-[#f8fafc]"
-          >
-            <X className="h-5 w-5" />
-          </button>
+        <div
+          inert={!checklistOpen ? '' : undefined}
+          aria-hidden={!checklistOpen}
+          className={`fixed inset-y-0 right-0 z-50 w-[280px] transform border-l border-[#1e293b] bg-[#0a0e1a] shadow-2xl transition-transform duration-300 ease-in-out sm:w-[380px] lg:relative lg:shadow-none ${
+            checklistOpen ? 'translate-x-0' : 'translate-x-full lg:hidden'
+          }`}
+        >
+          <div className="flex h-16 items-center justify-between border-b border-[#1e293b] px-4">
+            <h2 className="font-semibold text-[#f8fafc]">My Checklist</h2>
+            <button
+              aria-label="Close checklist"
+              onClick={() => setChecklistOpen(false)}
+              className="rounded-md p-2 text-[#64748b] transition-colors hover:bg-[#131c2e] hover:text-[#f8fafc]"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          </div>
+          <div className="h-[calc(100vh-4rem)] overflow-y-auto">
+            <ChatChecklistPanel onClose={() => setChecklistOpen(false)} />
+          </div>
         </div>
-        <div className="h-[calc(100vh-4rem)] overflow-y-auto">
-          <ChatChecklistPanel />
-        </div>
-      </div>
       </div>
     </div>
   )

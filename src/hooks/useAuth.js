@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useState } from 'react'
+import { createContext, createElement, useContext, useCallback, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import supabase from '../utils/supabase'
-
+import { clearUserStorage, readStored, writeStored, removeStored } from '../utils/storage.js'
+const AuthContext = createContext(null)
 const GUEST_SESSION_KEY = 'f1_guest_session'
 const GUEST_USER = {
   id: 'guest',
@@ -10,78 +11,50 @@ const GUEST_USER = {
   app_metadata: { provider: 'guest' },
   user_metadata: {},
 }
-
-function clearScopedUserStorage(uid) {
-  if (!uid) return
-  const keysToClean = [
-    `f1_checklist_state_${uid}`,
-    `f1-tax-helper-checklist_${uid}`,
-    `f1-conversations_${uid}`,
-    `display_name_${uid}`,
-    `university_${uid}`,
-  ]
-  keysToClean.forEach((key) => localStorage.removeItem(key))
-}
-
-function hasGuestSession() {
-  try {
-    return localStorage.getItem(GUEST_SESSION_KEY) === 'true'
-  } catch {
-    return false
-  }
-}
-
-function setGuestSession(enabled) {
-  try {
-    if (enabled) localStorage.setItem(GUEST_SESSION_KEY, 'true')
-    else localStorage.removeItem(GUEST_SESSION_KEY)
-  } catch {
-    // Ignore storage failures; the current in-memory auth state still updates.
-  }
-}
-
-export default function useAuth() {
+const guestUser = () => (readStored(GUEST_SESSION_KEY) === true ? GUEST_USER : null)
+export function AuthProvider({ children }) {
   const navigate = useNavigate()
-  const [user, setUser] = useState(null)
-  const [loading, setLoading] = useState(true)
-
+  const [user, setUser] = useState(guestUser)
+  const [loading, setLoading] = useState(Boolean(supabase))
   useEffect(() => {
-    let mounted = true
-
-    // Don't call getUser() first — let onAuthStateChange be the single source of truth
-    const { data: listener } = supabase.auth.onAuthStateChange((event, session) => {
-      if (!mounted) return
-      if (session?.user) {
-        setGuestSession(false)
-        setUser(session.user)
-      } else {
-        setUser(hasGuestSession() ? GUEST_USER : null)
-      }
-      setLoading(false)  // only set false AFTER auth state is known
+    if (!supabase) return
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) removeStored(GUEST_SESSION_KEY)
+      setUser(session?.user || guestUser())
+      setLoading(false)
     })
-
-    return () => {
-      mounted = false
-      listener.subscription.unsubscribe()
-    }
+    return () => listener.subscription.unsubscribe()
   }, [])
-
-  const signInAsGuest = useCallback((redirectTo = '/welcome') => {
-    setGuestSession(true)
-    setUser(GUEST_USER)
-    navigate(redirectTo)
-  }, [navigate])
-
-  const signOut = useCallback(async (redirectTo = '/login') => {
-    const nextPath = typeof redirectTo === 'string' ? redirectTo : '/login'
-    clearScopedUserStorage(user?.id)
-    setGuestSession(false)
-    if (!user?.is_guest) {
-      await supabase.auth.signOut()
-    }
-    setUser(null)
-    navigate(nextPath)
-  }, [navigate, user?.id, user?.is_guest])
-
-  return { user, loading, signInAsGuest, signOut }
+  const signInAsGuest = useCallback(
+    (path = '/welcome') => {
+      writeStored(GUEST_SESSION_KEY, true)
+      setUser(GUEST_USER)
+      setLoading(false)
+      navigate(path)
+    },
+    [navigate],
+  )
+  const signOut = useCallback(
+    async (path = '/login') => {
+      if (supabase && user && !user.is_guest) {
+        const { error } = await supabase.auth.signOut({ scope: 'local' })
+        if (error) throw new Error('Sign out failed. Please try again.')
+      }
+      clearUserStorage(user?.id || 'guest')
+      removeStored(GUEST_SESSION_KEY)
+      setUser(null)
+      navigate(typeof path === 'string' ? path : '/login')
+    },
+    [navigate, user],
+  )
+  return createElement(
+    AuthContext.Provider,
+    { value: { user, loading, signInAsGuest, signOut } },
+    children,
+  )
+}
+export default function useAuth() {
+  const auth = useContext(AuthContext)
+  if (!auth) throw new Error('useAuth requires AuthProvider')
+  return auth
 }

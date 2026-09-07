@@ -1,73 +1,86 @@
-// Filing Readiness score — aggregates progress signals from localStorage
-// (plus the questionnaire from Supabase user metadata, passed in by the caller).
-// All storage reads are defensive: missing/corrupt/unavailable storage must
-// degrade to "not done", never throw.
-
-function safeGetItem(key) {
-  try {
-    return localStorage.getItem(key)
-  } catch {
-    return null
-  }
-}
-
-function safeParse(raw) {
-  try {
-    return JSON.parse(raw)
-  } catch {
-    return null
-  }
-}
-
-export function computeReadiness({ uid, questionnaire }) {
-  // statusChecked (25): 'f1_status_result' parses to a non-null object
-  const statusResult = safeParse(safeGetItem('f1_status_result') ?? 'null')
-  const statusChecked = statusResult !== null && typeof statusResult === 'object'
-
-  // questionnaireDone (20): caller passes user_metadata.questionnaire or equivalent
-  const questionnaireDone = Boolean(questionnaire)
-
-  // checklistProgress (30, partial credit): fraction of checked keys in whatever
-  // shape ChecklistPage stored — we don't assume a specific item set.
-  let checkedCount = 0
-  let totalKeys = 0
-  const checklistState = safeParse(safeGetItem(`f1_checklist_state_${uid || 'guest'}`) ?? 'null')
-  if (checklistState && typeof checklistState === 'object') {
-    const values = Object.values(checklistState)
-    totalKeys = values.length
-    checkedCount = values.filter(Boolean).length
-  }
-  const checklistFraction = totalKeys > 0 ? checkedCount / totalKeys : 0
-  const checklistPoints = Math.round(30 * checklistFraction)
-  const checklistDone = totalKeys > 0 && checkedCount === totalKeys
-
-  // form8843Generated (15) / treatyChecked (10): simple flags
-  const form8843Generated = safeGetItem('f1_8843_generated') === 'true'
-  const treatyChecked = safeGetItem('f1_treaty_checked') === 'true'
-
+import { TAX_YEAR, canGenerate8843 } from '../data/taxSeason.js'
+import { readStored, seasonKey } from './storage.js'
+export function computeReadiness({ uid = 'guest', questionnaire }) {
+  const status = readStored(seasonKey('status', uid))
+  const statusChecked = status?.taxYear === TAX_YEAR && status.badge === 'nra'
+  const questionnaireDone = questionnaire?.taxYear === TAX_YEAR && Boolean(questionnaire.answers)
+  const saved = readStored(seasonKey('checklist', uid), {})
+  const knownIds = [
+    'form-8843',
+    'form-1040nr',
+    'w2',
+    '1042s',
+    '1099int',
+    '1098t',
+    'passport',
+    'f1-visa',
+    'i20',
+    'i94',
+    'ssn-itin',
+    'residency-review',
+  ]
+  const values =
+    saved && typeof saved === 'object' && !Array.isArray(saved)
+      ? Object.entries(saved)
+          .filter(([id]) => knownIds.includes(id))
+          .map(([, v]) => v === true)
+      : []
+  const checked = values.filter(Boolean).length
+  const checklistPoints = values.length ? Math.round((30 * checked) / values.length) : 0
+  const formDone =
+    canGenerate8843(TAX_YEAR) && readStored(seasonKey('8843-generated', uid)) === true
+  const treatyDone = readStored(seasonKey('treaty-reviewed', uid)) === true
   const score =
     (statusChecked ? 25 : 0) +
     (questionnaireDone ? 20 : 0) +
     checklistPoints +
-    (form8843Generated ? 15 : 0) +
-    (treatyChecked ? 10 : 0)
-
-  const checklistLabel =
-    checkedCount > 0 && !checklistDone
-      ? `Gather your documents (${checkedCount} of ${totalKeys} collected)`
-      : 'Gather your documents'
-
-  const tasks = [
-    { id: 'status', label: 'Check your residency status', done: statusChecked, points: 25, link: '/status-checker' },
-    { id: 'questionnaire', label: 'Complete the tax questionnaire', done: questionnaireDone, points: 20, link: '/questionnaire' },
-    { id: 'checklist', label: checklistLabel, done: checklistDone, points: 30 - checklistPoints, link: '/checklist' },
-    { id: 'form8843', label: 'Generate your Form 8843', done: form8843Generated, points: 15, link: '/form-8843' },
-    { id: 'treaty', label: 'Check your tax treaty', done: treatyChecked, points: 10, link: '/treaty-detector' },
-  ]
-
-  return { score, tasks }
+    (formDone ? 15 : 0) +
+    (treatyDone ? 10 : 0)
+  return {
+    score,
+    tasks: [
+      {
+        id: 'status',
+        label: 'Review your residency status',
+        done: statusChecked,
+        points: 25,
+        link: '/status-checker',
+      },
+      {
+        id: 'questionnaire',
+        label: 'Complete the tax questionnaire',
+        done: questionnaireDone,
+        points: 20,
+        link: '/questionnaire',
+      },
+      {
+        id: 'checklist',
+        label: values.length
+          ? `Gather your documents (${checked} of ${values.length})`
+          : 'Gather your documents',
+        done: values.length > 0 && checked === values.length,
+        points: 30 - checklistPoints,
+        link: '/checklist',
+      },
+      {
+        id: 'form8843',
+        label: canGenerate8843(TAX_YEAR)
+          ? 'Prepare Form 8843, if required'
+          : 'Prepare Form 8843 · final IRS form pending',
+        done: formDone,
+        points: 15,
+        link: '/form-8843',
+      },
+      {
+        id: 'treaty',
+        label: 'Review treaty guidance for your country',
+        done: treatyDone,
+        points: 10,
+        link: '/questionnaire',
+      },
+    ],
+  }
 }
-
 export function scoreColor(score) {
   if (score >= 90) return '#22c55e'
   if (score >= 70) return '#3b82f6'

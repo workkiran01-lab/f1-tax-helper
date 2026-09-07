@@ -1,3 +1,4 @@
+import { clearUserStorage } from '../../utils/storage.js'
 import { useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Link, useNavigate } from 'react-router-dom'
@@ -10,16 +11,8 @@ const formatGroupLabel = (timestamp) => {
   const now = new Date()
 
   const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate())
-  const startOfYesterday = new Date(
-    now.getFullYear(),
-    now.getMonth(),
-    now.getDate() - 1,
-  )
-  const startOfWeek = new Date(
-    now.getFullYear(),
-    now.getMonth(),
-    now.getDate() - 7,
-  )
+  const startOfYesterday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1)
+  const startOfWeek = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 7)
 
   if (date >= startOfToday) return 'Today'
   if (date >= startOfYesterday) return 'Yesterday'
@@ -44,55 +37,27 @@ const groupConversations = (conversations) => {
   }))
 }
 
-const initDarkMode = () => {
-  const stored = localStorage.getItem('theme')
-  const isDark = stored ? stored === 'dark' : true
-  if (isDark) document.documentElement.classList.add('dark')
-  else document.documentElement.classList.remove('dark')
-  return isDark
-}
-
-const clearAccountStorage = (uid) => {
-  const scopedUid = uid || 'guest'
-  const scopedKeys = [
-    `f1_checklist_state_${scopedUid}`,
-    `f1-tax-helper-checklist_${scopedUid}`,
-    `f1-conversations_${scopedUid}`,
-    `display_name_${scopedUid}`,
-    `university_${scopedUid}`,
-  ]
-  const unscopedKeys = [
-    'f1_form8843_v3',
-    'f1_user_name',
-    'f1_status_result',
-    'f1-questionnaire-progress',
-  ]
-
-  scopedKeys.forEach((key) => localStorage.removeItem(key))
-  unscopedKeys.forEach((key) => {
-    localStorage.removeItem(key)
-    sessionStorage.removeItem(key)
-  })
-}
-
-export function ChatSidebar({ conversations = [], onSelect, onNewChat }) {
+export function ChatSidebar({ conversations = [], onSelect, onNewChat, onClose }) {
   const navigate = useNavigate()
   const { user, signOut } = useAuth()
   const [showSettings, setShowSettings] = useState(false)
-  const [emailNotifications, setEmailNotifications] = useState(true)
-  const [deadlineReminders, setDeadlineReminders] = useState(true)
-  const [darkMode, setDarkMode] = useState(initDarkMode)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [deleteError, setDeleteError] = useState('')
   const [deleteMessage, setDeleteMessage] = useState('')
   const [deleteLoading, setDeleteLoading] = useState(false)
 
   const metadata = user?.user_metadata || {}
-  const displayName = metadata.full_name || metadata.name || user?.email?.split('@')?.[0] || 'Student'
+  const displayName =
+    metadata.full_name || metadata.name || user?.email?.split('@')?.[0] || 'Student'
   const initial = useMemo(() => (displayName?.[0] || 'S').toUpperCase(), [displayName])
 
   const handleSignOut = async () => {
-    await signOut('/')
+    try {
+      await signOut('/')
+    } catch (error) {
+      setDeleteError(error.message)
+      setShowDeleteModal(true)
+    }
   }
 
   const handleDeleteAccount = async () => {
@@ -101,76 +66,45 @@ export function ChatSidebar({ conversations = [], onSelect, onNewChat }) {
     setDeleteLoading(true)
 
     try {
-      const { data: { user: currentUser } = {} } = await supabase.auth.getUser()
-      const uid = currentUser?.id || user?.id || 'guest'
-      clearAccountStorage(uid)
-
-      if (uid === 'guest' || user?.is_guest || !currentUser) {
-        await signOut('/')
-        return
+      if (!user?.is_guest) {
+        const { error } = await supabase.rpc('delete_user')
+        if (error) throw error
       }
-
-      let deleted = false
-
-      if (supabase.auth.admin?.deleteUser) {
-        try {
-          const { error } = await supabase.auth.admin.deleteUser(uid)
-          if (error) console.error('Supabase admin delete failed:', error)
-          else deleted = true
-        } catch (err) {
-          console.error('Supabase admin delete failed:', err)
-        }
-      }
-
-      if (!deleted) {
-        try {
-          const { error } = await supabase.rpc('delete_user')
-          if (error) console.error('delete_user RPC failed:', error)
-          else deleted = true
-        } catch (err) {
-          console.error('delete_user RPC failed:', err)
-        }
-      }
-
-      if (deleted) {
-        await signOut('/')
-        return
-      }
-
-      await supabase.auth.signOut()
-      setDeleteMessage('Your data has been cleared. Contact support to fully remove your account from our servers.')
-      setTimeout(() => navigate('/', { replace: true }), 1600)
-    } catch (err) {
-      console.error('Account deletion failed:', err)
-      setDeleteError('Could not delete account. Please try again or contact support@f1taxhelper.com')
+      clearUserStorage(user?.id || 'guest')
+      await signOut('/')
+    } catch {
+      setDeleteError(
+        'Account deletion did not complete. Your saved data has not been deliberately cleared. Try again or contact support@f1taxhelper.com.',
+      )
+    } finally {
       setDeleteLoading(false)
     }
   }
 
   useEffect(() => {
     const handleEsc = (e) => {
-      if (e.key === 'Escape') setShowSettings(false)
+      if (e.key === 'Escape') {
+        setShowSettings(false)
+        if (!deleteLoading) setShowDeleteModal(false)
+      }
     }
     window.addEventListener('keydown', handleEsc)
     return () => window.removeEventListener('keydown', handleEsc)
   }, [])
-
-  const handleDarkModeToggle = () => {
-    const next = !darkMode
-    setDarkMode(next)
-    try { localStorage.setItem('theme', next ? 'dark' : 'light') } catch {}
-    if (next) document.documentElement.classList.add('dark')
-    else document.documentElement.classList.remove('dark')
-  }
 
   return (
     <>
       <div className="flex h-full flex-col bg-[#0a0e1a] border-r border-[#1e293b]">
         <div className="flex items-center justify-between p-4">
           <div className="flex items-center gap-2">
-            <div className="font-mono text-xs font-bold border border-[#1e293b] px-2 py-1 text-[#3b82f6]">F1</div>
+            <div className="font-mono text-xs font-bold border border-[#1e293b] px-2 py-1 text-[#3b82f6]">
+              F1
+            </div>
             <span className="font-semibold text-slate-100">Tax Helper</span>
           </div>
+          <button onClick={onClose} aria-label="Close sidebar" className="p-2 text-body lg:hidden">
+            <X className="h-4 w-4" />
+          </button>
         </div>
 
         <div className="px-3 pb-4 shrink-0">
@@ -195,7 +129,7 @@ export function ChatSidebar({ conversations = [], onSelect, onNewChat }) {
                   {label}
                 </h3>
                 <div className="space-y-1">
-                  {items.map(conv => (
+                  {items.map((conv) => (
                     <button
                       key={conv.id}
                       onClick={() => onSelect && onSelect(conv)}
@@ -223,7 +157,9 @@ export function ChatSidebar({ conversations = [], onSelect, onNewChat }) {
               </div>
             </div>
             <div className="mt-3 flex items-center justify-between gap-2">
-              <span className="border border-[#22c55e]/20 text-[#22c55e] text-[10px] font-mono px-2 py-0.5 rounded">Free Plan</span>
+              <span className="border border-[#22c55e]/20 text-[#22c55e] text-[10px] font-mono px-2 py-0.5 rounded">
+                Free Plan
+              </span>
               <button
                 type="button"
                 onClick={() => setShowSettings(true)}
@@ -250,49 +186,59 @@ export function ChatSidebar({ conversations = [], onSelect, onNewChat }) {
         </div>
       </div>
 
-      {showDeleteModal && createPortal(
-        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
-          <div className="relative w-full max-w-md rounded-3xl border border-red-500/30 bg-slate-900/95 p-6 shadow-2xl">
-            <h3 className="text-xl font-bold text-slate-100">Delete your account?</h3>
-            <p className="mt-3 text-sm leading-6 text-slate-300">
-              This will permanently delete your account and all saved data. This cannot be undone.
-            </p>
-            {deleteError && (
-              <p className="mt-4 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
-                {deleteError}
+      {showDeleteModal &&
+        createPortal(
+          <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
+            <div
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="delete-title"
+              className="relative w-full max-w-md rounded-3xl border border-red-500/30 bg-slate-900/95 p-6 shadow-2xl"
+            >
+              <h3 id="delete-title" className="text-xl font-bold text-slate-100">
+                Delete your account?
+              </h3>
+              <p className="mt-3 text-sm leading-6 text-slate-300">
+                This requests deletion of your account and clears saved app data in this browser
+                after the request succeeds. PDFs already downloaded to your device are not removed.
+                This cannot be undone.
               </p>
-            )}
-            {deleteMessage && (
-              <p className="mt-4 rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
-                {deleteMessage}
-              </p>
-            )}
-            <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-end">
-              <button
-                type="button"
-                onClick={() => {
-                  setShowDeleteModal(false)
-                  setDeleteError('')
-                  setDeleteMessage('')
-                }}
-                disabled={deleteLoading}
-                className="rounded-xl border border-[#1e293b] bg-transparent px-4 py-2 text-sm font-semibold text-[#cbd5e1] transition-colors hover:border-[#2d4a6e] hover:text-[#f8fafc] disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={handleDeleteAccount}
-                disabled={deleteLoading}
-                className="rounded-xl bg-red-500 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-red-400 disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                {deleteLoading ? 'Deleting...' : 'Delete Account'}
-              </button>
+              {deleteError && (
+                <p className="mt-4 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+                  {deleteError}
+                </p>
+              )}
+              {deleteMessage && (
+                <p className="mt-4 rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
+                  {deleteMessage}
+                </p>
+              )}
+              <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-end">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowDeleteModal(false)
+                    setDeleteError('')
+                    setDeleteMessage('')
+                  }}
+                  disabled={deleteLoading}
+                  className="rounded-xl border border-[#1e293b] bg-transparent px-4 py-2 text-sm font-semibold text-[#cbd5e1] transition-colors hover:border-[#2d4a6e] hover:text-[#f8fafc] disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleDeleteAccount}
+                  disabled={deleteLoading}
+                  className="rounded-xl bg-red-500 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-red-400 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {deleteLoading ? 'Deleting...' : 'Delete Account'}
+                </button>
+              </div>
             </div>
-          </div>
-        </div>,
-        document.body,
-      )}
+          </div>,
+          document.body,
+        )}
 
       {/* Settings panel — portalled to body to escape the sidebar's transform containing block */}
       {createPortal(
@@ -314,6 +260,7 @@ export function ChatSidebar({ conversations = [], onSelect, onNewChat }) {
               <button
                 type="button"
                 onClick={() => setShowSettings(false)}
+                aria-label="Close settings"
                 className="rounded-md p-1 text-slate-300 hover:bg-white/10"
               >
                 <X className="h-4 w-4" />
@@ -321,7 +268,9 @@ export function ChatSidebar({ conversations = [], onSelect, onNewChat }) {
             </div>
             <div className="space-y-5 overflow-y-auto">
               <section>
-                <h4 className="text-xs font-semibold uppercase tracking-wide text-slate-500">Account</h4>
+                <h4 className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                  Account
+                </h4>
                 <div className="mt-2 rounded-xl border border-[#1e293b] bg-[#0f172a] p-3">
                   <div className="flex items-center gap-3">
                     <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#1e293b] border border-[#2d4a6e] text-[#3b82f6] font-mono font-bold text-sm">
@@ -336,49 +285,42 @@ export function ChatSidebar({ conversations = [], onSelect, onNewChat }) {
               </section>
 
               <section>
-                <h4 className="text-xs font-semibold uppercase tracking-wide text-slate-500">Preferences</h4>
-                <div className="mt-2 space-y-2 rounded-xl border border-[#1e293b] bg-[#0f172a] p-3 text-sm">
-                  <label className="flex cursor-pointer items-center justify-between text-slate-300">
-                    Email notifications
-                    <input
-                      type="checkbox"
-                      checked={emailNotifications}
-                      onChange={() => setEmailNotifications((v) => !v)}
-                    />
-                  </label>
-                  <label className="flex cursor-pointer items-center justify-between text-slate-300">
-                    Tax deadline reminders
-                    <input
-                      type="checkbox"
-                      checked={deadlineReminders}
-                      onChange={() => setDeadlineReminders((v) => !v)}
-                    />
-                  </label>
-                  <label className="flex cursor-pointer items-center justify-between text-slate-300">
-                    Dark mode
-                    <input
-                      type="checkbox"
-                      checked={darkMode}
-                      onChange={handleDarkModeToggle}
-                    />
-                  </label>
+                <h4 className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                  Preferences
+                </h4>
+                <div className="mt-2 rounded-xl border border-border bg-surface p-3 text-sm text-body">
+                  <p>Dark appearance</p>
+                  <p className="mt-2 text-xs text-muted-foreground">
+                    Animations follow your device's reduced-motion setting. Email notifications and
+                    deadline reminders are not yet available.
+                  </p>
                 </div>
               </section>
 
               <section>
-                <h4 className="text-xs font-semibold uppercase tracking-wide text-slate-500">About</h4>
+                <h4 className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                  About
+                </h4>
                 <div className="mt-2 rounded-xl border border-[#1e293b] bg-[#0f172a] p-3 text-sm text-slate-300">
                   <p>F1 Tax Helper v1.0</p>
                   <div className="mt-2 flex flex-col gap-1 text-blue-300">
-                    <Link to="/privacy" onClick={() => setShowSettings(false)}>Privacy Policy</Link>
-                    <Link to="/terms" onClick={() => setShowSettings(false)}>Terms</Link>
-                    <Link to="/contact" onClick={() => setShowSettings(false)}>Contact</Link>
+                    <Link to="/privacy" onClick={() => setShowSettings(false)}>
+                      Privacy Policy
+                    </Link>
+                    <Link to="/terms" onClick={() => setShowSettings(false)}>
+                      Terms
+                    </Link>
+                    <Link to="/contact" onClick={() => setShowSettings(false)}>
+                      Contact
+                    </Link>
                   </div>
                 </div>
               </section>
 
               <section>
-                <h4 className="text-xs font-semibold uppercase tracking-wide text-slate-500">Danger Zone</h4>
+                <h4 className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                  Danger Zone
+                </h4>
                 <div className="mt-2 space-y-2">
                   <button
                     type="button"

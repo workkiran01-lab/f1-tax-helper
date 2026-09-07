@@ -1,3 +1,4 @@
+import { readStored, writeStored, currentQuestionnaire } from '../utils/storage.js'
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import supabase from '../utils/supabase'
@@ -19,8 +20,8 @@ export default function WelcomePage() {
 
   useEffect(() => {
     const metadata = user?.user_metadata || {}
-    const n = metadata.display_name || localStorage.getItem(displayNameKey) || ''
-    const u = metadata.university || localStorage.getItem(universityKey) || ''
+    const n = metadata.display_name || readStored(displayNameKey, '') || ''
+    const u = metadata.university || readStored(universityKey, '') || ''
     if (n && u) {
       setName(n)
       setUniversity(u)
@@ -33,10 +34,10 @@ export default function WelcomePage() {
     const n = nameInput.trim()
     const u = universityInput.trim()
     if (!n || !u) return
-    localStorage.setItem(displayNameKey, n)
-    localStorage.setItem(universityKey, u)
-    if (!user?.is_guest) {
-      await supabase.auth.updateUser({ data: { display_name: n, university: u } })
+    writeStored(displayNameKey, n)
+    writeStored(universityKey, u)
+    if (supabase && !user?.is_guest) {
+      supabase.auth.updateUser({ data: { display_name: n, university: u } }).catch(() => {})
     }
     setName(n)
     setUniversity(u)
@@ -121,21 +122,12 @@ export default function WelcomePage() {
               WELCOME BACK
             </p>
             <h1 className="text-center text-2xl font-bold leading-tight tracking-tight text-[#f8fafc] sm:text-3xl">
-              Hey,{' '}
-              <span className="text-[#3b82f6]">
-                {name}
-              </span>
+              Hey, <span className="text-[#3b82f6]">{name}</span>
             </h1>
-            <p className="mt-2 text-center text-sm text-[#64748b]">
-              {university} · F-1 Student
-            </p>
+            <p className="mt-2 text-center text-sm text-[#64748b]">{university} · F-1 Student</p>
 
             <div className="mt-6">
-              <ReadinessCard
-                compact
-                uid={uid}
-                questionnaire={user?.user_metadata?.questionnaire || null}
-              />
+              <ReadinessCard compact uid={uid} questionnaire={currentQuestionnaire(user) || null} />
             </div>
 
             <div className="my-6 border-t border-[#1e293b]" />

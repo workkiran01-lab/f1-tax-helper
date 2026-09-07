@@ -5,7 +5,7 @@ import { LegalLayout } from '../components/legal/LegalLayout'
 
 const POLICY_CONTENT = {
   title: 'Privacy Policy',
-  lastUpdated: 'April 2026',
+  lastUpdated: 'September 2026',
   intro:
     'F1 Tax Helper is committed to protecting your privacy. This policy explains what personal data we collect, how we use it, and the choices you have.',
   sections: [
@@ -20,7 +20,7 @@ const POLICY_CONTENT = {
 • Questionnaire responses: answers you provide about your visa status, income sources, and tax situation, used to generate your personalized checklist.
 • Usage data: pages visited and features used, collected in aggregate to improve the service.
 
-We do not collect your Social Security Number, bank account details, or any other sensitive financial identifiers.`,
+The Form 8843 tool asks for passport details, addresses and an optional SSN/ITIN to fill your PDF locally. These fields are held in this browser tab and are not sent to our server by the form tool. Do not paste them into AI chat: messages you send there are transmitted to our server and Groq.`,
     },
     {
       id: 'how-we-use-your-information',
@@ -32,7 +32,7 @@ We do not collect your Social Security Number, bank account details, or any othe
 • To authenticate you securely via Google Sign-In.
 • To generate and store your personalized tax checklist based on your questionnaire answers.
 • To power the AI chat assistant with context about your tax situation.
-• To send you important service updates (not marketing emails).
+• To record a waitlist signup when you explicitly submit your email. Automatic deadline reminders are not currently available.
 
 We do not sell, rent, or share your personal data with third parties for advertising purposes.`,
     },
@@ -41,9 +41,9 @@ We do not sell, rent, or share your personal data with third parties for adverti
       title: 'Data Storage & Security',
       content:
         // Paste Termly "Data Storage & Security" section here.
-        `Your data is stored securely using Supabase, a SOC 2–compliant cloud database provider. All data is encrypted in transit using TLS and encrypted at rest using AES-256.
+        `Account details and completed questionnaire answers can be saved in Supabase account metadata. Questionnaire drafts and form drafts are stored in this browser tab; chat history and checklist progress are saved in this browser and separated by user and tax year. Local browser storage is not encrypted by this app. Avoid shared devices, sign out when finished, and clear form drafts when no longer needed.
 
-We retain your data for as long as your account is active. You may request deletion at any time (see "Your Rights" below). We implement industry-standard access controls and monitor for unauthorized access.`,
+Your messages are transmitted to Groq when you use AI chat. The form generator does not upload its field values. Clearing app data does not remove PDFs already downloaded to your device. Account deletion must succeed on the server before the app reports it as complete.`,
     },
     {
       id: 'third-party-services',
@@ -56,6 +56,9 @@ We retain your data for as long as your account is active. You may request delet
 • Supabase (database and storage) — supabase.com
 • Groq (AI chat completions) — groq.com
 • Vercel (hosting) — vercel.com
+• Upstash (short-lived request counters for rate limiting) — upstash.com
+• Resend (waitlist signup delivery) — resend.com
+• Sentry (error reporting, when configured) — sentry.io
 
 We only share the minimum data necessary with each provider to operate the service. We do not use cookies for advertising or cross-site tracking.`,
     },
@@ -76,8 +79,7 @@ To exercise any of these rights, email us at support@f1taxhelper.com. We will re
     {
       id: 'contact-us',
       title: 'Contact Us',
-      content:
-        `If you have any questions or concerns about this Privacy Policy, please contact us:
+      content: `If you have any questions or concerns about this Privacy Policy, please contact us:
 
 Email: support@f1taxhelper.com
 

@@ -1,3 +1,7 @@
+import { computeStatusResult } from '../utils/taxRules.js'
+import { TAX_YEAR, DEADLINE_NOTE } from '../data/taxSeason.js'
+import { seasonKey, writeStored, removeStored } from '../utils/storage.js'
+import SeasonNotice from '../components/SeasonNotice'
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { ChevronLeft } from 'lucide-react'
@@ -7,8 +11,9 @@ import useAuth from '../hooks/useAuth'
 const QUESTIONS = [
   {
     id: 'days',
-    question: 'How many days were you physically present in the United States in 2025?',
+    question: 'How many days were you physically present in the United States in 2026?',
     options: [
+      { value: 'zero', label: 'No days in the US this year' },
       { value: 'lt31', label: 'Less than 31 days' },
       { value: '31-182', label: '31–182 days' },
       { value: 'gte183', label: '183 or more days' },
@@ -19,23 +24,36 @@ const QUESTIONS = [
     question: 'What is your current US visa type?',
     options: [
       { value: 'f1', label: 'F-1 Student' },
-      { value: 'j1', label: 'J-1 Exchange Visitor' },
+      { value: 'j1-student', label: 'J-1 Student' },
+      { value: 'j1-other', label: 'J-1 Teacher, Researcher or Trainee' },
       { value: 'opt', label: 'OPT (Optional Practical Training)' },
       { value: 'other', label: 'Other' },
     ],
   },
   {
     id: 'years',
-    question: 'How many calendar years have you been in the US on an F/J visa?',
+    question:
+      'Including 2026, in how many calendar years were you exempt as a student, teacher or trainee? Count any part of a year, including earlier visits.',
     options: [
       { value: '1-2', label: 'This is my 1st or 2nd year' },
       { value: '3-4', label: '3rd or 4th year' },
-      { value: '5plus', label: '5th year or more' },
+      { value: '5', label: 'This is my 5th calendar year' },
+      { value: '6plus', label: '6 or more calendar years' },
+      { value: 'unknown', label: 'I am not sure' },
+    ],
+  },
+  {
+    id: 'compliance',
+    question:
+      'Did you maintain eligible student status throughout your US stay in 2026, including any authorized OPT?',
+    options: [
+      { value: 'yes', label: 'Yes' },
+      { value: 'unsure', label: 'No / I am not sure' },
     ],
   },
   {
     id: 'income',
-    question: 'Did you have any US-source income in 2025? (wages, stipend, scholarship, etc.)',
+    question: 'Did you have any US-source income in 2026? (wages, stipend, scholarship, etc.)',
     options: [
       { value: 'none', label: 'No income at all' },
       { value: 'w2', label: 'Yes, from a US employer (W-2)' },
@@ -45,87 +63,14 @@ const QUESTIONS = [
   },
   {
     id: 'status_change',
-    question: 'Did you apply for a green card or change your immigration status in 2025?',
+    question:
+      'Did you hold a green card, have a permanent-residence application pending, or change immigration status during 2026?',
     options: [
       { value: 'no', label: 'No' },
       { value: 'yes', label: 'Yes' },
     ],
   },
 ]
-
-function computeResult(answers) {
-  const { days, visa, years, income, status_change } = answers
-  const isExemptVisa = visa === 'f1' || visa === 'j1' || visa === 'opt'
-  const underFiveYears = years === '1-2' || years === '3-4'
-  const under183Days = days === 'lt31' || days === '31-182'
-  const hasIncome = income !== 'none'
-  const hasW2 = income === 'w2' || income === 'both'
-  const hasScholarship = income === 'scholarship' || income === 'both'
-  const changedStatus = status_change === 'yes'
-
-  const isNRA = isExemptVisa && underFiveYears && under183Days && !changedStatus
-
-  if (isNRA) {
-    const forms = [
-      {
-        id: 'form-8843',
-        name: 'Form 8843',
-        description: 'Required for ALL F-1 students, even with $0 income',
-        cta: 'Generate Free →',
-        ctaLink: '/form-8843',
-      },
-    ]
-    if (hasIncome) {
-      forms.push({
-        id: 'form-1040nr',
-        name: 'Form 1040-NR',
-        description: 'Main tax return for non-resident aliens with US income',
-        cta: 'Learn More →',
-        ctaLink: null,
-      })
-    }
-    if (hasW2) {
-      forms.push({
-        id: 'w2',
-        name: 'W-2 Form',
-        description: 'Wage statement from your US employer — attach to 1040-NR',
-        cta: 'Learn More →',
-        ctaLink: null,
-      })
-    }
-    if (hasScholarship) {
-      forms.push({
-        id: '1042s',
-        name: 'Form 1042-S',
-        description: "Foreign person's US source income — attach to 1040-NR",
-        cta: 'Learn More →',
-        ctaLink: null,
-      })
-    }
-    const deadline = hasIncome
-      ? 'April 15, 2026 (June 15 if you have no W-2 income)'
-      : 'June 15, 2026'
-    return { status: 'Non-Resident Alien (NRA)', badge: 'nra', forms, deadline, hasIncome }
-  }
-
-  return {
-    status: 'Possibly Resident Alien',
-    badge: 'ra',
-    forms: [
-      {
-        id: 'form-1040',
-        name: 'Form 1040',
-        description: 'Standard US tax return for resident aliens and citizens',
-        cta: 'Learn More →',
-        ctaLink: null,
-      },
-    ],
-    deadline: 'April 15, 2026',
-    hasIncome,
-    message:
-      'You may meet the Substantial Presence Test. We recommend consulting a tax professional.',
-  }
-}
 
 export default function StatusCheckerPage() {
   const navigate = useNavigate()
@@ -136,16 +81,16 @@ export default function StatusCheckerPage() {
 
   const current = QUESTIONS[step]
   const totalSteps = QUESTIONS.length
-  const progress = Math.round(((step) / totalSteps) * 100)
+  const progress = Math.round((step / totalSteps) * 100)
 
   const handleSelect = (value) => {
     const next = { ...answers, [current.id]: value }
     setAnswers(next)
     if (step < totalSteps - 1) {
-      setTimeout(() => setStep((s) => s + 1), 180)
+      setStep(Math.min(step + 1, totalSteps - 1))
     } else {
-      const res = computeResult(next)
-      try { localStorage.setItem('f1_status_result', JSON.stringify(res)) } catch {}
+      const res = computeStatusResult(next)
+      writeStored(seasonKey('status', user?.id), res)
       setResult(res)
     }
   }
@@ -155,7 +100,9 @@ export default function StatusCheckerPage() {
   }
 
   if (result) {
-    return <ResultScreen result={result} navigate={navigate} signInAsGuest={signInAsGuest} user={user} />
+    return (
+      <ResultScreen result={result} navigate={navigate} signInAsGuest={signInAsGuest} user={user} />
+    )
   }
 
   return (
@@ -166,7 +113,9 @@ export default function StatusCheckerPage() {
       <header className="sticky top-0 z-20 border-b border-[#1e293b] bg-[#080c14]/80 backdrop-blur">
         <div className="mx-auto flex h-16 w-full max-w-3xl items-center justify-between px-4 sm:px-6">
           <Link to="/" className="flex items-center gap-2">
-            <div className="font-mono text-xs font-bold border border-[#1e293b] px-2 py-1 text-[#3b82f6]">F1</div>
+            <div className="font-mono text-xs font-bold border border-[#1e293b] px-2 py-1 text-[#3b82f6]">
+              F1
+            </div>
             <span className="text-sm font-medium text-[#f8fafc]">Tax Helper</span>
           </Link>
           <span className="text-xs text-[#475569]">
@@ -178,8 +127,9 @@ export default function StatusCheckerPage() {
       <DisclaimerBanner />
 
       <main className="relative z-10 mx-auto flex w-full max-w-xl flex-1 flex-col px-4 py-12 sm:px-6">
+        <SeasonNotice compact />
         {/* Progress bar */}
-        <div className="mb-8 space-y-2">
+        <div className="mb-8 mt-6 space-y-2">
           <div className="h-px w-full bg-[#1e293b]">
             <div
               className="h-full bg-[#3b82f6] transition-all duration-500"
@@ -193,9 +143,12 @@ export default function StatusCheckerPage() {
         </div>
 
         {/* Question card */}
-        <div className="flex-1">
+        <div className="flex-1 animate-fade-up" key={step}>
           <div className="rounded-2xl border border-[#1e293b] bg-[#0f172a] p-6 sm:p-8">
-            <h2 className="text-lg font-semibold text-[#f8fafc] mb-6 leading-snug">
+            <h2
+              aria-live="polite"
+              className="text-lg font-semibold text-[#f8fafc] mb-6 leading-snug"
+            >
               {current.question}
             </h2>
             <div className="space-y-3">
@@ -267,7 +220,9 @@ function ResultScreen({ result, navigate, signInAsGuest, user }) {
       <header className="sticky top-0 z-20 border-b border-[#1e293b] bg-[#080c14]/80 backdrop-blur">
         <div className="mx-auto flex h-16 w-full max-w-3xl items-center justify-between px-4 sm:px-6">
           <Link to="/" className="flex items-center gap-2">
-            <div className="font-mono text-xs font-bold border border-[#1e293b] px-2 py-1 text-[#3b82f6]">F1</div>
+            <div className="font-mono text-xs font-bold border border-[#1e293b] px-2 py-1 text-[#3b82f6]">
+              F1
+            </div>
             <span className="text-sm font-medium text-[#f8fafc]">Tax Helper</span>
           </Link>
           <span className="text-xs text-[#475569]">Results Ready</span>
@@ -300,7 +255,9 @@ function ResultScreen({ result, navigate, signInAsGuest, user }) {
 
         {/* Filing requirements */}
         <div className="mb-5 rounded-2xl border border-[#1e293b] bg-[#0f172a] p-5 sm:p-6">
-          <h2 className="text-xs font-mono uppercase tracking-widest text-[#475569] mb-4">Your Filing Requirements</h2>
+          <h2 className="text-xs font-mono uppercase tracking-widest text-[#475569] mb-4">
+            Your Filing Requirements
+          </h2>
           <div className="space-y-3">
             {result.forms.map((form) => (
               <div
@@ -323,7 +280,7 @@ function ResultScreen({ result, navigate, signInAsGuest, user }) {
                     to="/chat"
                     className="shrink-0 rounded-xl border border-[#1e293b] bg-transparent px-3 py-1.5 text-xs font-medium text-[#64748b] transition-colors hover:border-[#2d4a6e] hover:text-[#f8fafc]"
                   >
-                    {form.cta}
+                    {form.cta || 'Ask about this →'}
                   </Link>
                 )}
               </div>
@@ -333,11 +290,11 @@ function ResultScreen({ result, navigate, signInAsGuest, user }) {
 
         {/* Deadline card */}
         <div className="mb-5 rounded-2xl border border-[#1e293b] bg-[#0f172a] p-5 sm:p-6">
-          <h2 className="text-xs font-mono uppercase tracking-widest text-[#475569] mb-2">Your Filing Deadline</h2>
+          <h2 className="text-xs font-mono uppercase tracking-widest text-[#475569] mb-2">
+            Expected Filing Deadline
+          </h2>
           <p className="text-sm font-medium text-[#3b82f6] font-mono">{result.deadline}</p>
-          <p className="text-xs text-[#64748b] mt-1">
-            Missing this deadline may result in penalties. File early when possible.
-          </p>
+          <p className="text-xs text-[#64748b] mt-1">{DEADLINE_NOTE}</p>
         </div>
 
         {/* Actions */}
@@ -352,7 +309,8 @@ function ResultScreen({ result, navigate, signInAsGuest, user }) {
           {showChecklistPrompt && (
             <div className="rounded-2xl border border-[#f59e0b]/30 bg-[#f59e0b]/10 p-4 text-sm text-[#f59e0b]">
               <p className="leading-6">
-                Sign in to save and view your personalized checklist. Your progress won't be lost.
+                Continue as a guest to use this checklist in this browser. Signing in keeps account
+                progress separate; you may need to repeat this short check.
               </p>
               <div className="mt-3 flex flex-col gap-2 sm:flex-row">
                 <button
@@ -375,7 +333,7 @@ function ResultScreen({ result, navigate, signInAsGuest, user }) {
           <button
             type="button"
             onClick={() => {
-              localStorage.removeItem('f1_status_result')
+              removeStored(seasonKey('status', user?.id))
               window.location.reload()
             }}
             className="w-full rounded-xl border border-[#1e293b] bg-transparent px-5 py-3 text-sm font-medium text-[#64748b] transition-colors hover:border-[#2d4a6e] hover:text-[#f8fafc]"
@@ -386,8 +344,9 @@ function ResultScreen({ result, navigate, signInAsGuest, user }) {
 
         {/* IRS disclaimer */}
         <p className="mt-6 text-xs text-[#475569] text-center leading-5">
-          This tool provides general guidance based on IRS Publication 519. Results are not tax advice.
-          Consult your university&apos;s international student office or a CPA for your specific situation.
+          This tool provides general guidance based on IRS Publication 519. Results are not tax
+          advice. Consult your university&apos;s international student office or a CPA for your
+          specific situation.
         </p>
       </main>
     </div>

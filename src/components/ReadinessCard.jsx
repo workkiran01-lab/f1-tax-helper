@@ -1,22 +1,36 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { animate } from 'framer-motion'
+import { animate, useReducedMotion } from 'framer-motion'
 import { computeReadiness, scoreColor } from '../utils/readiness'
 
 export default function ReadinessCard({ uid, questionnaire, compact = false }) {
-  // Computed once on mount — pages remount on navigation, no live subscription needed.
-  const [{ score, tasks }] = useState(() => computeReadiness({ uid, questionnaire }))
+  const reduceMotion = useReducedMotion()
+  const [, refresh] = useState(0)
+  const { score, tasks } = computeReadiness({ uid, questionnaire })
+  useEffect(() => {
+    const update = () => refresh((v) => v + 1)
+    window.addEventListener('storage', update)
+    window.addEventListener('f1-storage-change', update)
+    return () => {
+      window.removeEventListener('storage', update)
+      window.removeEventListener('f1-storage-change', update)
+    }
+  }, [])
   const [display, setDisplay] = useState(0)
   const color = scoreColor(score)
 
   useEffect(() => {
+    if (reduceMotion) {
+      setDisplay(score)
+      return
+    }
     const controls = animate(0, score, {
       duration: 0.8,
       ease: 'easeOut',
       onUpdate: (v) => setDisplay(Math.round(v)),
     })
     return () => controls.stop()
-  }, [score])
+  }, [score, reduceMotion])
 
   const doneCount = tasks.filter((t) => t.done).length
 
@@ -24,7 +38,7 @@ export default function ReadinessCard({ uid, questionnaire, compact = false }) {
     <div className="rounded-xl border border-[#1e293b] bg-[#0f1629] p-5">
       <div className="flex items-start justify-between gap-4">
         <span className="pt-1 font-mono text-[10px] uppercase tracking-widest text-[#475569]">
-          FILING READINESS
+          PREPARATION PROGRESS
         </span>
         <p className="font-mono text-4xl font-bold leading-none" style={{ color }}>
           {display}
@@ -32,6 +46,9 @@ export default function ReadinessCard({ uid, questionnaire, compact = false }) {
         </p>
       </div>
 
+      <p className="mt-3 text-xs text-muted-foreground">
+        Progress tracking only. This score does not confirm tax eligibility or submission.
+      </p>
       <div className="mt-3 h-1 overflow-hidden rounded-full bg-[#1e293b]">
         <div
           className="h-full rounded-full transition-all duration-700"
@@ -48,8 +65,13 @@ export default function ReadinessCard({ uid, questionnaire, compact = false }) {
         </div>
       ) : score === 100 ? (
         <div className="mt-4 space-y-2">
-          <p className="text-sm font-medium text-[#22c55e]">✓ You&apos;re ready to file</p>
-          <Link to="/checklist" className="block text-xs font-medium text-[#3b82f6] hover:underline">
+          <p className="text-sm font-medium text-[#22c55e]">
+            ✓ Preparation steps checked — verify before filing
+          </p>
+          <Link
+            to="/checklist"
+            className="block text-xs font-medium text-[#3b82f6] hover:underline"
+          >
             See filing options →
           </Link>
         </div>

@@ -16,12 +16,12 @@ export const SECTIONS = [
         name: 'F-1 Visa / I-20',
         description: 'Your current I-20 or F-1 visa documentation.',
         details:
-          'Your I-20 and F-1 visa show you are a nonresident student for immigration purposes, which affects which tax forms you use (typically Form 1040-NR and Form 8843).',
+          'Your I-20 and visa document immigration status. Determine federal and state tax residency separately before selecting a return.',
       },
       {
         id: 'ssn-itin',
         name: 'SSN or ITIN',
-        description: 'Social Security Number or Individual Taxpayer ID.',
+        description: 'If you have one; not required solely for Form 8843.',
         details:
           'The IRS uses your SSN or ITIN to match your income and tax filings. Most students with US income need one of these before filing.',
       },
@@ -58,7 +58,7 @@ export const SECTIONS = [
         name: 'Bank Statements',
         description: 'Interest or other income from US (and some foreign) accounts.',
         details:
-          'Interest is sometimes taxable for nonresidents. Having your bank statements handy helps you answer questions about worldwide income accurately.',
+          'Interest is sometimes taxable for nonresidents. Certain bank deposit interest is exempt for nonresidents. Review income source and residency; do not assume worldwide income is taxable.',
       },
     ],
   },
@@ -91,4 +91,3 @@ export const SECTIONS = [
     ],
   },
 ]
-

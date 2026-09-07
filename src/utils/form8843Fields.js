@@ -1,104 +1,146 @@
-import { PDFDocument, rgb, StandardFonts } from 'pdf-lib'
-import { buildNameField, buildUsAddress, buildSchoolLine, buildDsoLine } from './form8843Display'
-
-// Field mapping verified against form8843.pdf coordinate dump (April 2026)
-// Page size: 611.976 x 791.968 pts.  All y-coords are from bottom-left.
-//
-// Header:
-//   f1_03  y:696  tax year last 2 digits  (maxLen=2)
-//   f1_04  y:672  first name + middle initial
-//   f1_05  y:672  last name
-//   f1_06  y:672  TIN / SSN (optional, maxLen≈11)
-//   f1_07  y:612  address in country of residence (optional, 50pt tall)
-//   f1_08  y:612  address in the United States    (50pt tall)
-//
-// Part I:
-//   f1_09  y:588  Line 1a  visa type + most recent entry date
-//   f1_11  y:552  Line 2   citizenship country
-//   f1_12  y:540  Line 3a  passport issuing country (optional)
-//   f1_13  y:528  Line 3b  passport number         (optional)
-//   f1_14  y:504  Line 4a  days present 2025       (optional)
-//   f1_15  y:504  Line 4a  days present 2024       (optional)
-//   f1_16  y:504  Line 4a  days present 2023       (optional)
-//   f1_17  y:492  Line 4b  days excluded           (optional)
-//
-// Part III (F-1 students):
-//   f1_26  y:264  Line 9   school name, address, phone (single combined field)
-//   f1_27  y:216  Line 10  DSO name, address, phone    (optional, combined)
-//   c1_2[0] x:511,y:170  Line 12 Yes checkbox
-//   c1_2[1] x:547,y:170  Line 12 No  checkbox
-//   c1_3[0] x:511,y:110  Line 13 Yes checkbox
-//   c1_3[1] x:547,y:110  Line 13 No  checkbox
-//   f1_34  y:72   Line 14  explanation (if yes on line 13)
-
+import { PDFDocument, rgb } from 'pdf-lib'
+import fontkit from '@pdf-lib/fontkit'
+import { buildNameField, buildUsAddress, buildSchoolLine, buildDsoLine } from './form8843Display.js'
+import { canGenerate8843, FORM_8843_TEMPLATE_SHA256 } from '../data/taxSeason.js'
+import { validate8843, visaYears } from './form8843Model.js'
 const P1 = 'topmostSubform[0].Page1[0]'
 
-function setText(form, fieldName, value) {
-  try {
-    form.getTextField(fieldName).setText(value ?? '')
-  } catch (e) {
-    console.warn(`[form8843] skipping "${fieldName}": ${e.message}`)
+export async function fillForm8843(pdfBytes, data, fontBytes) {
+  if (!canGenerate8843(data.taxYear))
+    throw new Error(
+      'The final IRS Form 8843 for this tax year is not yet verified. Do not file a draft or a prior-year form.',
+    )
+  const errors = validate8843(data)
+  if (Object.keys(errors).length)
+    throw new Error('Please complete and review all required fields before downloading.')
+  const digest = Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', pdfBytes)), (b) =>
+    b.toString(16).padStart(2, '0'),
+  ).join('')
+  if (digest !== FORM_8843_TEMPLATE_SHA256)
+    throw new Error(
+      'The PDF template has changed. Download is paused until its IRS year and field mapping are verified.',
+    )
+  const pdf = await PDFDocument.load(pdfBytes)
+  pdf.registerFontkit(fontkit)
+  const form = pdf.getForm()
+  // Embed the app's font so entries print consistently across PDF viewers.
+  // Subsetting converts the web font to a PDF-compatible font program. Include
+  // the complete accepted input alphabet so fields remain editable in viewers.
+  const font = await pdf.embedFont(fontBytes, { subset: true })
+  font.encodeText(Array.from({ length: 95 }, (_, i) => String.fromCharCode(i + 32)).join(''))
+  function text(id, value) {
+    const field = form.getTextField(`${P1}.${id}[0]`)
+    field.setText(String(value || '')) // Missing fields are fatal; never skip them.
+    field.acroField.setDefaultAppearance(`/${font.name} 10 Tf 0 g`)
+    if (['f1_07', 'f1_08', 'f1_26', 'f1_27', 'f1_34'].includes(id)) {
+      field.enableMultiline()
+      field.setFontSize(9)
+      if (['f1_26', 'f1_27', 'f1_34'].includes(id)) {
+        // The 2025 widget bounds place the default multiline baseline on the
+        // printed guide. Raise the editable field slightly to keep text above it.
+        const widget = field.acroField.getWidgets()[0]
+        const rectangle = widget.getRectangle()
+        widget.setRectangle({ ...rectangle, y: rectangle.y + 3 })
+      }
+    } else {
+      const width = field.acroField.getWidgets()[0].getRectangle().width - 4
+      const size = Math.min(10, width / Math.max(1, font.widthOfTextAtSize(String(value || ''), 1)))
+      if (size < 7)
+        throw new Error(
+          'An entry is too long to fit legibly. Shorten the address or status description and review the form.',
+        )
+      field.setFontSize(size)
+    }
   }
-}
-
-export async function fillForm8843(pdfBytes, formData) {
-  try {
-    const pdf = await PDFDocument.load(pdfBytes, { ignoreEncryption: true })
-    const form = pdf.getForm()
-    const page = pdf.getPages()[0]
-    const font = await pdf.embedFont(StandardFonts.Helvetica)
-
-    // ── Derived values (shared with the live preview — see form8843Display.js) ─
-    const nameField = buildNameField(formData)
-    const usAddress = buildUsAddress(formData)
-    const schoolLine = buildSchoolLine(formData)
-    const dsoLine = buildDsoLine(formData)
-
-    // ── Header ────────────────────────────────────────────────────────────────
-    setText(form, `${P1}.f1_03[0]`, String(formData.taxYear || '2025').slice(-2))
-    setText(form, `${P1}.f1_04[0]`, nameField)
-    setText(form, `${P1}.f1_05[0]`, formData.lastName)
-    if (formData.tinOrSSN?.trim())       setText(form, `${P1}.f1_06[0]`, formData.tinOrSSN.trim())
-    if (formData.foreignAddress?.trim()) setText(form, `${P1}.f1_07[0]`, formData.foreignAddress.trim())
-    setText(form, `${P1}.f1_08[0]`, usAddress)
-
-    // ── Part I ────────────────────────────────────────────────────────────────
-    setText(form, `${P1}.f1_09[0]`, `F-1, ${formData.currentEntryDate}`)
-    if (formData.currentImmigrationStatus?.trim()) setText(form, `${P1}.f1_10[0]`, formData.currentImmigrationStatus.trim())
-    setText(form, `${P1}.f1_11[0]`, formData.countryOfCitizenship)
-    if (formData.passportCountry?.trim()) setText(form, `${P1}.f1_12[0]`, formData.passportCountry.trim())
-    if (formData.passportNumber?.trim())  setText(form, `${P1}.f1_13[0]`, formData.passportNumber.trim())
-    if (formData.daysIn2025?.trim())      setText(form, `${P1}.f1_14[0]`, formData.daysIn2025.trim())
-    if (formData.daysIn2024?.trim())      setText(form, `${P1}.f1_15[0]`, formData.daysIn2024.trim())
-    if (formData.daysIn2023?.trim())      setText(form, `${P1}.f1_16[0]`, formData.daysIn2023.trim())
-    if (formData.daysToExclude?.trim())   setText(form, `${P1}.f1_17[0]`, formData.daysToExclude.trim())
-
-    // ── Part III ──────────────────────────────────────────────────────────────
-    setText(form, `${P1}.f1_26[0]`, schoolLine)
-    if (dsoLine) setText(form, `${P1}.f1_27[0]`, dsoLine)
-
-    // Line 12 Yes/No checkboxes — drawn as "X" overlay
-    // c1_2[0]=Yes at x:511,y:170   c1_2[1]=No at x:547,y:170
-    if (formData.line12Answer) {
-      const x = formData.line12Answer === 'yes' ? 513 : 549
-      page.drawText('X', { x, y: 171, size: 7, font, color: rgb(0, 0, 0) })
-    }
-
-    // Line 13 Yes/No checkboxes
-    // c1_3[0]=Yes at x:511,y:110   c1_3[1]=No at x:547,y:110
-    if (formData.line13Answer) {
-      const x = formData.line13Answer === 'yes' ? 513 : 549
-      page.drawText('X', { x, y: 111, size: 7, font, color: rgb(0, 0, 0) })
-    }
-
-    // Line 14 — explanation when line 13 = Yes
-    if (formData.line13Answer === 'yes' && formData.line14Explanation?.trim()) {
-      setText(form, `${P1}.f1_34[0]`, formData.line14Explanation.trim())
-    }
-
-    return await pdf.save()
-  } catch (err) {
-    console.error('[form8843] Failed to fill PDF:', err)
-    throw err
+  // The calendar year is printed on this IRS form. f1_03 is the ENDING year for
+  // a fiscal-year return, not the calendar-year label; leave all fiscal blanks empty.
+  text('f1_04', buildNameField(data))
+  text('f1_05', data.lastName)
+  text('f1_06', data.tinOrSSN)
+  text('f1_07', data.foreignAddress)
+  text('f1_08', buildUsAddress(data))
+  text('f1_09', `F-1, ${data.currentEntryDate}`)
+  text('f1_10', data.currentImmigrationStatus)
+  text('f1_11', data.countryOfCitizenship)
+  text('f1_12', data.passportCountry)
+  text('f1_13', data.passportNumber)
+  text('f1_14', data.daysCurrent)
+  text('f1_15', data.daysPrevious)
+  text('f1_16', data.daysPrior)
+  text('f1_17', data.daysToExclude)
+  text('f1_26', buildSchoolLine(data))
+  text('f1_27', buildDsoLine(data))
+  visaYears(data.taxYear).forEach((year, i) =>
+    text(
+      `f1_${28 + i}`,
+      data.visaHistory[year] === 'Changed'
+        ? '*'
+        : data.visaHistory[year] === 'None'
+          ? ''
+          : data.visaHistory[year][0],
+    ),
+  )
+  for (const [id, answer] of [
+    ['c1_2', data.line12Answer],
+    ['c1_3', data.line13Answer],
+  ]) {
+    form.getCheckBox(`${P1}.${id}[0]`).uncheck()
+    form.getCheckBox(`${P1}.${id}[1]`).uncheck()
+    form.getCheckBox(`${P1}.${id}[${answer === 'yes' ? 0 : 1}]`).check()
   }
+  text('f1_34', data.line13Answer === 'yes' ? 'See attached statement for Part III, line 14.' : '')
+  const statements = [
+    ['Part III, line 11 - Visa changes', data.visaChanges],
+    [
+      'Part III, line 12 - Continued student day exclusions',
+      data.line12Answer === 'yes' ? data.line12Explanation : '',
+    ],
+    [
+      'Part III, line 14 - Permanent-residence application',
+      data.line13Answer === 'yes' ? data.line14Explanation : '',
+    ],
+  ].filter(([, value]) => value?.trim())
+  for (const [title, value] of statements) {
+    let page
+    let y
+    function addPage() {
+      page = pdf.addPage([612, 792])
+      y = 730
+      page.drawText(`Form 8843 (${data.taxYear}) - Supporting statement`, {
+        x: 48,
+        y,
+        size: 13,
+        font,
+      })
+      y -= 25
+      page.drawText(`${buildNameField(data)} ${data.lastName}`, { x: 48, y, size: 11, font })
+      y -= 19
+      if (data.tinOrSSN) {
+        page.drawText(`TIN: ${data.tinOrSSN}`, { x: 48, y, size: 10, font })
+        y -= 19
+      }
+      page.drawText(title, { x: 48, y, size: 11, font })
+      y -= 28
+    }
+    addPage()
+    for (const paragraph of value.split(/\r?\n/)) {
+      let line = ''
+      for (const word of paragraph.split(/\s+/)) {
+        // Split long tokens too, so an unbroken reference cannot run off-page.
+        for (const chunk of word.match(/.{1,60}/g) || ['']) {
+          if (font.widthOfTextAtSize((line ? line + ' ' : '') + chunk, 10) > 510) {
+            if (y < 60) addPage()
+            page.drawText(line, { x: 48, y, size: 10, font, color: rgb(0, 0, 0) })
+            y -= 15
+            line = chunk
+          } else line += (line ? ' ' : '') + chunk
+        }
+      }
+      if (y < 60) addPage()
+      page.drawText(line, { x: 48, y, size: 10, font })
+      y -= 20
+    }
+  }
+  form.updateFieldAppearances(font)
+  return pdf.save()
 }

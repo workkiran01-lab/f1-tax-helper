@@ -1,5 +1,11 @@
+import { visaYears } from '../../utils/form8843Model.js'
 import { cn } from '../../utils/cn'
-import { buildNameField, buildUsAddress, buildSchoolLine, buildDsoLine } from '../../utils/form8843Display'
+import {
+  buildNameField,
+  buildUsAddress,
+  buildSchoolLine,
+  buildDsoLine,
+} from '../../utils/form8843Display'
 
 // Wizard step → preview section that lights up while the user types.
 const STEP_SECTIONS = ['identity', 'address', 'school', 'dso', 'days']
@@ -23,7 +29,7 @@ function LabeledBox({ label, value, className }) {
     <div className={cn('border border-gray-400 px-1 pb-1 pt-0.5', className)}>
       <p className="text-[7px] leading-tight text-gray-500">{label}</p>
       {value ? (
-        <p className="text-[9px] font-semibold leading-tight">{value}</p>
+        <p className="text-[9px] font-semibold leading-tight break-words">{value}</p>
       ) : (
         <div className="mt-[7px] border-b border-dotted border-gray-300" />
       )}
@@ -37,7 +43,11 @@ function NumberedLine({ num, label, value }) {
       <span className="w-4 shrink-0 text-[8px] font-bold">{num}</span>
       <span className="text-[8px] leading-tight text-gray-700">{label}</span>
       <span className="min-w-[40px] flex-1 border-b border-dotted border-gray-300 px-1">
-        {value ? <span className="text-[9px] font-semibold leading-tight">{value}</span> : ' '}
+        {value ? (
+          <span className="text-[9px] font-semibold leading-tight break-words">{value}</span>
+        ) : (
+          ' '
+        )}
       </span>
     </div>
   )
@@ -53,7 +63,7 @@ function CheckBox({ checked }) {
 
 function YesNoLine({ num, label, answer }) {
   return (
-    <div className="flex items-center gap-1.5 py-[3px]">
+    <div className="flex flex-wrap items-center gap-1.5 py-[3px]">
       <span className="w-4 shrink-0 text-[8px] font-bold">{num}</span>
       <span className="flex-1 text-[8px] leading-tight text-gray-700">{label}</span>
       <span className="flex shrink-0 items-center gap-1">
@@ -87,13 +97,13 @@ function PartDivider({ part, title }) {
 }
 
 export function FormPreview({ formData, activeStep, showReview }) {
-  const active = showReview ? null : STEP_SECTIONS[activeStep] ?? null
+  const active = showReview ? null : (STEP_SECTIONS[activeStep] ?? null)
 
   const nameField = buildNameField(formData)
   const usAddress = buildUsAddress(formData)
   const schoolLine = buildSchoolLine(formData)
   const dsoLine = buildDsoLine(formData)
-  const taxYear = String(formData.taxYear || '2025')
+  const taxYear = String(formData.taxYear)
 
   return (
     <div
@@ -107,7 +117,7 @@ export function FormPreview({ formData, activeStep, showReview }) {
             <p className="text-[7px] leading-tight">Form</p>
             <p className="text-[14px] font-bold leading-none">8843</p>
             <p className="mt-0.5 text-[6px] leading-tight text-gray-500">
-              Department of the Treasury Internal Revenue Service
+              Preparation preview — not for filing
             </p>
           </div>
           <div className="flex-1 text-center">
@@ -128,7 +138,7 @@ export function FormPreview({ formData, activeStep, showReview }) {
           <LabeledBox label="Last name" value={formData.lastName} className="flex-1" />
           <LabeledBox
             label="Your U.S. taxpayer identification number, if any"
-            value={formData.tinOrSSN}
+            value={formData.tinOrSSN ? `Ending ${formData.tinOrSSN.slice(-4)}` : ''}
             className="w-[30%] shrink-0"
           />
         </div>
@@ -140,10 +150,7 @@ export function FormPreview({ formData, activeStep, showReview }) {
             label="Address in country of residence (see instructions)"
             value={formData.foreignAddress}
           />
-          <LabeledBox
-            label="Address in the United States (see instructions)"
-            value={usAddress}
-          />
+          <LabeledBox label="Address in the United States (see instructions)" value={usAddress} />
         </div>
       </Section>
 
@@ -173,24 +180,24 @@ export function FormPreview({ formData, activeStep, showReview }) {
         <NumberedLine
           num="3b"
           label="Enter your passport number(s)"
-          value={formData.passportNumber}
+          value={formData.passportNumber ? 'Provided' : ''}
         />
       </Section>
 
       <Section active={active === 'days'}>
-        <div className="flex items-center gap-1.5 py-[3px]">
+        <div className="flex flex-wrap items-center gap-1.5 py-[3px]">
           <span className="w-4 shrink-0 text-[8px] font-bold">4a</span>
           <span className="flex-1 text-[8px] leading-tight text-gray-700">
             Enter the actual number of days you were present in the United States during:
           </span>
-          <DayBox year="2025" value={formData.daysIn2025} />
-          <DayBox year="2024" value={formData.daysIn2024} />
-          <DayBox year="2023" value={formData.daysIn2023} />
+          <DayBox year={taxYear} value={formData.daysCurrent} />
+          <DayBox year={Number(taxYear) - 1} value={formData.daysPrevious} />
+          <DayBox year={Number(taxYear) - 2} value={formData.daysPrior} />
         </div>
-        <div className="flex items-center gap-1.5 py-[3px]">
+        <div className="flex flex-wrap items-center gap-1.5 py-[3px]">
           <span className="w-4 shrink-0 text-[8px] font-bold">4b</span>
           <span className="flex-1 text-[8px] leading-tight text-gray-700">
-            Enter the number of days in 2025 you claim you can exclude for purposes of the
+            Enter the number of days in {taxYear} you claim you can exclude for purposes of the
             substantial presence test
           </span>
           <DayBox value={formData.daysToExclude} />
@@ -202,7 +209,7 @@ export function FormPreview({ formData, activeStep, showReview }) {
       <Section active={active === 'school'}>
         <NumberedLine
           num="9"
-          label="Enter the name, address, and telephone number of the academic institution you attended during 2025"
+          label={`Academic institution attended during ${taxYear}: name, address and phone`}
           value={schoolLine}
         />
       </Section>
@@ -210,20 +217,27 @@ export function FormPreview({ formData, activeStep, showReview }) {
       <Section active={active === 'dso'}>
         <NumberedLine
           num="10"
-          label="Enter the name, address, and telephone number of the director of the academic program you participated in during 2025"
+          label={`Academic program director during ${taxYear}: name, address and phone`}
           value={dsoLine}
         />
       </Section>
 
       <Section active={active === 'days'}>
+        <NumberedLine
+          num="11"
+          label="F/J/M/Q visa history"
+          value={visaYears(taxYear)
+            .map((y) => `${y}: ${formData.visaHistory?.[y] || '—'}`)
+            .join(', ')}
+        />
         <YesNoLine
           num="12"
-          label="Have you applied to be a lawful permanent resident of the United States, or ever filed Form I-508?"
+          label="Were you exempt as a teacher, trainee or student for any part of more than five calendar years?"
           answer={formData.line12Answer}
         />
         <YesNoLine
           num="13"
-          label="Were you ever exempt from counting days of presence as a teacher, trainee, or student before the current year?"
+          label={`During ${taxYear}, did you apply, take affirmative steps to apply, or have a pending application for US lawful permanent residence?`}
           answer={formData.line13Answer}
         />
         <NumberedLine
