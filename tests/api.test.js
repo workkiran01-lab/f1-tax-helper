@@ -73,6 +73,17 @@ describe('public endpoint safety', () => {
     expect(response.status).toBe(503)
     expect(fetchImpl).not.toHaveBeenCalled()
   })
+  it('uses a bounded local limiter when Upstash is not configured', async () => {
+    const fetchImpl = vi.fn(
+      async () =>
+        new Response('data: [DONE]\n\n', { headers: { 'Content-Type': 'text/event-stream' } }),
+    )
+    const localRequest = request()
+    localRequest.headers.set('x-forwarded-for', `test-${crypto.randomUUID()}`)
+    const response = await createChatHandler({ env, fetchImpl })(localRequest)
+    expect(response.status).toBe(200)
+    expect(fetchImpl).toHaveBeenCalledOnce()
+  })
   it('returns a clear rate-limit response and retry time', async () => {
     const response = await createChatHandler({ env, limiter: async () => true })(request())
     expect(response.status).toBe(429)

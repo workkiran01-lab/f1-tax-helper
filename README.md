@@ -27,7 +27,7 @@ Copy `.env.example` to `.env.local` and replace placeholders for the services yo
 | `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`        | Browser           | Public project URL and anon key for authentication; never use a service-role key here                 |
 | `VITE_SENTRY_DSN`                                    | Browser, optional | Error monitoring; user, request, breadcrumb, and extra data are removed before events are sent        |
 | `GROQ_API_KEY`, optional `GROQ_MODEL`                | Server only       | Chat inference; default model is `llama-3.3-70b-versatile`                                            |
-| `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN` | Server only       | Required rate limiting for both API endpoints; unavailable Redis produces HTTP 503                    |
+| `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN` | Server only       | Recommended global rate limiting; without them, each server instance uses a bounded local fallback    |
 | `RESEND_API_KEY`                                     | Server only       | Waitlist confirmation email                                                                           |
 | `ALLOWED_ORIGINS`                                    | Server, optional  | Comma-separated exact additional origins; Vercel deployment and branch URLs are allowed automatically |
 
@@ -48,7 +48,7 @@ Before enabling a new form year: obtain the final IRS PDF, verify its printed ye
 - React 18, Vite, React Router, and Tailwind; preserve the existing navy/blue visual style. Motion uses short transitions and respects reduced-motion preferences.
 - `AuthProvider` in `src/hooks/useAuth.js` owns the shared auth/guest session. Use `useAuth()` from route components.
 - Shared rule helpers live in `src/utils/taxRules.js`; reviewed treaty guidance is in `src/data/treaties.js`. Unreviewed treaty entries require review rather than implying no treaty exists.
-- `lib/taxPrompt.js` uses the same season and treaty sources as the frontend. API handlers validate input and enforce Redis rate limits before contacting paid services.
+- `lib/taxPrompt.js` uses the same season and treaty sources as the frontend. API handlers validate input and enforce rate limits before contacting paid services. Upstash supplies a shared production limit; an in-memory fallback keeps unconfigured previews usable.
 - Browser storage keys include tax year and user ID. Completed questionnaires can also sync to authenticated Supabase user metadata. Chat history and checklist progress are local to the browser.
 - Sensitive Form 8843 drafts use tab-scoped `sessionStorage`; PDF generation runs locally with `pdf-lib` and an embedded Inter font. Form fields are not sent to the chat API. Browser storage is not encrypted, and downloaded PDFs must be managed separately.
 
