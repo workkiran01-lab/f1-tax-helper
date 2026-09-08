@@ -10,6 +10,7 @@ import { TAX_YEAR } from '../data/taxSeason.js'
 import { buildActionItems, questionnaireResidency } from '../utils/taxRules.js'
 import { seasonKey, readStored, writeStored, removeStored } from '../utils/storage.js'
 import SeasonNotice from '../components/SeasonNotice'
+import { AnimatedProgress, StepTransition } from '../components/Motion'
 
 export default function QuestionnairePage() {
   const navigate = useNavigate()
@@ -31,7 +32,7 @@ export default function QuestionnairePage() {
   })
 
   const [currentStep, setCurrentStep] = useState(saved?.currentStep ?? 1)
-  const [isTransitioning, setIsTransitioning] = useState(false)
+  const [direction, setDirection] = useState(1)
   const [stopped, setStopped] = useState(saved?.stopped ?? false)
   const [answers, setAnswers] = useState(
     saved?.answers ?? {
@@ -84,6 +85,7 @@ export default function QuestionnairePage() {
   ])
 
   const handleStartOver = useCallback(() => {
+    setDirection(-1)
     removeStored(STORAGE_KEY, 'sessionStorage')
     setCurrentStep(1)
     setStopped(false)
@@ -103,6 +105,7 @@ export default function QuestionnairePage() {
   }, [STORAGE_KEY])
 
   const goToNextStep = useCallback(() => {
+    setDirection(1)
     setCurrentStep(currentStep === 2 && answers.hasUSIncome === false ? 4 : currentStep + 1)
   }, [answers.hasUSIncome, currentStep])
 
@@ -116,6 +119,7 @@ export default function QuestionnairePage() {
   }
 
   const handleIncomeAnswer = (answer) => {
+    setDirection(1)
     setAnswers((prev) => ({
       ...prev,
       hasUSIncome: answer,
@@ -148,6 +152,7 @@ export default function QuestionnairePage() {
   }
 
   const handleYearsInUSAnswer = (years) => {
+    setDirection(1)
     const residencyStatus = questionnaireResidency(years)
     setAnswers((prev) => ({ ...prev, yearsInUS: years, residencyStatus }))
     setNeedsResidencyCheck(residencyStatus === 'Residency review needed')
@@ -167,6 +172,7 @@ export default function QuestionnairePage() {
   const progressPercentage = Math.min(100, Math.round((currentStep / totalSteps) * 100))
 
   const handleBack = useCallback(() => {
+    setDirection(-1)
     if (currentStep <= 1) {
       navigate('/welcome')
       return
@@ -314,12 +320,7 @@ export default function QuestionnairePage() {
       <main className="relative z-10 flex flex-1 items-center justify-center px-4 py-8 sm:px-6">
         <div className="w-full max-w-2xl">
           <div className="rounded-2xl border border-[#1e293b] bg-[#0f1629]">
-            <div
-              className={cn(
-                'p-4 sm:p-6 transition-all duration-300',
-                isTransitioning ? 'translate-y-4 opacity-0' : 'translate-y-0 opacity-100',
-              )}
-            >
+            <div className="p-4 sm:p-6">
               {currentStep <= totalSteps && (
                 <div className="mb-8">
                   <div className="mb-3 flex items-center justify-between">
@@ -338,42 +339,39 @@ export default function QuestionnairePage() {
                       <span className="text-xs text-[#475569]">{progressPercentage}%</span>
                     </div>
                   </div>
-                  <div className="h-px w-full bg-[#1e293b]">
-                    <div
-                      className="h-px bg-[#3b82f6] transition-all duration-500 ease-out"
-                      style={{ width: `${(currentStep / totalSteps) * 100}%` }}
-                    />
-                  </div>
+                  <AnimatedProgress value={progressPercentage} label="Questionnaire progress" />
                 </div>
               )}
 
-              {currentStep === 1 && <Question1 onAnswer={handleF1Answer} />}
-              {currentStep === 2 && <Question2 onAnswer={handleIncomeAnswer} />}
-              {currentStep === 3 && (
-                <Question3
-                  selected={answers.incomeTypes}
-                  onToggle={handleIncomeTypeToggle}
-                  onContinue={handleIncomeTypeContinue}
-                />
-              )}
-              {currentStep === 4 && <Question4 onAnswer={handleYearsInUSAnswer} />}
-              {currentStep === 5 && (
-                <Question5
-                  onSelect={handleCountrySelect}
-                  selectedCountry={answers.country}
-                  onContinue={goToNextStep}
-                />
-              )}
-              {currentStep === 6 && (
-                <div className="py-8 text-center">
-                  <p className="text-sm text-[#475569]">Preparing your results…</p>
-                  {saveWarning && (
-                    <p className="mt-3 rounded-xl border border-[#f59e0b]/20 bg-[#f59e0b]/10 px-4 py-3 text-sm text-[#f59e0b]">
-                      {saveWarning}
-                    </p>
-                  )}
-                </div>
-              )}
+              <StepTransition stepKey={currentStep} direction={direction} className="choice-group">
+                {currentStep === 1 && <Question1 onAnswer={handleF1Answer} />}
+                {currentStep === 2 && <Question2 onAnswer={handleIncomeAnswer} />}
+                {currentStep === 3 && (
+                  <Question3
+                    selected={answers.incomeTypes}
+                    onToggle={handleIncomeTypeToggle}
+                    onContinue={handleIncomeTypeContinue}
+                  />
+                )}
+                {currentStep === 4 && <Question4 onAnswer={handleYearsInUSAnswer} />}
+                {currentStep === 5 && (
+                  <Question5
+                    onSelect={handleCountrySelect}
+                    selectedCountry={answers.country}
+                    onContinue={goToNextStep}
+                  />
+                )}
+                {currentStep === 6 && (
+                  <div className="py-8 text-center">
+                    <p className="text-sm text-[#475569]">Preparing your results…</p>
+                    {saveWarning && (
+                      <p className="mt-3 rounded-xl border border-[#f59e0b]/20 bg-[#f59e0b]/10 px-4 py-3 text-sm text-[#f59e0b]">
+                        {saveWarning}
+                      </p>
+                    )}
+                  </div>
+                )}
+              </StepTransition>
 
               {currentStep <= totalSteps && (
                 <div className="mt-8 flex items-center justify-between border-t border-[#1e293b] pt-6">

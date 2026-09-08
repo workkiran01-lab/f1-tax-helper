@@ -290,6 +290,77 @@ main {
     visibility: hidden;
   }
 }
+
+/* Interaction feedback stays local to the control being used. */
+.motion-step:focus {
+  outline: none;
+}
+.motion-step[inert] {
+  pointer-events: none;
+}
+.motion-button,
+.motion-actions > button,
+.motion-choice,
+.choice-group button,
+.motion-check-item {
+  transition:
+    transform 200ms cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 200ms ease,
+    box-shadow 200ms ease,
+    background-color 200ms ease,
+    color 200ms ease;
+}
+.motion-button:active:not(:disabled),
+.motion-actions > button:active:not(:disabled),
+.motion-choice:active:not(:disabled),
+.choice-group button:active:not(:disabled) {
+  transform: scale(0.975);
+}
+.motion-spotlight {
+  opacity: 0;
+  transition: opacity 250ms ease;
+}
+.motion-progress {
+  box-shadow: 0 0 18px rgb(59 130 246 / 7%);
+}
+.motion-preview-field {
+  transition:
+    background-color 300ms ease,
+    border-color 300ms ease,
+    box-shadow 300ms ease;
+}
+@keyframes message-arrive {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+.motion-message {
+  animation: message-arrive 280ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .motion-button:hover:not(:active):not(:disabled),
+  .motion-actions > button:hover:not(:active):not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 24px rgb(59 130 246 / 14%);
+  }
+  .motion-choice:hover:not(:active):not(:disabled),
+  .choice-group button:hover:not(:active):not(:disabled) {
+    transform: translateX(4px);
+    box-shadow: inset 3px 0 0 #3b82f6;
+  }
+  .motion-check-item:hover {
+    transform: translateX(3px);
+  }
+  .motion-surface:hover > .motion-spotlight,
+  .motion-surface:focus-within > .motion-spotlight {
+    opacity: 1;
+  }
+}
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -297,5 +368,12 @@ main {
     animation: none !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+  .motion-button,
+  .motion-actions > button,
+  .motion-choice,
+  .choice-group button,
+  .motion-check-item {
+    transform: none !important;
   }
 }

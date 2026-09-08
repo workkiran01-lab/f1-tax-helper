@@ -3,7 +3,8 @@ import { currentQuestionnaire, readStored, writeStored, seasonKey } from '../uti
 import SeasonNotice from '../components/SeasonNotice'
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { Check, ExternalLink, Download } from 'lucide-react'
+import { ExternalLink, Download } from 'lucide-react'
+import { AnimatedCheck, AnimatedProgress, Stagger, StaggerItem } from '../components/Motion'
 import { cn } from '../utils/cn'
 import DisclaimerBanner from '../components/DisclaimerBanner'
 import FloatingChatButton from '../components/FloatingChatButton'
@@ -303,17 +304,18 @@ export default function ChecklistPage() {
           </p>
           <div className="mt-4 space-y-2">
             <div className="flex items-center justify-between text-xs text-[#64748b]">
-              <span>
+              <span role="status">
                 {completed} of {total} items collected
               </span>
               <span>{progress}% complete</span>
             </div>
-            <div className="h-2 overflow-hidden rounded-full bg-[#1e293b]">
-              <div
-                className="h-full rounded-full bg-[#3b82f6] transition-all duration-500 ease-out"
-                style={{ width: `${progress}%` }}
-              />
-            </div>
+            <AnimatedProgress value={progress} label="Documents collected" />
+            {completed === total && total > 0 && (
+              <p className="motion-message flex items-center gap-2 pt-2 text-sm text-[#22c55e]">
+                <AnimatedCheck />
+                Documents collected. You can now review your next steps.
+              </p>
+            )}
           </div>
         </div>
 
@@ -323,16 +325,17 @@ export default function ChecklistPage() {
             <h2 className="font-mono text-[10px] uppercase tracking-widest text-[#475569]">
               Documents You Need to File
             </h2>
-            <div className="space-y-2">
+            <Stagger className="space-y-2">
               {filingItems.map((item) => (
-                <CheckItem
-                  key={item.id}
-                  item={item}
-                  checked={checked[item.id]}
-                  onToggle={() => toggle(item.id)}
-                />
+                <StaggerItem key={item.id}>
+                  <CheckItem
+                    item={item}
+                    checked={checked[item.id]}
+                    onToggle={() => toggle(item.id)}
+                  />
+                </StaggerItem>
               ))}
-            </div>
+            </Stagger>
           </section>
 
           {/* Section 2 — Identity documents */}
@@ -340,16 +343,17 @@ export default function ChecklistPage() {
             <h2 className="font-mono text-[10px] uppercase tracking-widest text-[#475569]">
               Identity Documents
             </h2>
-            <div className="space-y-2">
+            <Stagger className="space-y-2">
               {IDENTITY_ITEMS.map((item) => (
-                <CheckItem
-                  key={item.id}
-                  item={item}
-                  checked={checked[item.id]}
-                  onToggle={() => toggle(item.id)}
-                />
+                <StaggerItem key={item.id}>
+                  <CheckItem
+                    item={item}
+                    checked={checked[item.id]}
+                    onToggle={() => toggle(item.id)}
+                  />
+                </StaggerItem>
               ))}
-            </div>
+            </Stagger>
           </section>
 
           {/* Section 3 — Filing Deadlines */}
@@ -378,7 +382,7 @@ export default function ChecklistPage() {
         </div>
 
         {/* Action buttons */}
-        <div className="mt-8 space-y-3">
+        <div className="motion-actions mt-8 space-y-3">
           <button
             type="button"
             onClick={handleDownload}
@@ -415,7 +419,7 @@ function CheckItem({ item, checked, onToggle }) {
   return (
     <div
       className={cn(
-        'flex items-start gap-3 rounded-2xl border p-4 text-sm transition-all',
+        'motion-check-item flex items-start gap-3 rounded-2xl border p-4 text-sm',
         checked
           ? 'border-green-500/30 bg-green-500/10'
           : 'border-[#1e293b] bg-[#0f1629] hover:border-[#2d4a6e]',
@@ -424,13 +428,20 @@ function CheckItem({ item, checked, onToggle }) {
       <button
         type="button"
         onClick={onToggle}
-        className={cn(
-          'mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 transition-colors',
-          checked ? 'border-none bg-[#3b82f6] text-white' : 'border-[#475569] bg-transparent',
-        )}
-        aria-pressed={checked}
+        className="motion-button -m-3 mt-[-10px] flex h-11 w-11 shrink-0 items-center justify-center rounded-full"
+        aria-pressed={Boolean(checked)}
+        aria-label={`Mark ${item.name} as ${checked ? 'not collected' : 'collected'}`}
       >
-        {checked && <Check className="h-3 w-3" />}
+        <span
+          className={cn(
+            'flex h-5 w-5 items-center justify-center rounded-full border-2 transition-colors',
+            checked
+              ? 'border-[#3b82f6] bg-[#3b82f6] text-white'
+              : 'border-[#475569] bg-transparent',
+          )}
+        >
+          <AnimatedCheck checked={Boolean(checked)} className="h-3 w-3" />
+        </span>
       </button>
       <div className="min-w-0 flex-1">
         <div className="flex items-start justify-between gap-2">

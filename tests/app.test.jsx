@@ -13,15 +13,13 @@ beforeEach(() => {
   sessionStorage.clear()
   window.history.replaceState({}, '', '/')
   Element.prototype.scrollIntoView = vi.fn()
-  window.matchMedia = vi
-    .fn()
-    .mockReturnValue({
-      matches: true,
-      addListener: vi.fn(),
-      removeListener: vi.fn(),
-      addEventListener: vi.fn(),
-      removeEventListener: vi.fn(),
-    })
+  window.matchMedia = vi.fn().mockReturnValue({
+    matches: true,
+    addListener: vi.fn(),
+    removeListener: vi.fn(),
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+  })
 })
 afterEach(() => {
   cleanup()
@@ -79,6 +77,14 @@ it('opens 2026 preparation by default and allows explicit prior-year selection',
   expect(year.value).toBe('2026')
   fireEvent.change(year, { target: { value: '2025' } })
   expect(await screen.findByText('Tax year 2025')).toBeTruthy()
+})
+it('keeps homepage examples static when reduced motion is requested', () => {
+  render(<App />)
+  expect(screen.getByRole('button', { name: 'Animations reduced' }).disabled).toBe(true)
+  expect(
+    screen.getByRole('button', { name: 'Show Nepal example' }).getAttribute('aria-pressed'),
+  ).toBe('true')
+  expect(screen.getByRole('link', { name: 'Start Free Checkup →' })).toBeTruthy()
 })
 it('aborts an old chat on navigation and ignores its late response', async () => {
   let resolveFetch
