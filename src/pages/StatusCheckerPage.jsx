@@ -7,6 +7,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { ChevronLeft } from 'lucide-react'
 import DisclaimerBanner from '../components/DisclaimerBanner'
 import useAuth from '../hooks/useAuth'
+import { AnimatedProgress, StepTransition, Stagger, StaggerItem } from '../components/Motion'
 
 const QUESTIONS = [
   {
@@ -78,12 +79,14 @@ export default function StatusCheckerPage() {
   const [step, setStep] = useState(0)
   const [answers, setAnswers] = useState({})
   const [result, setResult] = useState(null)
+  const [direction, setDirection] = useState(1)
 
   const current = QUESTIONS[step]
   const totalSteps = QUESTIONS.length
   const progress = Math.round((step / totalSteps) * 100)
 
   const handleSelect = (value) => {
+    setDirection(1)
     const next = { ...answers, [current.id]: value }
     setAnswers(next)
     if (step < totalSteps - 1) {
@@ -96,6 +99,7 @@ export default function StatusCheckerPage() {
   }
 
   const handleBack = () => {
+    setDirection(-1)
     if (step > 0) setStep((s) => s - 1)
   }
 
@@ -130,12 +134,7 @@ export default function StatusCheckerPage() {
         <SeasonNotice compact />
         {/* Progress bar */}
         <div className="mb-8 mt-6 space-y-2">
-          <div className="h-px w-full bg-[#1e293b]">
-            <div
-              className="h-full bg-[#3b82f6] transition-all duration-500"
-              style={{ width: `${progress}%` }}
-            />
-          </div>
+          <AnimatedProgress value={progress} label="Status check progress" />
           <div className="flex justify-between text-xs text-[#475569]">
             <span>F-1 Status Checker</span>
             <span>{progress}%</span>
@@ -143,7 +142,7 @@ export default function StatusCheckerPage() {
         </div>
 
         {/* Question card */}
-        <div className="flex-1 animate-fade-up" key={step}>
+        <StepTransition stepKey={step} direction={direction} className="flex-1">
           <div className="rounded-2xl border border-[#1e293b] bg-[#0f172a] p-6 sm:p-8">
             <h2
               aria-live="polite"
@@ -151,7 +150,7 @@ export default function StatusCheckerPage() {
             >
               {current.question}
             </h2>
-            <div className="space-y-3">
+            <div className="choice-group space-y-3">
               {current.options.map((opt) => {
                 const selected = answers[current.id] === opt.value
                 return (
@@ -172,7 +171,7 @@ export default function StatusCheckerPage() {
               })}
             </div>
           </div>
-        </div>
+        </StepTransition>
 
         {/* Back navigation */}
         <div className="mt-6 flex items-center justify-between">
@@ -254,13 +253,13 @@ function ResultScreen({ result, navigate, signInAsGuest, user }) {
         </div>
 
         {/* Filing requirements */}
-        <div className="mb-5 rounded-2xl border border-[#1e293b] bg-[#0f172a] p-5 sm:p-6">
+        <Stagger className="mb-5 rounded-2xl border border-[#1e293b] bg-[#0f172a] p-5 sm:p-6">
           <h2 className="text-xs font-mono uppercase tracking-widest text-[#475569] mb-4">
             Your Filing Requirements
           </h2>
           <div className="space-y-3">
             {result.forms.map((form) => (
-              <div
+              <StaggerItem
                 key={form.id}
                 className="flex items-start justify-between gap-3 rounded-xl border border-[#1e293b] bg-[#080c14] p-4"
               >
@@ -283,10 +282,10 @@ function ResultScreen({ result, navigate, signInAsGuest, user }) {
                     {form.cta || 'Ask about this →'}
                   </Link>
                 )}
-              </div>
+              </StaggerItem>
             ))}
           </div>
-        </div>
+        </Stagger>
 
         {/* Deadline card */}
         <div className="mb-5 rounded-2xl border border-[#1e293b] bg-[#0f172a] p-5 sm:p-6">
@@ -298,7 +297,7 @@ function ResultScreen({ result, navigate, signInAsGuest, user }) {
         </div>
 
         {/* Actions */}
-        <div className="space-y-3">
+        <div className="motion-actions space-y-3">
           <button
             type="button"
             onClick={handleChecklistClick}

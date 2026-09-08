@@ -14,7 +14,7 @@ function Section({ active, className, children }) {
   return (
     <div
       className={cn(
-        'transition-all duration-200',
+        'motion-preview-field',
         active && 'ring-1 ring-[#3b82f6] bg-blue-50 rounded-sm',
         className,
       )}

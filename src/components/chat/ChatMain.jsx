@@ -1,8 +1,9 @@
 import { readChatStream, safeIRSUrl } from '../../utils/chatStream.js'
 import { TAX_YEAR, FILING_YEAR } from '../../data/taxSeason.js'
-import { useEffect, useMemo, useState, useRef, useCallback } from 'react'
+import { useEffect, useMemo, useState, useRef, useCallback, useId } from 'react'
 import { Link } from 'react-router-dom'
-import { ChevronDown, ClipboardList, Copy, Check } from 'lucide-react'
+import { ChevronDown, ClipboardList, Copy, LoaderCircle, Send } from 'lucide-react'
+import { AnimatedCheck } from '../Motion'
 import { IRSDisclaimer } from './IRSDisclaimer'
 
 const MAX_INPUT = 2000
@@ -99,6 +100,7 @@ function MarkdownLines({ text }) {
 }
 
 function WhySection({ text, isStreaming }) {
+  const contentId = useId()
   // Expanded while streaming so text visibly arrives, collapsed once complete —
   // unless the user toggled it themselves. Historical messages mount collapsed.
   const [open, setOpen] = useState(isStreaming)
@@ -121,6 +123,7 @@ function WhySection({ text, isStreaming }) {
           setOpen((v) => !v)
         }}
         aria-expanded={open}
+        aria-controls={contentId}
         className="flex items-center gap-1.5"
       >
         <span className="font-mono text-[10px] uppercase tracking-widest text-[#8b5cf6]">WHY</span>
@@ -128,11 +131,19 @@ function WhySection({ text, isStreaming }) {
           className={`h-3 w-3 text-[#8b5cf6] transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
         />
       </button>
-      {open && (
-        <div className="mt-1.5 border-l-2 border-l-[#8b5cf6] pl-3">
-          <MarkdownLines text={text} />
+      <div
+        id={contentId}
+        aria-hidden={!open}
+        inert={open ? undefined : ''}
+        className="grid transition-[grid-template-rows,opacity] duration-300 ease-out"
+        style={{ gridTemplateRows: open ? '1fr' : '0fr', opacity: open ? 1 : 0 }}
+      >
+        <div className="min-h-0 overflow-hidden">
+          <div className="mt-1.5 border-l-2 border-l-[#8b5cf6] pl-3">
+            <MarkdownLines text={text} />
+          </div>
         </div>
-      )}
+      </div>
     </div>
   )
 }
@@ -201,6 +212,7 @@ export function ChatMain({ initialContext, navigationKey, onOpenChecklist, onMes
   const [isLoading, setIsLoading] = useState(false)
   const [copiedId, setCopiedId] = useState(null)
   const messagesEndRef = useRef(null)
+  const inputRef = useRef(null)
   const requestRef = useRef(null)
   const nearBottom = useRef(true)
   const [requestError, setRequestError] = useState('')
@@ -294,6 +306,7 @@ export function ChatMain({ initialContext, navigationKey, onOpenChecklist, onMes
 
   const handleSuggestionClick = (question) => {
     setInput(question)
+    inputRef.current?.focus()
   }
 
   const timestamp = new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })
@@ -336,7 +349,7 @@ export function ChatMain({ initialContext, navigationKey, onOpenChecklist, onMes
         {messages.map((message) => (
           <div
             key={message.id}
-            className={`animate-fade-in flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+            className={`motion-message flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
           >
             <div
               className={`max-w-[85%] sm:max-w-[70%] ${message.role === 'user' ? 'items-end' : 'items-start'} flex flex-col`}
@@ -367,7 +380,7 @@ export function ChatMain({ initialContext, navigationKey, onOpenChecklist, onMes
                     aria-label="Copy message"
                   >
                     {copiedId === message.id ? (
-                      <Check className="h-3.5 w-3.5 text-green-400" />
+                      <AnimatedCheck className="h-3.5 w-3.5 text-green-400" />
                     ) : (
                       <Copy className="h-3.5 w-3.5" />
                     )}
@@ -380,7 +393,8 @@ export function ChatMain({ initialContext, navigationKey, onOpenChecklist, onMes
           </div>
         ))}
         {isLoading && (
-          <div className="flex justify-start">
+          <div role="status" className="motion-message flex justify-start">
+            <span className="sr-only">Preparing an answer…</span>
             <div className="max-w-[85%] sm:max-w-[70%] rounded-2xl rounded-tl-sm border border-[#1e293b] border-l-2 border-l-[#3b82f6] bg-[#0f1629] px-4 py-3 text-[#cbd5e1]">
               <div className="flex items-center gap-1">
                 <span className="h-2 w-2 animate-bounce rounded-full bg-slate-300 [animation-delay:-0.3s]" />
@@ -401,8 +415,10 @@ export function ChatMain({ initialContext, navigationKey, onOpenChecklist, onMes
           {suggestedQuestions.map((question) => (
             <button
               key={question}
+              type="button"
+              disabled={isLoading}
               onClick={() => handleSuggestionClick(question)}
-              className="cursor-pointer rounded-full border border-[#1e293b] bg-[#131c2e] text-xs px-3 py-1.5 text-[#64748b] transition-colors hover:bg-[#1a2540] hover:border-[#2d4a6e] hover:text-[#cbd5e1]"
+              className="motion-button cursor-pointer rounded-full border border-[#1e293b] bg-[#131c2e] text-xs px-3 py-1.5 text-[#64748b] hover:bg-[#1a2540] hover:border-[#2d4a6e] hover:text-[#cbd5e1] disabled:opacity-50"
             >
               {question}
             </button>
@@ -416,6 +432,7 @@ export function ChatMain({ initialContext, navigationKey, onOpenChecklist, onMes
         <div className="flex items-center gap-2">
           <div className="relative flex-1">
             <input
+              ref={inputRef}
               aria-label="Your tax question"
               type="text"
               value={input}
@@ -440,9 +457,13 @@ export function ChatMain({ initialContext, navigationKey, onOpenChecklist, onMes
             type="button"
             onClick={handleSend}
             disabled={isLoading || !input.trim()}
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#3b82f6] text-white transition-all hover:bg-[#2563eb] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+            className="motion-button flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#3b82f6] text-white hover:bg-[#2563eb] disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <span aria-hidden="true">➤</span>
+            {isLoading ? (
+              <LoaderCircle aria-hidden="true" className="h-4 w-4 animate-spin" />
+            ) : (
+              <Send aria-hidden="true" className="h-4 w-4" />
+            )}
             <span className="sr-only">Send message</span>
           </button>
         </div>

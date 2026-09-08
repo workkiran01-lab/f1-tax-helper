@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowLeft, Check, Download, ShieldCheck } from 'lucide-react'
+import { ArrowLeft, Download, ShieldCheck } from 'lucide-react'
+import { AnimatedCheck, AnimatedProgress, StepTransition } from '../components/Motion'
 import pdfFontUrl from '@fontsource/inter/files/inter-latin-400-normal.woff?url'
 import {
   blank8843,
@@ -114,12 +115,12 @@ export default function Form8843Page() {
   const [data, setData] = useState(() => restore8843(readStored(key, null, 'sessionStorage'), year))
   const [loadedKey, setLoadedKey] = useState(key)
   const [step, setStep] = useState(0)
+  const [direction, setDirection] = useState(1)
   const [review, setReview] = useState(false)
   const [errors, setErrors] = useState({})
   const [generating, setGenerating] = useState(false)
   const [notice, setNotice] = useState('')
   const [success, setSuccess] = useState(false)
-  const heading = useRef(null)
   const generatingRef = useRef(false)
   const ready = canGenerate8843(year)
 
@@ -137,9 +138,6 @@ export default function Form8843Page() {
         'Draft saving is unavailable in this browser. Keep this tab open while preparing your form.',
       )
   }, [data, key, loadedKey, success])
-  useEffect(() => {
-    heading.current?.focus({ preventScroll: true })
-  }, [step, review])
   function set(name, value) {
     setData((previous) => ({ ...previous, [name]: value }))
     setErrors((previous) => ({ ...previous, [name]: undefined }))
@@ -152,6 +150,7 @@ export default function Form8843Page() {
       return
     }
     setNotice('')
+    setDirection(1)
     if (step === 4) setReview(true)
     else setStep(step + 1)
   }
@@ -159,6 +158,7 @@ export default function Form8843Page() {
     if (!window.confirm('Clear this form draft from this tab?')) return
     removeStored(key, 'sessionStorage')
     setData(blank8843(year))
+    setDirection(-1)
     setStep(0)
     setReview(false)
     setErrors({})
@@ -271,7 +271,7 @@ export default function Form8843Page() {
           <section className="min-w-0 rounded-2xl border border-border bg-surface p-5 sm:p-8">
             {success ? (
               <div className="animate-fade-up space-y-5">
-                <Check className="h-10 w-10 text-success" />
+                <AnimatedCheck className="h-10 w-10 text-success" />
                 <h2 className="text-xl font-semibold text-headline">
                   Your {year} form has downloaded.
                 </h2>
@@ -310,23 +310,13 @@ export default function Form8843Page() {
                     <span>{review ? 'Final review' : `Step ${step + 1} of ${STEPS.length}`}</span>
                     <span>Tax year {year}</span>
                   </div>
-                  <div
-                    role="progressbar"
-                    aria-label="Form preparation progress"
-                    aria-valuemin={0}
-                    aria-valuemax={100}
-                    aria-valuenow={review ? 100 : step * 20}
-                    className="h-1 overflow-hidden rounded-full bg-border"
-                  >
-                    <div
-                      className="h-full bg-primary transition-all duration-500"
-                      style={{ width: `${review ? 100 : step * 20}%` }}
-                    />
-                  </div>
+                  <AnimatedProgress
+                    value={review ? 100 : step * 20}
+                    label="Form preparation progress"
+                  />
                 </div>
-                <div key={`${step}:${review}`} className="animate-fade-up">
+                <StepTransition stepKey={`${year}:${step}:${review}`} direction={direction}>
                   <h2
-                    ref={heading}
                     tabIndex={-1}
                     className="mb-6 text-xl font-semibold text-headline outline-none"
                   >
@@ -348,6 +338,7 @@ export default function Form8843Page() {
                             <h3 className="text-sm font-semibold text-headline">{STEPS[index]}</h3>
                             <button
                               onClick={() => {
+                                setDirection(-1)
                                 setStep(index)
                                 setReview(false)
                               }}
@@ -595,6 +586,7 @@ export default function Form8843Page() {
                     <button
                       className="mt-5 text-sm text-muted-foreground hover:text-body"
                       onClick={() => {
+                        setDirection(-1)
                         if (review) setReview(false)
                         else setStep(step - 1)
                         setErrors({})
@@ -604,7 +596,7 @@ export default function Form8843Page() {
                       ← Back
                     </button>
                   )}
-                </div>
+                </StepTransition>
               </>
             )}
           </section>
