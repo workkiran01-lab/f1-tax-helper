@@ -28,16 +28,16 @@ export function Navbar() {
 
   return (
     <header
-      className={`sticky top-0 z-50 w-full bg-[#080c14]/80 backdrop-blur-xl transition-colors duration-200 ${
-        scrolled ? 'border-b border-[#1e293b]' : 'border-b border-transparent'
+      className={`sticky top-0 z-50 w-full bg-bg/80 backdrop-blur-xl transition-colors duration-200 ${
+        scrolled ? 'border-b border-line' : 'border-b border-transparent'
       }`}
     >
       <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4 sm:px-6">
 
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2.5">
-          <div className="font-mono text-xs font-bold border border-[#1e2d45] px-2 py-1 text-[#3b82f6]">F1</div>
-          <span className="text-sm font-normal text-[#f8fafc]">Tax Helper</span>
+          <div className="font-mono text-xs font-bold border border-surface-3 px-2 py-1 text-tint-ink">F1</div>
+          <span className="text-sm font-normal text-ink">Tax Helper</span>
         </Link>
 
         {/* Center nav — desktop */}
@@ -47,7 +47,7 @@ export function Navbar() {
               <a
                 key={link.label}
                 href={link.href}
-                className="text-xs uppercase tracking-widest text-[#64748b] transition-colors hover:text-[#f8fafc]"
+                className="text-xs uppercase tracking-widest text-ink-4 transition-colors hover:text-ink"
               >
                 {link.label}
               </a>
@@ -55,7 +55,7 @@ export function Navbar() {
               <Link
                 key={link.label}
                 to={link.to}
-                className="text-xs uppercase tracking-widest text-[#64748b] transition-colors hover:text-[#f8fafc]"
+                className="text-xs uppercase tracking-widest text-ink-4 transition-colors hover:text-ink"
               >
                 {link.label}
               </Link>
@@ -67,7 +67,7 @@ export function Navbar() {
         <div className="hidden items-center gap-3 md:flex">
           {user ? (
             <>
-              <span className="max-w-[160px] truncate text-xs text-[#94a3b8]">{accountLabel}</span>
+              <span className="max-w-[160px] truncate text-xs text-ink-3">{accountLabel}</span>
               <Link to="/home" className="btn-primary py-2 px-4 text-xs">
                 Open app
               </Link>
@@ -90,7 +90,7 @@ export function Navbar() {
         {/* Hamburger — mobile */}
         <button
           type="button"
-          className="flex h-9 w-9 items-center justify-center rounded-md text-[#64748b] transition-colors hover:text-[#f8fafc] md:hidden"
+          className="flex h-9 w-9 items-center justify-center rounded-md text-ink-4 transition-colors hover:text-ink md:hidden"
           onClick={() => setIsMenuOpen((v) => !v)}
           aria-label="Toggle menu"
         >
@@ -103,14 +103,14 @@ export function Navbar() {
 
       {/* Mobile drawer */}
       {isMenuOpen && (
-        <div className="border-t border-[#1e293b] bg-[#080c14] px-4 py-4 md:hidden">
+        <div className="border-t border-line bg-bg px-4 py-4 md:hidden">
           <nav className="flex flex-col gap-4">
             {NAV_LINKS.map((link) =>
               link.href ? (
                 <a
                   key={link.label}
                   href={link.href}
-                  className="text-xs uppercase tracking-widest text-[#64748b] transition-colors hover:text-[#f8fafc]"
+                  className="text-xs uppercase tracking-widest text-ink-4 transition-colors hover:text-ink"
                   onClick={closeMenu}
                 >
                   {link.label}
@@ -119,7 +119,7 @@ export function Navbar() {
                 <Link
                   key={link.label}
                   to={link.to}
-                  className="text-xs uppercase tracking-widest text-[#64748b] transition-colors hover:text-[#f8fafc]"
+                  className="text-xs uppercase tracking-widest text-ink-4 transition-colors hover:text-ink"
                   onClick={closeMenu}
                 >
                   {link.label}
@@ -127,10 +127,10 @@ export function Navbar() {
               )
             )}
 
-            <div className="mt-2 flex flex-col gap-2 border-t border-[#1e293b] pt-4">
+            <div className="mt-2 flex flex-col gap-2 border-t border-line pt-4">
               {user ? (
                 <>
-                  <span className="text-xs text-[#94a3b8]">{accountLabel}</span>
+                  <span className="text-xs text-ink-3">{accountLabel}</span>
                   <Link to="/home" className="btn-primary justify-center text-sm" onClick={closeMenu}>
                     Open app
                   </Link>
@@ -146,7 +146,7 @@ export function Navbar() {
                 <>
                   <Link
                     to="/login"
-                    className="w-full rounded-xl bg-[#3b82f6] px-4 py-2.5 text-sm font-semibold text-white text-center"
+                    className="w-full rounded-xl bg-tint px-4 py-2.5 text-sm font-semibold text-white text-center"
                     onClick={closeMenu}
                   >
                     Sign In

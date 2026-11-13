@@ -7,13 +7,15 @@ import supabase from '../utils/supabase'
 import { writeStored } from '../utils/storage.js'
 import { computeJourney } from '../utils/journey.js'
 import { displayNameFor, firstName, universityFor } from '../utils/displayName.js'
-import { TAX_YEAR, FILING_YEAR, DEADLINE_NOTE } from '../data/taxSeason.js'
+import { TAX_YEAR, FILING_YEAR } from '../data/taxSeason.js'
 import { PageHeader } from '../components/app/PageHeader'
 import DisclaimerBanner from '../components/DisclaimerBanner'
 import { cn } from '../utils/cn'
+import { motion } from 'framer-motion'
+import { CountUp, ProgressRing, Sequence, SequenceItem, settle } from '../components/app/motion'
 
 const inputClass =
-  'w-full min-h-12 rounded-xl border border-[#1e293b] bg-[#080c14] px-4 text-[15px] text-[#f8fafc] placeholder:text-[#64748b] focus:border-[#3b82f6] focus:outline-none'
+  'w-full min-h-[52px] rounded-2xl border border-line bg-surface-2 px-4 text-[17px] text-ink placeholder:text-ink-4'
 
 function Onboarding({ user, onDone }) {
   const uid = user?.id || 'guest'
@@ -31,16 +33,14 @@ function Onboarding({ user, onDone }) {
     onDone()
   }
   return (
-    <section className="mx-auto w-full max-w-md rounded-2xl border border-[#1e293b] bg-[#0f172a] p-6 sm:p-8">
-      <h1 className="text-2xl font-bold tracking-tight text-[#f8fafc]">
-        Welcome. Two quick things.
-      </h1>
-      <p className="mt-2 text-sm text-[#94a3b8]">
+    <section className="mx-auto w-full max-w-md rounded-4xl border border-line bg-surface p-6 shadow-raised sm:p-8">
+      <h1 className="text-2xl font-bold tracking-tight text-ink">Welcome. Two quick things.</h1>
+      <p className="mt-2 text-sm text-ink-3">
         Your name and school are used to greet you. You can change them later in Account.
       </p>
       <form onSubmit={submit} className="mt-6 space-y-4">
         <div>
-          <label htmlFor="onb-name" className="mb-1.5 block text-sm font-medium text-[#f8fafc]">
+          <label htmlFor="onb-name" className="mb-1.5 block text-sm font-medium text-ink">
             Full name
           </label>
           <input
@@ -53,7 +53,7 @@ function Onboarding({ user, onDone }) {
           />
         </div>
         <div>
-          <label htmlFor="onb-school" className="mb-1.5 block text-sm font-medium text-[#f8fafc]">
+          <label htmlFor="onb-school" className="mb-1.5 block text-sm font-medium text-ink">
             University
           </label>
           <input
@@ -67,7 +67,7 @@ function Onboarding({ user, onDone }) {
         </div>
         <button
           type="submit"
-          className="min-h-12 w-full rounded-xl bg-[#2563eb] text-[15px] font-semibold text-white transition-colors hover:bg-[#1d4ed8]"
+          className="min-h-[52px] w-full rounded-2xl bg-tint text-[17px] font-semibold text-white hover:bg-tint-hover"
         >
           Continue
         </button>
@@ -79,21 +79,28 @@ function Onboarding({ user, onDone }) {
 function StepMark({ state, number }) {
   if (state === 'done')
     return (
-      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#3b82f6]">
-        <Check aria-hidden="true" className="h-3.5 w-3.5 text-[#080c14]" strokeWidth={3} />
-      </span>
+      <motion.span
+        initial={{ scale: 0.6 }}
+        animate={{ scale: 1 }}
+        transition={settle}
+        className="relative z-10 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-tint"
+      >
+        <Check aria-hidden="true" className="h-3.5 w-3.5 text-white" strokeWidth={3} />
+      </motion.span>
     )
   if (state === 'locked')
     return (
-      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border-2 border-[#334155] text-[#94a3b8]">
+      <span className="relative z-10 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-surface-3 text-ink-3">
         <Lock aria-hidden="true" className="h-3 w-3" />
       </span>
     )
   return (
     <span
       className={cn(
-        'flex h-7 w-7 shrink-0 items-center justify-center rounded-full border-2 text-xs font-bold',
-        state === 'current' ? 'border-[#3b82f6] text-[#60a5fa]' : 'border-[#334155] text-[#94a3b8]',
+        'relative z-10 flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold',
+        state === 'current'
+          ? 'bg-tint/20 text-tint-ink ring-2 ring-tint'
+          : 'bg-surface-3 text-ink-2',
       )}
     >
       {number}
@@ -112,13 +119,33 @@ const STATE_LABEL = {
 function StepRow({ step, number, last }) {
   const body = (
     <>
-      <StepMark state={step.state} number={number} />
-      <span className="min-w-0 flex-1">
+      <span className="relative flex shrink-0 self-stretch">
+        <span className="flex items-center">
+          <StepMark state={step.state} number={number} />
+        </span>
+        {!last && (
+          // The line to the next step fills in once this one is done.
+          <span
+            aria-hidden="true"
+            className="absolute left-1/2 top-1/2 h-full w-0.5 -translate-x-1/2 bg-line"
+          >
+            {step.state === 'done' && (
+              <motion.span
+                className="block h-full w-full origin-top bg-tint"
+                initial={{ scaleY: 0 }}
+                animate={{ scaleY: 1 }}
+                transition={{ ...settle, delay: 0.3 + number * 0.08 }}
+              />
+            )}
+          </span>
+        )}
+      </span>
+      <span className="min-w-0 flex-1 py-3.5">
         <span
           className={cn(
-            'block text-[15px]',
-            step.state === 'current' ? 'font-semibold text-[#f8fafc]' : 'font-medium',
-            step.state === 'locked' ? 'text-[#cbd5e1]' : 'text-[#f8fafc]',
+            'block text-[17px] leading-snug',
+            step.state === 'current' ? 'font-semibold' : 'font-medium',
+            step.state === 'locked' ? 'text-ink-3' : 'text-ink',
           )}
         >
           {step.title}
@@ -126,8 +153,8 @@ function StepRow({ step, number, last }) {
         </span>
         <span
           className={cn(
-            'block text-[13px]',
-            step.state === 'current' ? 'text-[#60a5fa]' : 'text-[#94a3b8]',
+            'mt-0.5 block text-[13px] leading-snug',
+            step.state === 'current' ? 'text-tint-ink' : 'text-ink-3',
           )}
         >
           {step.detail}
@@ -135,18 +162,20 @@ function StepRow({ step, number, last }) {
       </span>
     </>
   )
-  const rowClass = cn(
-    'flex min-h-14 items-center gap-3.5 px-4 py-3',
-    !last && 'border-b border-[#1e293b]',
-  )
-  if (step.state === 'locked') return <li className={rowClass}>{body}</li>
-  return (
-    <li>
-      <Link to={step.to} className={cn(rowClass, 'transition-colors hover:bg-[#131c2e]')}>
+  const rowClass = 'flex min-h-[60px] items-stretch gap-3.5 px-4'
+  if (step.state === 'locked')
+    return (
+      <SequenceItem as="li" className={rowClass}>
         {body}
-        <ChevronRight aria-hidden="true" className="h-4 w-4 shrink-0 text-[#94a3b8]" />
+      </SequenceItem>
+    )
+  return (
+    <SequenceItem as="li">
+      <Link to={step.to} className={cn(rowClass, 'row-press transition-colors hover:bg-surface-2')}>
+        {body}
+        <ChevronRight aria-hidden="true" className="h-4 w-4 shrink-0 self-center text-ink-4" />
       </Link>
-    </li>
+    </SequenceItem>
   )
 }
 
@@ -155,6 +184,9 @@ function deadlineReason(profile) {
   if (profile.hasIncome) return 'Form 1040-NR without wages subject to withholding.'
   return 'Form 8843 alone, with no US income.'
 }
+
+const primaryAction =
+  'press mt-5 flex min-h-[52px] items-center justify-center rounded-2xl px-6 text-[17px] font-semibold lg:inline-flex'
 
 export default function DashboardPage() {
   const { user } = useAuth()
@@ -176,112 +208,103 @@ export default function DashboardPage() {
   return (
     <>
       <DisclaimerBanner />
-      <main className="mx-auto w-full max-w-5xl px-5 py-6 lg:px-10 lg:py-10">
+      <main className="mx-auto w-full max-w-5xl px-5 pb-8 lg:px-10 lg:pb-12">
         <PageHeader
-          eyebrow={`Tax year ${TAX_YEAR} · filed in ${FILING_YEAR}`}
+          eyebrow={`Tax year ${TAX_YEAR}, filed in ${FILING_YEAR}`}
           title={`Hi, ${firstName(name) || 'there'}`}
         />
 
-        <div className="mt-6 grid items-start gap-5 lg:grid-cols-2">
-          <div className="space-y-5">
-            <section
+        <Sequence className="mt-6 grid items-start gap-5 lg:grid-cols-2">
+          <div className="space-y-4">
+            <SequenceItem
+              as="section"
               aria-labelledby="next-step"
-              className="rounded-[20px] border border-[#2d4a6e] bg-[#0f172a] p-5 lg:p-6"
+              className="rounded-4xl border border-line bg-surface p-5 shadow-raised lg:p-7"
             >
-              <p className="text-xs font-semibold uppercase tracking-[0.08em] text-[#60a5fa]">
-                {next ? 'Your next step' : 'Nothing to do right now'}
+              <div className="flex items-center gap-4">
+                <ProgressRing value={done} total={total} label="Filing steps completed">
+                  <span className="text-[15px] font-semibold tabular-nums text-ink">
+                    <CountUp value={done} />
+                    <span className="text-ink-3">/{total}</span>
+                  </span>
+                </ProgressRing>
+                <div className="min-w-0">
+                  <p className="text-[13px] font-medium text-tint-ink">
+                    {next ? 'Your next step' : 'Nothing to do right now'}
+                  </p>
+                  <h2
+                    id="next-step"
+                    className="text-[22px] font-bold leading-tight text-ink lg:text-2xl"
+                  >
+                    {next
+                      ? next.title
+                      : waiting
+                        ? 'You’re prepared for now'
+                        : 'You’re all caught up'}
+                  </h2>
+                </div>
+              </div>
+              <p className="mt-4 text-[15px] leading-relaxed text-ink-2">
+                {next
+                  ? next.about
+                  : waiting
+                    ? `The IRS has not released the final ${TAX_YEAR} Form 8843. Come back when it does to download yours. Your draft stays in this browser tab, so keep a copy of your details.`
+                    : 'Every step is done. Keep copies of what you filed with your records.'}
               </p>
               {next ? (
-                <>
-                  <h2
-                    id="next-step"
-                    className="mt-3 text-xl font-bold text-[#f8fafc] lg:text-[22px]"
-                  >
-                    {next.title}
-                  </h2>
-                  <p className="mt-1.5 text-sm leading-relaxed text-[#cbd5e1]">{next.about}</p>
-                  <Link
-                    to={next.to}
-                    className="mt-4 flex min-h-12 items-center justify-center rounded-[14px] bg-[#2563eb] px-5 text-[15px] font-semibold text-white transition-colors hover:bg-[#1d4ed8] lg:inline-flex"
-                  >
-                    {next.action}
-                  </Link>
-                </>
+                <Link
+                  to={next.to}
+                  className={cn(primaryAction, 'bg-tint text-white hover:bg-tint-hover')}
+                >
+                  {next.action}
+                </Link>
               ) : (
-                <>
-                  <h2
-                    id="next-step"
-                    className="mt-3 text-xl font-bold text-[#f8fafc] lg:text-[22px]"
-                  >
-                    {waiting ? 'You’re prepared for now' : 'You’re all caught up'}
-                  </h2>
-                  <p className="mt-1.5 text-sm leading-relaxed text-[#cbd5e1]">
-                    {waiting
-                      ? `The IRS has not released the final ${TAX_YEAR} Form 8843. Come back when it does to download yours. Your draft stays in this browser tab, so keep a copy of your details.`
-                      : 'Every step is done. Keep copies of what you filed with your records.'}
-                  </p>
-                  <Link
-                    to="/taxes"
-                    className="mt-4 flex min-h-12 items-center justify-center rounded-[14px] border border-[#1e293b] px-5 text-[15px] font-semibold text-[#f8fafc] transition-colors hover:border-[#2d4a6e] lg:inline-flex"
-                  >
-                    Review My Taxes
-                  </Link>
-                </>
+                <Link
+                  to="/taxes"
+                  className={cn(primaryAction, 'bg-surface-2 text-ink hover:bg-surface-3')}
+                >
+                  Review My Taxes
+                </Link>
               )}
-            </section>
+            </SequenceItem>
 
             {profile && (
-              <section
+              <SequenceItem
+                as="section"
                 aria-labelledby="deadline"
-                className="flex items-start gap-3.5 rounded-2xl border border-[#1e293b] bg-[#0f172a] p-4"
+                className="flex items-start gap-3.5 rounded-3xl border border-line bg-surface p-4"
               >
-                <CalendarDays
-                  aria-hidden="true"
-                  className="mt-0.5 h-5 w-5 shrink-0 text-[#f59e0b]"
-                />
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-warn/15">
+                  <CalendarDays aria-hidden="true" className="h-5 w-5 text-warn" />
+                </span>
                 <div>
-                  <h2 id="deadline" className="text-[15px] font-semibold text-[#f8fafc]">
+                  <h2 id="deadline" className="text-[15px] font-semibold text-ink">
                     {profile.deadline
                       ? `Your expected deadline: ${profile.deadline}`
                       : 'Confirm your deadline during your residency review'}
                   </h2>
-                  <p className="mt-1 text-[13px] leading-relaxed text-[#94a3b8]">
+                  <p className="mt-1 text-[13px] leading-relaxed text-ink-3">
                     {profile.deadline ? `${deadlineReason(profile)} ` : ''}
-                    {DEADLINE_NOTE}
+                    An expected date under current IRS rules.{' '}
+                    <Link to="/taxes" className="text-tint-ink hover:text-tint-ink-strong">
+                      See all deadlines
+                    </Link>
                   </p>
                 </div>
-              </section>
+              </SequenceItem>
             )}
           </div>
 
-          <section
-            aria-labelledby="steps"
-            className="rounded-[20px] border border-[#1e293b] bg-[#0f172a]"
-          >
-            <div className="px-4 pb-3 pt-4">
-              <div className="flex items-baseline justify-between">
-                <h2 id="steps" className="text-base font-semibold text-[#f8fafc]">
-                  Your filing steps
-                </h2>
-                <p className="text-[13px] text-[#94a3b8]">
-                  {done} of {total} done
-                </p>
-              </div>
-              <div
-                role="progressbar"
-                aria-label="Filing steps completed"
-                aria-valuemin={0}
-                aria-valuemax={total}
-                aria-valuenow={done}
-                className="mt-3 h-1.5 overflow-hidden rounded-full bg-[#1e293b]"
-              >
-                <div
-                  className="h-full rounded-full bg-[#3b82f6] transition-all duration-500"
-                  style={{ width: `${(done / total) * 100}%` }}
-                />
-              </div>
+          <SequenceItem as="section" aria-labelledby="steps">
+            <div className="mb-2 flex items-baseline justify-between px-1">
+              <h2 id="steps" className="text-xl font-bold text-ink">
+                Your filing steps
+              </h2>
+              <p className="text-[13px] text-ink-3">
+                {done} of {total} done
+              </p>
             </div>
-            <ol className="border-t border-[#1e293b]">
+            <Sequence as="ol" className="overflow-hidden rounded-3xl border border-line bg-surface">
               {steps.map((step, index) => (
                 <StepRow
                   key={step.id}
@@ -290,13 +313,13 @@ export default function DashboardPage() {
                   last={index === steps.length - 1}
                 />
               ))}
-            </ol>
-          </section>
-        </div>
+            </Sequence>
+          </SequenceItem>
+        </Sequence>
 
-        <p className="mt-6 text-[13px] text-[#94a3b8]">
+        <p className="mt-6 px-1 text-[13px] text-ink-3">
           Filing a 2025 form late?{' '}
-          <Link to="/form-8843" className="text-[#60a5fa] hover:text-[#93c5fd]">
+          <Link to="/form-8843" className="text-tint-ink hover:text-tint-ink-strong">
             Prior-year Form 8843 is available
           </Link>
           .

@@ -2,7 +2,7 @@ import { readChatStream, safeIRSUrl } from '../../utils/chatStream.js'
 import { fitChatHistory } from '../../../lib/chatLimits.js'
 import { useEffect, useMemo, useState, useRef, useCallback, useId } from 'react'
 import { Link } from 'react-router-dom'
-import { ChevronDown, Copy, LoaderCircle, Send } from 'lucide-react'
+import { ArrowUp, ChevronDown, Copy, LoaderCircle } from 'lucide-react'
 import { AnimatedCheck } from '../Motion'
 import { IRSDisclaimer } from './IRSDisclaimer'
 
@@ -135,9 +135,9 @@ function WhySection({ text, isStreaming }) {
         aria-controls={contentId}
         className="flex items-center gap-1.5"
       >
-        <span className="font-mono text-[10px] uppercase tracking-widest text-[#8b5cf6]">WHY</span>
+        <span className="font-mono text-[10px] uppercase tracking-widest text-violet">WHY</span>
         <ChevronDown
-          className={`h-3 w-3 text-[#8b5cf6] transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
+          className={`h-3 w-3 text-violet transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
         />
       </button>
       <div
@@ -148,7 +148,7 @@ function WhySection({ text, isStreaming }) {
         style={{ gridTemplateRows: open ? '1fr' : '0fr', opacity: open ? 1 : 0 }}
       >
         <div className="min-h-0 overflow-hidden">
-          <div className="mt-1.5 border-l-2 border-l-[#8b5cf6] pl-3">
+          <div className="mt-1.5 border-l-2 border-l-violet pl-3">
             <MarkdownLines text={text} />
           </div>
         </div>
@@ -174,8 +174,8 @@ function ReferenceSection({ text }) {
         .join('\n')
   if (!links.length && !fallback) return null
   return (
-    <div className="rounded-lg border border-[#1e293b] bg-[#080c14] p-3">
-      <p className="mb-2 font-mono text-[10px] uppercase tracking-widest text-[#475569]">
+    <div className="rounded-lg border border-line bg-bg p-3">
+      <p className="mb-2 font-mono text-[10px] uppercase tracking-widest text-ink-5">
         IRS REFERENCE
       </p>
       {links.map(([, label, url], i) => (
@@ -184,15 +184,13 @@ function ReferenceSection({ text }) {
           href={safeIRSUrl(url)}
           target="_blank"
           rel="noopener noreferrer"
-          className="block font-mono text-xs text-[#3b82f6] hover:underline"
+          className="block font-mono text-xs text-tint-ink hover:underline"
         >
           {label}
         </a>
       ))}
       {fallback && (
-        <p className="whitespace-pre-wrap break-words font-mono text-xs text-[#94a3b8]">
-          {fallback}
-        </p>
+        <p className="whitespace-pre-wrap break-words font-mono text-xs text-ink-3">{fallback}</p>
       )}
     </div>
   )
@@ -219,8 +217,8 @@ export function StructuredMessage({ content, isStreaming }) {
           case 'next':
             return (
               <div key={i} className="flex items-start gap-2">
-                <span className="text-[#3b82f6]">→</span>
-                <span className="text-sm font-medium text-[#3b82f6]">{section.text}</span>
+                <span className="text-tint-ink">→</span>
+                <span className="text-sm font-medium text-tint-ink">{section.text}</span>
               </div>
             )
           default:
@@ -361,7 +359,7 @@ export function ChatMain({ initialContext, navigationKey, onMessagesChange }) {
           const el = e.currentTarget
           nearBottom.current = el.scrollHeight - el.scrollTop - el.clientHeight < 120
         }}
-        className="min-h-0 flex-1 space-y-4 overflow-y-auto p-4 bg-[#080c14] px-4 py-6"
+        className="min-h-0 flex-1 space-y-4 overflow-y-auto p-4 bg-bg px-4 py-6"
       >
         {visibleMessages.map((message) => (
           <div
@@ -372,10 +370,10 @@ export function ChatMain({ initialContext, navigationKey, onMessagesChange }) {
               className={`max-w-[85%] sm:max-w-[70%] ${message.role === 'user' ? 'items-end' : 'items-start'} flex flex-col`}
             >
               <div
-                className={`group/bubble relative w-full rounded-2xl px-4 py-3 ${
+                className={`group/bubble relative w-full rounded-[22px] px-4 py-3 text-[15px] ${
                   message.role === 'user'
-                    ? 'rounded-tr-sm bg-[#3b82f6] text-white'
-                    : 'rounded-tl-sm border border-[#1e293b] border-l-2 border-l-[#3b82f6] bg-[#0f1629] text-[#cbd5e1]'
+                    ? 'rounded-br-md bg-tint text-white'
+                    : 'rounded-bl-md bg-surface text-ink-2'
                 }`}
               >
                 {message.role === 'assistant' ? (
@@ -414,11 +412,11 @@ export function ChatMain({ initialContext, navigationKey, onMessagesChange }) {
         {awaitingFirstToken && (
           <div role="status" className="motion-message flex justify-start">
             <span className="sr-only">Preparing an answer…</span>
-            <div className="max-w-[85%] sm:max-w-[70%] rounded-2xl rounded-tl-sm border border-[#1e293b] border-l-2 border-l-[#3b82f6] bg-[#0f1629] px-4 py-3 text-[#cbd5e1]">
+            <div className="max-w-[85%] sm:max-w-[70%] rounded-[22px] rounded-bl-md bg-surface px-4 py-3.5 text-ink-2">
               <div className="flex items-center gap-1">
-                <span className="h-2 w-2 animate-bounce rounded-full bg-slate-300 [animation-delay:-0.3s]" />
-                <span className="h-2 w-2 animate-bounce rounded-full bg-slate-300 [animation-delay:-0.15s]" />
-                <span className="h-2 w-2 animate-bounce rounded-full bg-slate-300" />
+                <span className="h-2 w-2 rounded-full bg-ink-3 [animation:typing-dot_1.2s_ease-in-out_infinite]" />
+                <span className="h-2 w-2 rounded-full bg-ink-3 [animation:typing-dot_1.2s_ease-in-out_0.15s_infinite]" />
+                <span className="h-2 w-2 rounded-full bg-ink-3 [animation:typing-dot_1.2s_ease-in-out_0.3s_infinite]" />
               </div>
             </div>
           </div>
@@ -427,17 +425,17 @@ export function ChatMain({ initialContext, navigationKey, onMessagesChange }) {
       </div>
 
       <div
-        className="border-t border-[#1e293b] bg-[#0a0e1a] px-4 py-4 shrink-0"
-        style={{ paddingBottom: 'max(1rem, env(safe-area-inset-bottom))' }}
+        className="material shrink-0 border-t border-line/70 px-4 py-3"
+        style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}
       >
-        <div className="mb-3 hidden sm:flex flex-wrap gap-2">
+        <div className="mb-3 flex gap-2 overflow-x-auto [scrollbar-width:none] sm:flex-wrap">
           {suggestedQuestions.map((question) => (
             <button
               key={question}
               type="button"
               disabled={isLoading}
               onClick={() => handleSuggestionClick(question)}
-              className="motion-button cursor-pointer rounded-full border border-[#1e293b] bg-[#131c2e] text-xs px-3 py-1.5 text-[#64748b] hover:bg-[#1a2540] hover:border-[#2d4a6e] hover:text-[#cbd5e1] disabled:opacity-50"
+              className="shrink-0 cursor-pointer rounded-full bg-surface-2 px-3.5 py-2 text-[13px] font-medium text-ink-2 hover:bg-surface-3 hover:text-ink disabled:opacity-50"
             >
               {question}
             </button>
@@ -462,11 +460,11 @@ export function ChatMain({ initialContext, navigationKey, onMessagesChange }) {
               placeholder="Ask about tax treaties, deductions, deadlines..."
               disabled={isLoading}
               maxLength={MAX_INPUT}
-              className="w-full rounded-xl border border-[#1e293b] bg-[#131c2e] px-4 py-3 pr-16 text-sm text-[#f8fafc] placeholder:text-[#475569] focus:border-[#3b82f6] focus:outline-none transition-colors disabled:opacity-50"
+              className="min-h-12 w-full rounded-full border border-line bg-surface-2 px-5 pr-16 text-[16px] text-ink placeholder:text-ink-5 disabled:opacity-50"
             />
             {input.length > 0 && (
               <span
-                className={`absolute right-3 top-1/2 -translate-y-1/2 text-xs tabular-nums ${input.length > MAX_INPUT * 0.9 ? 'text-amber-400' : 'text-slate-600'}`}
+                className={`absolute right-3 top-1/2 -translate-y-1/2 text-xs tabular-nums ${input.length > MAX_INPUT * 0.9 ? 'text-amber-400' : 'text-ink-5'}`}
               >
                 {MAX_INPUT - input.length}
               </span>
@@ -476,27 +474,27 @@ export function ChatMain({ initialContext, navigationKey, onMessagesChange }) {
             type="button"
             onClick={handleSend}
             disabled={isLoading || !input.trim()}
-            className="motion-button flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#3b82f6] text-white hover:bg-[#2563eb] disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-tint text-white hover:bg-tint-hover disabled:cursor-not-allowed disabled:opacity-40"
           >
             {isLoading ? (
               <LoaderCircle aria-hidden="true" className="h-4 w-4 animate-spin" />
             ) : (
-              <Send aria-hidden="true" className="h-4 w-4" />
+              <ArrowUp aria-hidden="true" className="h-5 w-5" strokeWidth={2.5} />
             )}
             <span className="sr-only">Send message</span>
           </button>
         </div>
-        <p className="mt-2 text-center text-xs text-slate-500">
+        <p className="mt-2 text-center text-xs text-ink-4">
           Do not share SSNs, passport numbers or tax documents here. AI answers can be wrong; verify
           before filing.
         </p>
-        <p className="mt-1 text-center text-xs text-slate-600">
+        <p className="mt-1 text-center text-xs text-ink-5">
           By using F1 Tax Helper you agree to our{' '}
-          <Link to="/terms" className="underline transition-colors hover:text-slate-400">
+          <Link to="/terms" className="underline transition-colors hover:text-ink-2">
             Terms
           </Link>{' '}
           and{' '}
-          <Link to="/privacy" className="underline transition-colors hover:text-slate-400">
+          <Link to="/privacy" className="underline transition-colors hover:text-ink-2">
             Privacy Policy
           </Link>
           .

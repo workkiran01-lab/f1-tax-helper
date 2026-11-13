@@ -46,16 +46,16 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="relative min-h-screen overflow-hidden bg-[#080c14] text-slate-100">
+    <main className="relative min-h-screen overflow-hidden bg-bg text-slate-100">
       <div className="absolute inset-0 bg-grid opacity-30 pointer-events-none" />
 
-      <header className="sticky top-0 z-20 border-b border-[#1e293b] bg-[#080c14]/80 backdrop-blur">
+      <header className="sticky top-0 z-20 border-b border-line bg-bg/80 backdrop-blur">
         <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-4 sm:px-6">
           <Link to="/" className="flex items-center gap-2">
-            <div className="font-mono text-xs font-bold border border-[#1e293b] px-2 py-1 text-[#3b82f6]">
+            <div className="font-mono text-xs font-bold border border-line px-2 py-1 text-tint-ink">
               F1
             </div>
-            <span className="text-sm font-medium text-[#f8fafc]">Tax Helper</span>
+            <span className="text-sm font-medium text-ink">Tax Helper</span>
           </Link>
         </div>
       </header>
@@ -65,19 +65,19 @@ export default function LoginPage() {
           <div className="mb-6">
             <Link
               to="/"
-              className="inline-flex items-center gap-1.5 text-xs text-[#475569] hover:text-[#64748b] transition-colors"
+              className="inline-flex items-center gap-1.5 text-xs text-ink-5 hover:text-ink-4 transition-colors"
             >
               ← Back to Home
             </Link>
           </div>
-          <div className="w-full rounded-xl border border-[#1e293b] bg-[#0f172a] p-8">
-            <span className="font-mono text-[10px] uppercase tracking-widest text-[#475569]">
+          <div className="w-full rounded-xl border border-line bg-surface p-8">
+            <span className="font-mono text-[10px] uppercase tracking-widest text-ink-5">
               Sign in to continue
             </span>
 
-            <h1 className="mt-4 text-2xl font-semibold text-[#f8fafc]">Welcome back.</h1>
+            <h1 className="mt-4 text-2xl font-semibold text-ink">Welcome back.</h1>
 
-            <p className="text-sm text-[#64748b] mt-3">
+            <p className="text-sm text-ink-4 mt-3">
               Sign in with Google or continue as a guest
             </p>
 
@@ -86,7 +86,7 @@ export default function LoginPage() {
                 type="button"
                 onClick={handleGoogleSignIn}
                 disabled={loading}
-                className="w-full rounded-xl bg-[#3b82f6] px-6 py-3 text-sm font-semibold text-white transition-all hover:bg-[#2563eb] active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3b82f6] focus-visible:ring-offset-2 focus-visible:ring-offset-[#080c14]"
+                className="w-full rounded-xl bg-tint px-6 py-3 text-sm font-semibold text-white transition-all hover:bg-tint active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-tint focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
               >
                 {loading ? (
                   <LoaderCircle className="h-4 w-4 animate-spin" />
@@ -117,18 +117,18 @@ export default function LoginPage() {
                 type="button"
                 onClick={() => signInAsGuest('/home')}
                 disabled={loading}
-                className="w-full rounded-xl border border-[#1e293b] bg-transparent px-6 py-3 text-sm font-medium text-[#cbd5e1] transition-colors hover:border-[#2d4a6e] hover:text-[#f8fafc] flex items-center justify-center gap-3 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3b82f6] focus-visible:ring-offset-2 focus-visible:ring-offset-[#080c14]"
+                className="w-full rounded-xl border border-line bg-transparent px-6 py-3 text-sm font-medium text-ink-2 transition-colors hover:border-line-strong hover:text-ink flex items-center justify-center gap-3 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-tint focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
               >
                 <UserRound className="h-4 w-4" />
                 {user?.is_guest ? 'Keep using guest mode' : 'Continue as Guest'}
               </button>
 
-              <p className="text-xs text-[#475569] text-center">
+              <p className="text-xs text-ink-5 text-center">
                 Guest mode saves progress only in this browser.
               </p>
 
               {error && (
-                <div className="rounded-xl border border-[#ef4444]/30 bg-[#ef4444]/10 px-4 py-3 text-sm text-[#ef4444]">
+                <div className="rounded-xl border border-bad/30 bg-bad/10 px-4 py-3 text-sm text-bad">
                   {error}
                 </div>
               )}
@@ -139,7 +139,7 @@ export default function LoginPage() {
                 </div>
               )}
 
-              <p className="text-xs text-[#475569] text-center">
+              <p className="text-xs text-ink-5 text-center">
                 By signing in, you agree to our Terms of Service
               </p>
             </div>

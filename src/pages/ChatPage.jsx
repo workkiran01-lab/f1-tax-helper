@@ -26,7 +26,7 @@ const loadConversations = (key) => {
 }
 
 const iconButton =
-  'flex h-11 w-11 items-center justify-center rounded-full border border-[#1e293b] bg-[#0f172a] text-[#f8fafc] transition-colors hover:border-[#2d4a6e]'
+  'flex h-10 w-10 items-center justify-center rounded-full bg-surface-2 text-ink hover:bg-surface-3'
 
 export default function ChatPage() {
   const { user } = useAuth()
@@ -106,12 +106,12 @@ export default function ChatPage() {
   const name = displayNameFor(user) || (user?.is_guest ? 'Guest' : 'Student')
 
   return (
-    <div className="relative flex h-[calc(100dvh-var(--tabbar))] flex-col overflow-hidden bg-[#080c14] text-[#cbd5e1] lg:h-dvh">
+    <div className="relative flex h-[calc(100dvh-var(--tabbar))] flex-col overflow-hidden bg-bg text-ink-2 lg:h-dvh">
       <DisclaimerBanner />
-      <header className="flex shrink-0 items-center justify-between gap-3 border-b border-[#1e293b] px-5 py-3 lg:px-8">
+      <header className="material z-10 flex shrink-0 items-center justify-between gap-3 border-b border-line/70 px-5 py-2.5 lg:px-8">
         <div className="min-w-0">
-          <h1 className="text-2xl font-bold tracking-tight text-[#f8fafc]">Ask AI</h1>
-          <p className="text-[13px] leading-snug text-[#94a3b8]">
+          <h1 className="text-[22px] font-bold leading-tight text-ink">Ask AI</h1>
+          <p className="text-[13px] leading-snug text-ink-3">
             {profile
               ? `Using your status: ${profile.label.toLowerCase()}`
               : `Questions about ${TAX_YEAR} income`}
@@ -154,7 +154,7 @@ export default function ChatPage() {
         )}
         <div
           inert={!historyOpen ? '' : undefined}
-          className={`fixed inset-y-0 left-0 z-50 w-72 transform transition-transform duration-300 ease-in-out xl:hidden ${
+          className={`fixed inset-y-0 left-0 z-50 w-72 transform transition-transform duration-500 ease-glide xl:hidden ${
             historyOpen ? 'translate-x-0' : '-translate-x-full'
           }`}
         >
@@ -178,9 +178,8 @@ export default function ChatPage() {
         <div className="flex min-w-0 flex-1 flex-col">
           {selectedConversation ? (
             <div id="past-conversation-view" className="flex min-h-0 flex-1 flex-col">
-              <p className="shrink-0 truncate border-b border-[#1e293b] bg-[#0a0e1a] px-5 py-2.5 text-sm text-[#94a3b8]">
-                Past conversation ·{' '}
-                <span className="text-[#f8fafc]">{selectedConversation.title}</span>
+              <p className="shrink-0 truncate border-b border-line bg-chrome px-5 py-2.5 text-sm text-ink-3">
+                Past conversation · <span className="text-ink">{selectedConversation.title}</span>
               </p>
               <div className="flex-1 space-y-4 overflow-y-auto p-4">
                 {selectedConversation.messages.map((message, index) => (
@@ -191,8 +190,8 @@ export default function ChatPage() {
                     <div
                       className={`max-w-[85%] rounded-2xl px-4 py-3 md:max-w-[70%] ${
                         message.role === 'user'
-                          ? 'rounded-tr-sm bg-[#2563eb] text-white'
-                          : 'rounded-tl-sm border border-[#1e293b] bg-[#0f172a] text-[#cbd5e1]'
+                          ? 'rounded-tr-sm bg-tint text-white'
+                          : 'rounded-tl-sm border border-line bg-surface text-ink-2'
                       }`}
                     >
                       <StructuredMessage content={message.content} isStreaming={false} />
@@ -200,12 +199,12 @@ export default function ChatPage() {
                   </div>
                 ))}
               </div>
-              <div className="flex shrink-0 items-center justify-between gap-3 border-t border-[#1e293b] bg-[#0a0e1a] px-5 py-3">
-                <p className="text-sm text-[#94a3b8]">Past conversations are read-only.</p>
+              <div className="flex shrink-0 items-center justify-between gap-3 border-t border-line bg-chrome px-5 py-3">
+                <p className="text-sm text-ink-3">Past conversations are read-only.</p>
                 <button
                   type="button"
                   onClick={handleNewChat}
-                  className="min-h-11 shrink-0 rounded-xl bg-[#2563eb] px-4 text-sm font-semibold text-white transition-colors hover:bg-[#1d4ed8]"
+                  className="min-h-11 shrink-0 rounded-xl bg-tint px-4 text-sm font-semibold text-white transition-colors hover:bg-tint-hover"
                 >
                   Start a new chat
                 </button>

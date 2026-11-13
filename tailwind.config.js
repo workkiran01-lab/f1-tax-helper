@@ -1,42 +1,90 @@
 /** @type {import('tailwindcss').Config} */
+const token = (name) => `rgb(var(--${name}) / <alpha-value>)`
+
 export default {
   content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
   theme: {
     extend: {
+      // Every colour in the app resolves to a variable defined in src/index.css.
+      // Change the palette there; do not add hex values to components.
       colors: {
-        background: '#080c14',
-        foreground: '#cbd5e1',
-        card: '#0f172a',
-        'card-foreground': '#cbd5e1',
-        'muted-foreground': '#94a3b8',
-        surface: '#0f172a',
-        'surface-soft': '#111827',
-        border: '#1e293b',
-        'border-bright': '#2d4a6e',
-        primary: '#3b82f6',
-        // Used by Button, FloatingChatButton and the chat checklist; without
-        // these the utilities were never generated and silently did nothing.
+        bg: token('bg'),
+        chrome: token('chrome'),
+        surface: token('surface'),
+        'surface-2': token('surface-2'),
+        'surface-3': token('surface-3'),
+        line: token('line'),
+        'line-strong': token('line-strong'),
+        ink: token('ink'),
+        'ink-2': token('ink-2'),
+        'ink-3': token('ink-3'),
+        'ink-4': token('ink-4'),
+        'ink-5': token('ink-5'),
+        tint: token('tint'),
+        'tint-hover': token('tint-hover'),
+        'tint-ink': token('tint-ink'),
+        'tint-ink-strong': token('tint-ink-strong'),
+        'tint-soft': token('tint-soft'),
+        warn: token('warn'),
+        'warn-ink': token('warn-ink'),
+        'warn-deep': token('warn-deep'),
+        ok: token('ok'),
+        bad: token('bad'),
+        violet: token('violet'),
+        'violet-ink': token('violet-ink'),
+
+        // Earlier names, kept so existing components pick up the same palette.
+        background: token('bg'),
+        foreground: token('ink-2'),
+        card: token('surface'),
+        'card-foreground': token('ink-2'),
+        'muted-foreground': token('ink-3'),
+        'surface-soft': token('surface-2'),
+        border: token('line'),
+        'border-bright': token('line-strong'),
+        primary: token('tint'),
         'primary-foreground': '#ffffff',
-        secondary: '#1e293b',
-        'secondary-foreground': '#f8fafc',
-        accent: '#131c2e',
-        'accent-foreground': '#f8fafc',
-        ring: '#3b82f6',
-        'primary-soft': 'rgba(59, 130, 246, 0.12)',
-        success: '#22c55e',
-        'success-soft': 'rgba(34, 197, 94, 0.12)',
-        warning: '#f59e0b',
-        'warning-soft': 'rgba(245, 158, 11, 0.12)',
-        danger: '#ef4444',
-        'danger-soft': 'rgba(239, 68, 68, 0.12)',
-        headline: '#f8fafc',
-        body: '#cbd5e1',
-        muted: '#64748b',
-        hint: '#475569',
+        secondary: token('line'),
+        'secondary-foreground': token('ink'),
+        accent: token('surface-2'),
+        'accent-foreground': token('ink'),
+        ring: token('tint'),
+        'primary-soft': 'rgb(var(--tint) / 0.14)',
+        success: token('ok'),
+        'success-soft': 'rgb(var(--ok) / 0.14)',
+        warning: token('warn'),
+        'warning-soft': 'rgb(var(--warn) / 0.14)',
+        danger: token('bad'),
+        'danger-soft': 'rgb(var(--bad) / 0.14)',
+        headline: token('ink'),
+        body: token('ink-2'),
+        muted: token('ink-4'),
+        hint: token('ink-5'),
       },
       fontFamily: {
-        sans: ['Inter', 'system-ui', 'sans-serif'],
-        mono: ['JetBrains Mono', 'Fira Code', 'monospace'],
+        // The platform's own UI typeface first, so the app feels native on each
+        // device; Inter (bundled) everywhere a system UI face is unavailable.
+        sans: [
+          '-apple-system',
+          'BlinkMacSystemFont',
+          'Inter',
+          'Segoe UI',
+          'Roboto',
+          'system-ui',
+          'sans-serif',
+        ],
+        mono: ['ui-monospace', 'SF Mono', 'JetBrains Mono', 'Menlo', 'monospace'],
+      },
+      borderRadius: {
+        '4xl': '1.75rem',
+      },
+      transitionTimingFunction: {
+        // Fast start, long settle: used for sheets, drawers and page moves.
+        glide: 'cubic-bezier(0.32, 0.72, 0, 1)',
+      },
+      boxShadow: {
+        raised: 'inset 0 1px 0 rgb(255 255 255 / 0.05), 0 12px 32px -12px rgb(0 0 0 / 0.7)',
+        sheet: '0 -8px 40px rgb(0 0 0 / 0.55)',
       },
       animation: {
         'fade-up': 'fadeUp 0.4s ease-out forwards',
@@ -48,10 +96,7 @@ export default {
           '0%': { opacity: '0', transform: 'translateY(12px)' },
           '100%': { opacity: '1', transform: 'translateY(0)' },
         },
-        fadeIn: {
-          '0%': { opacity: '0' },
-          '100%': { opacity: '1' },
-        },
+        fadeIn: { '0%': { opacity: '0' }, '100%': { opacity: '1' } },
         shimmer: {
           '0%': { backgroundPosition: '-200% 0' },
           '100%': { backgroundPosition: '200% 0' },

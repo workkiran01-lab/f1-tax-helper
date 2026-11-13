@@ -13,7 +13,7 @@ export function buildFilingItems({ hasIncome, hasW2, hasScholarship, needsReview
         required: true,
         link: SOURCES.presence,
         external: true,
-        linkLabel: 'IRS residency test →',
+        linkLabel: 'IRS residency test',
       },
     ]
   const items = [
@@ -24,7 +24,7 @@ export function buildFilingItems({ hasIncome, hasW2, hasScholarship, needsReview
         'Required when claiming eligible student day exclusions, including with no income',
       required: true,
       link: '/form-8843',
-      linkLabel: 'Prepare it here →',
+      linkLabel: 'Prepare it here',
     },
   ]
   if (hasIncome)
@@ -98,7 +98,7 @@ export const IDENTITY_ITEMS = [
     description: 'Your most recent I-94 from CBP',
     required: true,
     link: 'https://i94.cbp.dhs.gov',
-    linkLabel: 'Get yours at cbp.dhs.gov →',
+    linkLabel: 'Get yours at cbp.dhs.gov',
     external: true,
   },
   {

@@ -26,7 +26,7 @@ function LazySuspense({ children }) {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-[#080c14] flex items-center justify-center">
+        <div className="min-h-screen bg-bg flex items-center justify-center">
           <div className="h-8 w-8 animate-spin rounded-full border-2 border-white/20 border-t-white" />
         </div>
       }
