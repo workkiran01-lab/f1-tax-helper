@@ -8,6 +8,22 @@ import {
 } from '../lib/apiSafety.js'
 import { SYSTEM_PROMPT } from '../lib/taxPrompt.js'
 
+// Groq shut down llama-3.3-70b-versatile on August 16, 2026 and recommends
+// openai/gpt-oss-120b. Model IDs are retired regularly; see
+// https://console.groq.com/docs/deprecations and override with GROQ_MODEL.
+export const DEFAULT_GROQ_MODEL = 'openai/gpt-oss-120b'
+
+export function groqRequestBody(model, messages) {
+  const body = { model, messages, stream: true, max_completion_tokens: 2048, temperature: 0.2 }
+  // GPT-OSS models reason before answering. Keep reasoning short so it does not
+  // consume the answer budget, and never stream it to the browser.
+  if (model.startsWith('openai/gpt-oss')) {
+    body.reasoning_effort = 'low'
+    body.include_reasoning = false
+  }
+  return body
+}
+
 export function createChatHandler({
   fetchImpl = (...args) => fetch(...args),
   limiter = rateLimit,
@@ -50,19 +66,21 @@ export function createChatHandler({
           'Content-Type': 'application/json',
           Authorization: `Bearer ${env.GROQ_API_KEY}`,
         },
-        body: JSON.stringify({
-          model: env.GROQ_MODEL || 'llama-3.3-70b-versatile',
-          messages: [{ role: 'system', content: SYSTEM_PROMPT }, ...messages],
-          stream: true,
-          max_tokens: 1600,
-          temperature: 0.2,
-        }),
+        body: JSON.stringify(
+          groqRequestBody(env.GROQ_MODEL?.trim() || DEFAULT_GROQ_MODEL, [
+            { role: 'system', content: SYSTEM_PROMPT },
+            ...messages,
+          ]),
+        ),
       })
       if (
         !upstream.ok ||
         !upstream.body ||
         !upstream.headers.get('content-type')?.includes('text/event-stream')
       ) {
+        // Log only the status so Vercel logs show why chat failed (401 = bad key,
+        // 404/400 = retired model, 429 = Groq quota). Never log user messages.
+        console.error(`Groq request failed: HTTP ${upstream.status}`)
         await upstream.body?.cancel()
         return jsonError('The AI service is unavailable. Please try again shortly.', 502)
       }

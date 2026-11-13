@@ -101,6 +101,31 @@ describe('public endpoint safety', () => {
     expect(body.messages[0].role).toBe('system')
     expect(body.messages[0].content).toContain('2027 filing season')
     expect(body.messages.at(-1).content).toBe('Which form?')
+    // llama-3.3-70b-versatile was shut down by Groq on August 16, 2026.
+    expect(body.model).toBe('openai/gpt-oss-120b')
+    expect(body.include_reasoning).toBe(false)
+    expect(body.reasoning_effort).toBe('low')
+  })
+  it('uses an overriding GROQ_MODEL without GPT-OSS-only parameters', async () => {
+    const fetchImpl = vi.fn(
+      async () =>
+        new Response('data: [DONE]\n\n', { headers: { 'Content-Type': 'text/event-stream' } }),
+    )
+    await createChatHandler({
+      env: { ...env, GROQ_MODEL: ' qwen/qwen3.8-27b ' },
+      fetchImpl,
+      limiter: async () => false,
+    })(request())
+    const body = JSON.parse(fetchImpl.mock.calls[0][1].body)
+    expect(body.model).toBe('qwen/qwen3.8-27b')
+    expect(body.include_reasoning).toBeUndefined()
+  })
+  it('reports a rejected model or key as a 502 and logs only the status', async () => {
+    const log = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const fetchImpl = vi.fn(async () => new Response('{"error":{}}', { status: 404 }))
+    const res = await createChatHandler({ env, fetchImpl, limiter: async () => false })(request())
+    expect(res.status).toBe(502)
+    expect(log).toHaveBeenCalledWith('Groq request failed: HTTP 404')
   })
   it('does not report signup success or send email on invalid address or Redis failure', async () => {
     const fetchImpl = vi.fn()

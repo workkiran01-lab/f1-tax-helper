@@ -7,6 +7,7 @@ Reviewed November 10–11, 2026 against `main` at `b1ee243`. Scope: a full read 
 | Area | Bug | Fix |
 | --- | --- | --- |
 | CI | `npm audit --audit-level=high` failed on `main` (2 critical, 2 high), so the `App checks` workflow could not pass. | Updated vite, postcss-selector-parser and source-map-js in range; moved vitest to 5.0.5. Audit reports zero vulnerabilities. |
+| Chat | **Chat was down.** The default model `llama-3.3-70b-versatile` was shut down by Groq on August 16, 2026 (free and developer tiers), and `.env.example` pinned it too, so every request returned "The AI service is unavailable". | Default is now `openai/gpt-oss-120b` with low reasoning effort and reasoning excluded from the stream. Failed upstream calls log their HTTP status (never message content). |
 | Chat | The client sent raw history. One answer over 4,000 characters, or about 24,000 characters in total, made the server reject every later message in that conversation. | `lib/chatLimits.js` holds the limits for both sides; the client trims history to fit and keeps the opening context message. |
 | Chat | Every message showed the current time, and all times changed on each re-render. | Messages store `createdAt`. |
 | Chat | An empty answer bubble appeared next to the typing indicator until the first token arrived. | The indicator stands in for the answer until content exists. |

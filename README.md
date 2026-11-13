@@ -26,7 +26,7 @@ Copy `.env.example` to `.env.local` and replace placeholders for the services yo
 | ---------------------------------------------------- | ----------------- | ----------------------------------------------------------------------------------------------------- |
 | `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`        | Browser           | Public project URL and anon key for authentication; never use a service-role key here                 |
 | `VITE_SENTRY_DSN`                                    | Browser, optional | Error monitoring; user, request, breadcrumb, and extra data are removed before events are sent        |
-| `GROQ_API_KEY`, optional `GROQ_MODEL`                | Server only       | Chat inference; default model is `llama-3.3-70b-versatile`                                            |
+| `GROQ_API_KEY`, optional `GROQ_MODEL`                | Server only       | Chat inference; default model is `openai/gpt-oss-120b` (Groq retired `llama-3.3-70b-versatile`)      |
 | `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN` | Server only       | Recommended global rate limiting; without them, each server instance uses a bounded local fallback    |
 | `RESEND_API_KEY`                                     | Server only       | Waitlist confirmation email                                                                           |
 | `ALLOWED_ORIGINS`                                    | Server, optional  | Comma-separated exact additional origins; Vercel deployment and branch URLs are allowed automatically |
