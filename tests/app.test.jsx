@@ -29,7 +29,7 @@ it('renders public tools without Supabase credentials and shares guest auth acro
   window.history.replaceState({}, '', '/login')
   render(<App />)
   fireEvent.click(await screen.findByRole('button', { name: /continue as guest/i }))
-  await waitFor(() => expect(window.location.pathname).toBe('/welcome'))
+  await waitFor(() => expect(window.location.pathname).toBe('/home'))
   expect(localStorage.getItem('f1_guest_session')).toBe('true')
 })
 it('no-income questionnaire still asks exempt calendar years, then persists guest results on reload', async () => {
@@ -45,11 +45,11 @@ it('no-income questionnaire still asks exempt calendar years, then persists gues
   fireEvent.click(
     screen.getByRole('button', { name: /next|see my results|continue|finish|get my results/i }),
   )
-  await waitFor(() => expect(window.location.pathname).toBe('/results'))
+  await waitFor(() => expect(window.location.pathname).toBe('/taxes'))
   expect(JSON.parse(localStorage.getItem(seasonKey('questionnaire'))).taxYear).toBe(2026)
   view.unmount()
   render(<App />)
-  expect(await screen.findByText(/here.s your tax summary/i)).toBeTruthy()
+  expect(await screen.findByText('What this means for you')).toBeTruthy()
   expect(screen.getByText(/generally file only Form 8843/i)).toBeTruthy()
 })
 it('routes uncertain residency to review, without a resident or nonresident filing checklist', async () => {
@@ -68,7 +68,7 @@ it('old-year status and checklist data never masquerade as current preparation',
   localStorage.setItem('f1_status_result', JSON.stringify({ badge: 'nra', hasIncome: false }))
   window.history.replaceState({}, '', '/checklist')
   render(<App />)
-  expect(await screen.findByText('Get Your Personalized Checklist')).toBeTruthy()
+  expect(await screen.findByText('Start with your tax status')).toBeTruthy()
 })
 it('opens 2026 preparation by default and allows explicit prior-year selection', async () => {
   window.history.replaceState({}, '', '/form-8843')

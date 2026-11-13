@@ -67,11 +67,9 @@ export function Navbar() {
         <div className="hidden items-center gap-3 md:flex">
           {user ? (
             <>
-              <Link
-                to="/welcome"
-                className="text-xs text-[#64748b] max-w-[160px] truncate transition-colors hover:text-[#f8fafc]"
-              >
-                {accountLabel}
+              <span className="max-w-[160px] truncate text-xs text-[#94a3b8]">{accountLabel}</span>
+              <Link to="/home" className="btn-primary py-2 px-4 text-xs">
+                Open app
               </Link>
               <button type="button" onClick={handleSignOut} className="btn-ghost py-2 px-4 text-xs">
                 Sign Out
@@ -132,8 +130,9 @@ export function Navbar() {
             <div className="mt-2 flex flex-col gap-2 border-t border-[#1e293b] pt-4">
               {user ? (
                 <>
-                  <Link to="/welcome" className="text-xs text-[#64748b]" onClick={closeMenu}>
-                    {accountLabel}
+                  <span className="text-xs text-[#94a3b8]">{accountLabel}</span>
+                  <Link to="/home" className="btn-primary justify-center text-sm" onClick={closeMenu}>
+                    Open app
                   </Link>
                   <button
                     type="button"

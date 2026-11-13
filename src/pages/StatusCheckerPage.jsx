@@ -7,6 +7,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { ChevronLeft } from 'lucide-react'
 import DisclaimerBanner from '../components/DisclaimerBanner'
 import useAuth from '../hooks/useAuth'
+import { FocusHeader } from '../components/app/PageHeader'
 import { AnimatedProgress, StepTransition, Stagger, StaggerItem } from '../components/Motion'
 
 const QUESTIONS = [
@@ -113,20 +114,7 @@ export default function StatusCheckerPage() {
     <div className="relative flex min-h-screen flex-col overflow-hidden bg-[#080c14] text-slate-100">
       <div className="absolute inset-0 bg-grid opacity-30 pointer-events-none" />
 
-      {/* Header */}
-      <header className="sticky top-0 z-20 border-b border-[#1e293b] bg-[#080c14]/80 backdrop-blur">
-        <div className="mx-auto flex h-16 w-full max-w-3xl items-center justify-between px-4 sm:px-6">
-          <Link to="/" className="flex items-center gap-2">
-            <div className="font-mono text-xs font-bold border border-[#1e293b] px-2 py-1 text-[#3b82f6]">
-              F1
-            </div>
-            <span className="text-sm font-medium text-[#f8fafc]">Tax Helper</span>
-          </Link>
-          <span className="text-xs text-[#475569]">
-            Question {step + 1} of {totalSteps}
-          </span>
-        </div>
-      </header>
+      <FocusHeader title="Quick status check" note={`Question ${step + 1} of ${totalSteps}`} />
 
       <DisclaimerBanner />
 
@@ -206,7 +194,7 @@ function ResultScreen({ result, navigate, signInAsGuest, user }) {
 
   const handleChecklistClick = () => {
     if (user) {
-      navigate('/checklist')
+      navigate('/taxes')
       return
     }
     setShowChecklistPrompt(true)
@@ -216,17 +204,7 @@ function ResultScreen({ result, navigate, signInAsGuest, user }) {
     <div className="relative flex min-h-screen flex-col overflow-hidden bg-[#080c14] text-slate-100">
       <div className="absolute inset-0 bg-grid opacity-30 pointer-events-none" />
 
-      <header className="sticky top-0 z-20 border-b border-[#1e293b] bg-[#080c14]/80 backdrop-blur">
-        <div className="mx-auto flex h-16 w-full max-w-3xl items-center justify-between px-4 sm:px-6">
-          <Link to="/" className="flex items-center gap-2">
-            <div className="font-mono text-xs font-bold border border-[#1e293b] px-2 py-1 text-[#3b82f6]">
-              F1
-            </div>
-            <span className="text-sm font-medium text-[#f8fafc]">Tax Helper</span>
-          </Link>
-          <span className="text-xs text-[#475569]">Results Ready</span>
-        </div>
-      </header>
+      <FocusHeader title="Quick status check" note="Your result" />
 
       <DisclaimerBanner />
 
@@ -326,7 +304,7 @@ function ResultScreen({ result, navigate, signInAsGuest, user }) {
             onClick={handleChecklistClick}
             className="w-full rounded-xl bg-[#3b82f6] px-5 py-3 text-sm font-semibold text-white transition-all hover:bg-[#2563eb] active:scale-[0.98]"
           >
-            View My Document Checklist →
+            {user ? 'Open My Taxes →' : 'View My Document Checklist →'}
           </button>
           {showChecklistPrompt && (
             <div className="rounded-2xl border border-[#f59e0b]/30 bg-[#f59e0b]/10 p-4 text-sm text-[#f59e0b]">
@@ -344,7 +322,7 @@ function ResultScreen({ result, navigate, signInAsGuest, user }) {
                 </button>
                 <button
                   type="button"
-                  onClick={() => signInAsGuest('/checklist')}
+                  onClick={() => signInAsGuest('/taxes')}
                   className="rounded-xl border border-[#f59e0b]/40 bg-transparent px-4 py-2 text-xs font-semibold text-[#f59e0b] transition-colors hover:border-[#f59e0b]/60"
                 >
                   Continue as Guest

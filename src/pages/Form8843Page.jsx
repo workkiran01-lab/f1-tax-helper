@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Link } from 'react-router-dom'
-import { ArrowLeft, Download, ShieldCheck } from 'lucide-react'
+import { Download, ShieldCheck } from 'lucide-react'
 import { AnimatedCheck, AnimatedProgress, StepTransition } from '../components/Motion'
 import pdfFontUrl from '@fontsource/inter/files/inter-latin-400-normal.woff?url'
 import {
@@ -17,6 +16,7 @@ import { FormPreview } from '../components/form8843/FormPreview'
 import DisclaimerBanner from '../components/DisclaimerBanner'
 import SeasonNotice from '../components/SeasonNotice'
 import useAuth from '../hooks/useAuth'
+import { FocusHeader } from '../components/app/PageHeader'
 
 const STEPS = ['Your information', 'Your addresses', 'Your school', 'Your DSO', 'Visa & presence']
 const FIELDS = [
@@ -214,23 +214,15 @@ export default function Form8843Page() {
   }
   return (
     <div className="min-h-screen bg-background text-body">
-      <header className="sticky top-0 z-20 border-b border-border bg-background/90 backdrop-blur">
-        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
-          <Link to="/" className="flex items-center gap-2">
-            <span className="border border-border px-2 py-1 font-mono text-xs font-bold text-primary">
-              F1
-            </span>
-            <span className="text-sm font-medium text-headline">Tax Helper</span>
-          </Link>
-          <button
-            type="button"
-            onClick={clear}
-            className="text-xs text-muted-foreground hover:text-body"
-          >
-            Clear data
-          </button>
-        </div>
-      </header>
+      <FocusHeader title="Form 8843" note="Draft saved in this tab">
+        <button
+          type="button"
+          onClick={clear}
+          className="hidden min-h-11 shrink-0 rounded-lg px-3 text-sm text-muted-foreground hover:text-body sm:block"
+        >
+          Clear data
+        </button>
+      </FocusHeader>
       <DisclaimerBanner />
       <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
         <div className="mb-6">
@@ -238,13 +230,6 @@ export default function Form8843Page() {
         </div>
         <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
           <div>
-            <Link
-              to="/"
-              className="mb-4 inline-flex items-center gap-1 text-xs text-muted-foreground"
-            >
-              <ArrowLeft className="h-3 w-3" />
-              Back home
-            </Link>
             <h1 className="text-2xl font-semibold text-headline sm:text-3xl">
               Your Form 8843, one step at a time.
             </h1>
@@ -622,6 +607,13 @@ export default function Form8843Page() {
               This preview is a guide, not an IRS form. Closing the tab or clearing data removes the
               saved draft. Downloaded PDFs stay on your device.
             </p>
+            <button
+              type="button"
+              onClick={clear}
+              className="mt-3 min-h-11 text-sm text-muted-foreground underline hover:text-body sm:hidden"
+            >
+              Clear data
+            </button>
           </aside>
         </div>
       </main>

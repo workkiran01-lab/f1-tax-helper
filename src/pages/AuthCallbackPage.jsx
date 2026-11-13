@@ -6,7 +6,7 @@ export default function AuthCallbackPage() {
   const navigate = useNavigate()
   const { user, loading } = useAuth()
   useEffect(() => {
-    if (!loading) navigate(user && !user.is_guest ? '/welcome' : '/login', { replace: true })
+    if (!loading) navigate(user && !user.is_guest ? '/home' : '/login', { replace: true })
     const timer = setTimeout(() => navigate('/login', { replace: true }), 12000)
     return () => clearTimeout(timer)
   }, [user, loading, navigate])

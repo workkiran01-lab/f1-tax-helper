@@ -1,9 +1,8 @@
 import { readChatStream, safeIRSUrl } from '../../utils/chatStream.js'
 import { fitChatHistory } from '../../../lib/chatLimits.js'
-import { TAX_YEAR, FILING_YEAR } from '../../data/taxSeason.js'
 import { useEffect, useMemo, useState, useRef, useCallback, useId } from 'react'
 import { Link } from 'react-router-dom'
-import { ChevronDown, ClipboardList, Copy, LoaderCircle, Send } from 'lucide-react'
+import { ChevronDown, Copy, LoaderCircle, Send } from 'lucide-react'
 import { AnimatedCheck } from '../Motion'
 import { IRSDisclaimer } from './IRSDisclaimer'
 
@@ -11,7 +10,7 @@ const MAX_INPUT = 2000
 
 function buildWelcomeMessage(initialContext) {
   if (initialContext?.answers) {
-    const country = initialContext.answers.country || 'your home country'
+    const country = initialContext.answers.country
     const items = Array.isArray(initialContext.actionItems) ? initialContext.actionItems : []
     const itemsText = items.length ? items.map((i) => `- ${i}`).join('\n') : ''
 
@@ -19,7 +18,7 @@ function buildWelcomeMessage(initialContext) {
       id: 1,
       role: 'assistant',
       createdAt: Date.now(),
-      content: `Hi! 👋 I can see you're an F-1 student from ${country}. Based on your questionnaire, here's what I already know about your situation:${itemsText ? `\n${itemsText}` : ''}\n\nWhat questions do you have?`,
+      content: `Hi! 👋 I can see you're an F-1 student${country ? ` from ${country}` : ''}. Based on your saved answers, here's what I already know about your situation:${itemsText ? `\n${itemsText}` : ''}\n\nWhat questions do you have?`,
     }
   }
 
@@ -232,7 +231,7 @@ export function StructuredMessage({ content, isStreaming }) {
   )
 }
 
-export function ChatMain({ initialContext, navigationKey, onOpenChecklist, onMessagesChange }) {
+export function ChatMain({ initialContext, navigationKey, onMessagesChange }) {
   const welcome = useMemo(() => buildWelcomeMessage(initialContext), [initialContext])
   const [messages, setMessages] = useState([welcome])
   const [input, setInput] = useState('')
@@ -357,32 +356,6 @@ export function ChatMain({ initialContext, navigationKey, onOpenChecklist, onMes
 
   return (
     <div className="flex h-full min-h-0 flex-col bg-transparent">
-      <div className="flex items-center justify-between border-b border-[#1e293b] bg-[#0a0e1a] px-6 py-3 shrink-0">
-        <div className="flex items-center gap-3">
-          <div className="font-mono text-xs font-bold border border-[#1e293b] px-2 py-1 text-[#3b82f6]">
-            AX
-          </div>
-          <div>
-            <h1 className="font-mono text-[10px] uppercase tracking-widest text-[#3b82f6]">
-              AI TAX ASSISTANT
-            </h1>
-            <p className="text-xs text-[#64748b]">Questions about {TAX_YEAR} income</p>
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="inline-flex items-center rounded-full border border-green-500/30 bg-green-500/20 px-3 py-1 text-xs font-medium text-green-400">
-            {FILING_YEAR} season
-          </span>
-          <button
-            onClick={onOpenChecklist}
-            className="inline-flex items-center gap-2 rounded-xl border border-[#1e293b] bg-transparent px-3 py-2 text-sm text-[#cbd5e1] transition-colors hover:border-[#2d4a6e] hover:text-[#f8fafc]"
-          >
-            <ClipboardList className="h-4 w-4" />
-            My Checklist
-          </button>
-        </div>
-      </div>
-
       <div
         onScroll={(e) => {
           const el = e.currentTarget

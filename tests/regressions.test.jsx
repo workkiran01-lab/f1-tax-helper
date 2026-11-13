@@ -253,10 +253,21 @@ describe('questionnaire and dashboard flow', () => {
     expect(await screen.findByRole('button', { name: 'Yes, I am' })).toBeTruthy()
   })
 
-  it('restarts from question 1 when "Restart Questionnaire" is chosen', async () => {
+  it('restarts from question 1 when "Edit my answers" is chosen, not from saved progress', async () => {
     localStorage.setItem('f1_guest_session', 'true')
-    localStorage.setItem('display_name_guest', JSON.stringify('Test Student'))
-    localStorage.setItem('university_guest', JSON.stringify('Test University'))
+    localStorage.setItem(
+      seasonKey('questionnaire'),
+      JSON.stringify({
+        taxYear: 2026,
+        completedAt: '2026-11-01T00:00:00.000Z',
+        actionItems: [],
+        answers: {
+          hasUSIncome: false,
+          incomeTypes: [],
+          residencyStatus: 'Likely Nonresident Alien',
+        },
+      }),
+    )
     sessionStorage.setItem(
       seasonKey('questionnaire-progress', 'guest'),
       JSON.stringify({
@@ -272,15 +283,14 @@ describe('questionnaire and dashboard flow', () => {
         },
       }),
     )
-    window.history.replaceState({}, '', '/welcome')
+    window.history.replaceState({}, '', '/taxes')
     render(<App />)
-    expect(await screen.findByRole('button', { name: /continue tax questionnaire/i })).toBeTruthy()
-    fireEvent.click(screen.getByRole('button', { name: 'Restart Questionnaire' }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Edit my answers' }))
     expect(await screen.findByRole('button', { name: 'Yes, I am' })).toBeTruthy()
-    expect(screen.getByText('Question 1 of 5')).toBeTruthy()
+    expect(screen.getByText(/Question 1 of 5/)).toBeTruthy()
   })
 
-  it('names the questionnaire as the checklist source when it is newer than the status check', async () => {
+  it('shows one status, from the questionnaire, when it is newer than the status check', async () => {
     localStorage.setItem('f1_guest_session', 'true')
     localStorage.setItem(
       seasonKey('status'),
@@ -309,8 +319,9 @@ describe('questionnaire and dashboard flow', () => {
     window.history.replaceState({}, '', '/checklist')
     render(<App />)
     expect(await screen.findByText('Confirm tax residency before selecting forms')).toBeTruthy()
-    expect(screen.getByText('Based on your questionnaire answers')).toBeTruthy()
-    expect(screen.queryByText(/Likely Nonresident Alien/)).toBeNull()
+    expect(screen.getByText('Residency review needed')).toBeTruthy()
+    expect(screen.getByText(/From your questionnaire/)).toBeTruthy()
+    expect(screen.queryByText(/Likely nonresident alien/i)).toBeNull()
   })
 
   it('lets a guest stay on the sign-in page to upgrade to an account', async () => {

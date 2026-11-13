@@ -23,7 +23,7 @@ export default function LoginPage() {
     // Guests stay on this page so they can upgrade to a Google account; before,
     // they were bounced to /welcome and could only sign in by signing out first.
     if (!authLoading && user && !user.is_guest) {
-      navigate('/welcome', { replace: true })
+      navigate('/home', { replace: true })
     }
   }, [authLoading, navigate, user])
 
@@ -115,7 +115,7 @@ export default function LoginPage() {
 
               <button
                 type="button"
-                onClick={() => signInAsGuest('/welcome')}
+                onClick={() => signInAsGuest('/home')}
                 disabled={loading}
                 className="w-full rounded-xl border border-[#1e293b] bg-transparent px-6 py-3 text-sm font-medium text-[#cbd5e1] transition-colors hover:border-[#2d4a6e] hover:text-[#f8fafc] flex items-center justify-center gap-3 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3b82f6] focus-visible:ring-offset-2 focus-visible:ring-offset-[#080c14]"
               >

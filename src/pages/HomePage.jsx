@@ -223,10 +223,10 @@ export default function HomePage() {
                       Generate Form 8843
                     </Link>
                     <Link
-                      to={user && !user.is_guest ? '/welcome' : '/login'}
+                      to={user ? '/home' : '/login'}
                       className="w-full sm:w-auto rounded-xl border border-[#1e293b] bg-transparent px-7 py-3.5 text-sm font-medium text-[#64748b] transition-colors hover:border-[#2d4a6e] hover:text-[#f8fafc]"
                     >
-                      {user && !user.is_guest ? 'My Dashboard →' : 'Sign In →'}
+                      {user ? 'Open my app →' : 'Sign In →'}
                     </Link>
                   </div>
                 </StaggerItem>
