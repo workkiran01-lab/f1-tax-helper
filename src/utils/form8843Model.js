@@ -77,9 +77,54 @@ const required = [
     'line13Answer',
   ],
 ]
+// Every editable field belongs to exactly one wizard step. Validation for one
+// step must only report that step's fields: an error on a field the user cannot
+// see would block "Continue" with nothing highlighted to fix.
+export const STEP_FIELDS = [
+  [
+    'firstName',
+    'middleInitial',
+    'lastName',
+    'tinOrSSN',
+    'countryOfCitizenship',
+    'passportCountry',
+    'passportNumber',
+  ],
+  ['foreignAddress', 'usStreet', 'usCity', 'usState', 'usZip'],
+  ['schoolName', 'schoolStreet', 'schoolCity', 'schoolState', 'schoolZip', 'schoolPhone'],
+  ['dsoName', 'dsoStreet', 'dsoCity', 'dsoState', 'dsoZip', 'dsoPhone'],
+  [
+    'currentEntryDate',
+    'currentImmigrationStatus',
+    'daysCurrent',
+    'daysPrevious',
+    'daysPrior',
+    'daysToExclude',
+    'visaChanges',
+    'line12Answer',
+    'line12Explanation',
+    'line13Answer',
+    'line14Explanation',
+  ],
+]
+// The wizard step that owns an error key, so a failed final check can open the
+// step that actually needs attention.
+export function stepForError(key) {
+  const index = STEP_FIELDS.findIndex((fields) => fields.includes(key))
+  if (index >= 0) return index
+  return String(key).startsWith('visa-') ? 4 : 0
+}
+export function firstErrorStep(errors) {
+  const steps = Object.keys(errors || {}).map(stepForError)
+  return steps.length ? Math.min(...steps) : 0
+}
 export function validate8843(data, step, today = new Date()) {
   const errors = {}
   const steps = step === undefined ? [0, 1, 2, 3, 4] : [step]
+  const inScope = new Set(steps.flatMap((i) => STEP_FIELDS[i]))
+  // Explanations are only shown, and only printed, when their answer is Yes.
+  if (data.line12Answer !== 'yes') inScope.delete('line12Explanation')
+  if (data.line13Answer !== 'yes') inScope.delete('line14Explanation')
   if (![TAX_YEAR, FORM_8843_TEMPLATE_YEAR].includes(Number(data.taxYear)))
     errors.taxYear = 'Select a supported tax year.'
   for (const i of steps)
@@ -87,7 +132,7 @@ export function validate8843(data, step, today = new Date()) {
   // The official PDF uses a Latin font. Reject unsupported glyphs before any
   // download instead of silently skipping a field or generating missing text.
   for (const [key, value] of Object.entries(data))
-    if (typeof value === 'string') {
+    if (typeof value === 'string' && inScope.has(key)) {
       if (/[^\x20-\x7E\n\r]/.test(value))
         errors[key] = 'Use Latin characters as shown on your passport, and plain punctuation.'
       if (value.length > (key.includes('Explanation') || key === 'visaChanges' ? 1500 : 180))
@@ -95,7 +140,7 @@ export function validate8843(data, step, today = new Date()) {
     }
   const limits = { firstName: 40, lastName: 35, passportNumber: 50, currentImmigrationStatus: 100 }
   for (const [key, max] of Object.entries(limits))
-    if ((data[key] || '').length > max)
+    if (inScope.has(key) && (data[key] || '').length > max)
       errors[key] = `Use at most ${max} characters so this field stays legible.`
   if (steps.includes(0)) {
     if (data.middleInitial && !/^[A-Za-z]$/.test(data.middleInitial))

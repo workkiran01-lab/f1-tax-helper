@@ -1,4 +1,4 @@
-import { clearUserStorage } from '../../utils/storage.js'
+import { clearUserStorage, readStored } from '../../utils/storage.js'
 import { useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Link, useNavigate } from 'react-router-dom'
@@ -45,18 +45,27 @@ export function ChatSidebar({ conversations = [], onSelect, onNewChat, onClose }
   const [deleteError, setDeleteError] = useState('')
   const [deleteMessage, setDeleteMessage] = useState('')
   const [deleteLoading, setDeleteLoading] = useState(false)
+  const [signOutError, setSignOutError] = useState('')
 
   const metadata = user?.user_metadata || {}
+  // Prefer the name the student entered during onboarding (guests have no
+  // account metadata, so theirs lives in browser storage).
   const displayName =
-    metadata.full_name || metadata.name || user?.email?.split('@')?.[0] || 'Student'
+    metadata.display_name ||
+    readStored(`display_name_${user?.id || 'guest'}`, '') ||
+    metadata.full_name ||
+    metadata.name ||
+    user?.email?.split('@')?.[0] ||
+    'Student'
   const initial = useMemo(() => (displayName?.[0] || 'S').toUpperCase(), [displayName])
 
   const handleSignOut = async () => {
+    setSignOutError('')
     try {
       await signOut('/')
     } catch (error) {
-      setDeleteError(error.message)
-      setShowDeleteModal(true)
+      // A failed sign-out used to open the "Delete your account?" dialog.
+      setSignOutError(error.message || 'Sign out failed. Please try again.')
     }
   }
 
@@ -90,7 +99,7 @@ export function ChatSidebar({ conversations = [], onSelect, onNewChat, onClose }
     }
     window.addEventListener('keydown', handleEsc)
     return () => window.removeEventListener('keydown', handleEsc)
-  }, [])
+  }, [deleteLoading])
 
   return (
     <>
@@ -153,7 +162,9 @@ export function ChatSidebar({ conversations = [], onSelect, onNewChat, onClose }
               </div>
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-medium text-slate-100">{displayName}</p>
-                <p className="truncate text-xs text-slate-400">{user?.email || 'No email'}</p>
+                <p className="truncate text-xs text-slate-400">
+                  {user?.email || (user?.is_guest ? 'Guest · saved in this browser' : 'No email')}
+                </p>
               </div>
             </div>
             <div className="mt-3 flex items-center justify-between gap-2">
@@ -163,6 +174,7 @@ export function ChatSidebar({ conversations = [], onSelect, onNewChat, onClose }
               <button
                 type="button"
                 onClick={() => setShowSettings(true)}
+                aria-label="Open settings"
                 className="rounded-xl border border-[#1e293b] bg-transparent p-2 text-[#64748b] transition-colors hover:border-[#2d4a6e] hover:text-[#f8fafc]"
               >
                 <Settings className="h-4 w-4" />
@@ -175,6 +187,11 @@ export function ChatSidebar({ conversations = [], onSelect, onNewChat, onClose }
             >
               Sign Out
             </button>
+            {signOutError && (
+              <p role="alert" className="mt-2 text-xs text-[#f59e0b]">
+                {signOutError}
+              </p>
+            )}
             <button
               type="button"
               onClick={() => setShowDeleteModal(true)}

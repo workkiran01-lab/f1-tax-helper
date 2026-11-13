@@ -253,39 +253,62 @@ function ResultScreen({ result, navigate, signInAsGuest, user }) {
         </div>
 
         {/* Filing requirements */}
-        <Stagger className="mb-5 rounded-2xl border border-[#1e293b] bg-[#0f172a] p-5 sm:p-6">
-          <h2 className="text-xs font-mono uppercase tracking-widest text-[#475569] mb-4">
-            Your Filing Requirements
-          </h2>
-          <div className="space-y-3">
-            {result.forms.map((form) => (
-              <StaggerItem
-                key={form.id}
-                className="flex items-start justify-between gap-3 rounded-xl border border-[#1e293b] bg-[#080c14] p-4"
-              >
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-[#f8fafc]">{form.name}</p>
-                  <p className="mt-0.5 text-xs text-[#64748b]">{form.description}</p>
-                </div>
-                {form.ctaLink ? (
-                  <Link
-                    to={form.ctaLink}
-                    className="shrink-0 rounded-xl bg-[#3b82f6] px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-[#2563eb]"
-                  >
-                    {form.cta}
-                  </Link>
-                ) : (
-                  <Link
-                    to="/chat"
-                    className="shrink-0 rounded-xl border border-[#1e293b] bg-transparent px-3 py-1.5 text-xs font-medium text-[#64748b] transition-colors hover:border-[#2d4a6e] hover:text-[#f8fafc]"
-                  >
-                    {form.cta || 'Ask about this →'}
-                  </Link>
-                )}
-              </StaggerItem>
-            ))}
+        {result.forms.length === 0 && (
+          <div className="mb-5 rounded-2xl border border-[#1e293b] bg-[#0f172a] p-5 sm:p-6">
+            <h2 className="text-xs font-mono uppercase tracking-widest text-[#475569] mb-2">
+              Your Filing Requirements
+            </h2>
+            <p className="text-sm text-[#cbd5e1]">
+              Forms depend on your tax residency, which this screen could not determine. Your
+              checklist starts with the residency review.
+            </p>
           </div>
-        </Stagger>
+        )}
+        {result.forms.length > 0 && (
+          <Stagger className="mb-5 rounded-2xl border border-[#1e293b] bg-[#0f172a] p-5 sm:p-6">
+            <h2 className="text-xs font-mono uppercase tracking-widest text-[#475569] mb-4">
+              Your Filing Requirements
+            </h2>
+            <div className="space-y-3">
+              {result.forms.map((form) => (
+                <StaggerItem
+                  key={form.id}
+                  className="flex items-start justify-between gap-3 rounded-xl border border-[#1e293b] bg-[#080c14] p-4"
+                >
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-[#f8fafc]">{form.name}</p>
+                    <p className="mt-0.5 text-xs text-[#64748b]">{form.description}</p>
+                  </div>
+                  {/^https?:\/\//.test(form.ctaLink || '') ? (
+                    // IRS pages open in a new tab so this unsaved result screen stays open.
+                    <a
+                      href={form.ctaLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="shrink-0 rounded-xl bg-[#3b82f6] px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-[#2563eb]"
+                    >
+                      {form.cta}
+                    </a>
+                  ) : form.ctaLink ? (
+                    <Link
+                      to={form.ctaLink}
+                      className="shrink-0 rounded-xl bg-[#3b82f6] px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-[#2563eb]"
+                    >
+                      {form.cta}
+                    </Link>
+                  ) : (
+                    <Link
+                      to="/chat"
+                      className="shrink-0 rounded-xl border border-[#1e293b] bg-transparent px-3 py-1.5 text-xs font-medium text-[#64748b] transition-colors hover:border-[#2d4a6e] hover:text-[#f8fafc]"
+                    >
+                      {form.cta || 'Ask about this →'}
+                    </Link>
+                  )}
+                </StaggerItem>
+              ))}
+            </div>
+          </Stagger>
+        )}
 
         {/* Deadline card */}
         <div className="mb-5 rounded-2xl border border-[#1e293b] bg-[#0f172a] p-5 sm:p-6">

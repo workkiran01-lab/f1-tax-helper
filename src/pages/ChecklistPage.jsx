@@ -232,8 +232,12 @@ export default function ChecklistPage() {
     const a = document.createElement('a')
     a.href = url
     a.download = `f1-tax-checklist-${TAX_YEAR}.txt`
+    // Attach the link and revoke later: some browsers cancel a download whose
+    // object URL is revoked in the same task as the click.
+    document.body.appendChild(a)
     a.click()
-    URL.revokeObjectURL(url)
+    a.remove()
+    setTimeout(() => URL.revokeObjectURL(url), 1000)
   }
 
   if (!hasAnyData) {
@@ -298,7 +302,8 @@ export default function ChecklistPage() {
             My Document Checklist
           </h1>
           <p className="text-sm text-[#64748b]">
-            {savedResult
+            {/* Name the source the list was actually built from. */}
+            {!useQuestionnaire && savedResult?.status
               ? `Personalized for your status: ${savedResult.status}`
               : 'Based on your questionnaire answers'}
           </p>

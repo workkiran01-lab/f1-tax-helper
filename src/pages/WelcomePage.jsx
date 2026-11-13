@@ -1,4 +1,10 @@
-import { readStored, writeStored, currentQuestionnaire } from '../utils/storage.js'
+import {
+  readStored,
+  writeStored,
+  removeStored,
+  seasonKey,
+  currentQuestionnaire,
+} from '../utils/storage.js'
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import supabase from '../utils/supabase'
@@ -44,8 +50,25 @@ export default function WelcomePage() {
     setIsOnboarding(false)
   }
 
+  const [signOutError, setSignOutError] = useState('')
   const handleReset = async () => {
-    await signOut('/login')
+    setSignOutError('')
+    try {
+      await signOut('/login')
+    } catch (error) {
+      setSignOutError(error.message || 'Sign out failed. Please try again.')
+    }
+  }
+
+  const questionnaire = currentQuestionnaire(user)
+  const progressKey = seasonKey('questionnaire-progress', uid)
+  const progress = readStored(progressKey, null, 'sessionStorage')
+  const hasProgress = Boolean(progress && (progress.currentStep > 1 || progress.stopped))
+  // "Restart" must discard the saved in-progress answers; otherwise the
+  // questionnaire simply resumes where it stopped.
+  const restartQuestionnaire = () => {
+    removeStored(progressKey, 'sessionStorage')
+    navigate('/questionnaire')
   }
 
   return (
@@ -127,7 +150,7 @@ export default function WelcomePage() {
             <p className="mt-2 text-center text-sm text-[#64748b]">{university} · F-1 Student</p>
 
             <div className="mt-6">
-              <ReadinessCard compact uid={uid} questionnaire={currentQuestionnaire(user) || null} />
+              <ReadinessCard compact uid={uid} questionnaire={questionnaire || null} />
             </div>
 
             <div className="my-6 border-t border-[#1e293b]" />
@@ -135,18 +158,24 @@ export default function WelcomePage() {
             <div className="space-y-3">
               <button
                 type="button"
-                onClick={() => navigate('/questionnaire')}
+                onClick={() => navigate(questionnaire ? '/results' : '/questionnaire')}
                 className="w-full rounded-xl bg-[#3b82f6] py-3 text-sm font-semibold text-white transition-all duration-150 hover:bg-[#2563eb] active:scale-[0.98]"
               >
-                Start Tax Questionnaire →
+                {questionnaire
+                  ? 'View My Results →'
+                  : hasProgress
+                    ? 'Continue Tax Questionnaire →'
+                    : 'Start Tax Questionnaire →'}
               </button>
-              <button
-                type="button"
-                onClick={() => navigate('/questionnaire')}
-                className="w-full rounded-xl border border-[#1e293b] bg-transparent py-3 text-sm font-medium text-[#64748b] transition-colors hover:border-[#2d4a6e] hover:text-[#f8fafc]"
-              >
-                Restart Questionnaire
-              </button>
+              {(questionnaire || hasProgress) && (
+                <button
+                  type="button"
+                  onClick={restartQuestionnaire}
+                  className="w-full rounded-xl border border-[#1e293b] bg-transparent py-3 text-sm font-medium text-[#64748b] transition-colors hover:border-[#2d4a6e] hover:text-[#f8fafc]"
+                >
+                  Restart Questionnaire
+                </button>
+              )}
             </div>
 
             <p className="mt-4 text-center text-xs text-[#475569]">
@@ -161,6 +190,11 @@ export default function WelcomePage() {
                 Not you? Sign out
               </button>
             </p>
+            {signOutError && (
+              <p role="alert" className="mt-2 text-center text-xs text-[#f59e0b]">
+                {signOutError}
+              </p>
+            )}
           </div>
         )}
       </main>

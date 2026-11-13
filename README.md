@@ -2,7 +2,7 @@
 
 US tax preparation guidance for international students. The current season is **2027 filing for 2026 income**. The app provides educational guidance, a residency screening flow, document checklists, AI chat, and a client-side Form 8843 helper. It does not submit returns or certify tax eligibility.
 
-See [the September 2026 audit](docs/AUDIT-2027.md) for corrected bugs, IRS sources, verification, and release limits.
+See [the September 2026 audit](docs/AUDIT-2027.md) for corrected bugs, IRS sources, verification, and release limits. The [November 2026 bug sweep](docs/BUGFIXES-2026-11.md) lists later fixes.
 
 ## Run and verify
 
@@ -48,7 +48,7 @@ Before enabling a new form year: obtain the final IRS PDF, verify its printed ye
 - React 18, Vite, React Router, and Tailwind; preserve the existing navy/blue visual style. Motion uses short transitions and respects reduced-motion preferences.
 - `AuthProvider` in `src/hooks/useAuth.js` owns the shared auth/guest session. Use `useAuth()` from route components.
 - Shared rule helpers live in `src/utils/taxRules.js`; reviewed treaty guidance is in `src/data/treaties.js`. Unreviewed treaty entries require review rather than implying no treaty exists.
-- `lib/taxPrompt.js` uses the same season and treaty sources as the frontend. API handlers validate input and enforce rate limits before contacting paid services. Upstash supplies a shared production limit; an in-memory fallback keeps unconfigured previews usable.
+- `lib/taxPrompt.js` uses the same season and treaty sources as the frontend. API handlers validate input and enforce rate limits before contacting paid services. `lib/chatLimits.js` holds the chat size limits for both the server validator and the browser, which trims history to fit. Upstash supplies a shared production limit; an in-memory fallback keeps unconfigured previews usable.
 - Browser storage keys include tax year and user ID. Completed questionnaires can also sync to authenticated Supabase user metadata. Chat history and checklist progress are local to the browser.
 - Sensitive Form 8843 drafts use tab-scoped `sessionStorage`; PDF generation runs locally with `pdf-lib` and an embedded Inter font. Form fields are not sent to the chat API. Browser storage is not encrypted, and downloaded PDFs must be managed separately.
 

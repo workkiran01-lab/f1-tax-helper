@@ -7,6 +7,7 @@ import {
   blank8843,
   restore8843,
   validate8843,
+  firstErrorStep,
   visaYears,
   presenceYears,
 } from '../utils/form8843Model.js'
@@ -171,8 +172,10 @@ export default function Form8843Page() {
     if (Object.keys(result).length) {
       setErrors(result)
       setReview(false)
-      setStep(0)
-      setNotice('Review the form before downloading.')
+      setDirection(-1)
+      // Open the step that owns the problem instead of always returning to step 1.
+      setStep(firstErrorStep(result))
+      setNotice('Check the highlighted fields before downloading.')
       return
     }
     generatingRef.current = true
@@ -422,7 +425,8 @@ export default function Form8843Page() {
                       )}
                       {step === 3 && (
                         <button
-                          onClick={() =>
+                          type="button"
+                          onClick={() => {
                             setData((p) => ({
                               ...p,
                               dsoStreet: p.schoolStreet,
@@ -430,7 +434,14 @@ export default function Form8843Page() {
                               dsoState: p.schoolState,
                               dsoZip: p.schoolZip,
                             }))
-                          }
+                            setErrors((p) => ({
+                              ...p,
+                              dsoStreet: undefined,
+                              dsoCity: undefined,
+                              dsoState: undefined,
+                              dsoZip: undefined,
+                            }))
+                          }}
                           className="mb-5 text-sm text-primary hover:underline"
                         >
                           Use my school's address for the DSO office

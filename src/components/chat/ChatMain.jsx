@@ -1,4 +1,5 @@
 import { readChatStream, safeIRSUrl } from '../../utils/chatStream.js'
+import { fitChatHistory } from '../../../lib/chatLimits.js'
 import { TAX_YEAR, FILING_YEAR } from '../../data/taxSeason.js'
 import { useEffect, useMemo, useState, useRef, useCallback, useId } from 'react'
 import { Link } from 'react-router-dom'
@@ -17,6 +18,7 @@ function buildWelcomeMessage(initialContext) {
     return {
       id: 1,
       role: 'assistant',
+      createdAt: Date.now(),
       content: `Hi! 👋 I can see you're an F-1 student from ${country}. Based on your questionnaire, here's what I already know about your situation:${itemsText ? `\n${itemsText}` : ''}\n\nWhat questions do you have?`,
     }
   }
@@ -24,9 +26,17 @@ function buildWelcomeMessage(initialContext) {
   return {
     id: 1,
     role: 'assistant',
+    createdAt: Date.now(),
     content:
       "Hi! 👋 I'm your F1 Tax Helper. I help international students navigate US taxes. What questions do you have?",
   }
+}
+
+// Each message keeps the time it was created. Rendering "now" for every bubble
+// made all timestamps identical and made them change on each re-render.
+function formatTime(createdAt) {
+  if (!Number.isFinite(createdAt)) return ''
+  return new Date(createdAt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })
 }
 
 const suggestedQuestions = [
@@ -148,10 +158,22 @@ function WhySection({ text, isStreaming }) {
   )
 }
 
+// Markdown links, allowing one level of parentheses inside the URL.
+const MARKDOWN_LINK = /\[([^\]]+)\]\(((?:[^()\s]|\([^()]*\))+)\)/g
+
 function ReferenceSection({ text }) {
-  const links = [...text.matchAll(/\[([^\]]+)\]\(([^)]+)\)/g)].filter(([, , url]) =>
-    safeIRSUrl(url),
-  )
+  const links = [...text.matchAll(MARKDOWN_LINK)].filter(([, , url]) => safeIRSUrl(url))
+  // Models sometimes cite a publication by name or paste a bare URL. Keep that
+  // text (unsafe Markdown links removed) instead of rendering an empty box.
+  const fallback = links.length
+    ? ''
+    : text
+        .replace(MARKDOWN_LINK, '')
+        .split('\n')
+        .map((line) => line.replace(/^\s*[-*]\s*/, '').trim())
+        .filter(Boolean)
+        .join('\n')
+  if (!links.length && !fallback) return null
   return (
     <div className="rounded-lg border border-[#1e293b] bg-[#080c14] p-3">
       <p className="mb-2 font-mono text-[10px] uppercase tracking-widest text-[#475569]">
@@ -168,6 +190,11 @@ function ReferenceSection({ text }) {
           {label}
         </a>
       ))}
+      {fallback && (
+        <p className="whitespace-pre-wrap break-words font-mono text-xs text-[#94a3b8]">
+          {fallback}
+        </p>
+      )}
     </div>
   )
 }
@@ -255,7 +282,12 @@ export function ChatMain({ initialContext, navigationKey, onOpenChecklist, onMes
     const controller = new AbortController()
     requestRef.current = controller
     const current = () => requestRef.current === controller && !controller.signal.aborted
-    const userMessage = { id: crypto.randomUUID(), role: 'user', content: text }
+    const userMessage = {
+      id: crypto.randomUUID(),
+      role: 'user',
+      content: text,
+      createdAt: Date.now(),
+    }
     const responseId = crypto.randomUUID()
     setMessages((prev) => [...prev, userMessage])
     setInput('')
@@ -263,10 +295,11 @@ export function ChatMain({ initialContext, navigationKey, onOpenChecklist, onMes
     setRequestError('')
     nearBottom.current = true
     try {
-      const apiMessages = [
-        ...messages.filter((m) => !m.error).map((m) => ({ role: m.role, content: m.content })),
-        { role: 'user', content: text },
-      ].slice(-20)
+      // Trim to the server's limits. Sending the raw history made every request
+      // fail once an answer passed 4,000 characters or the total passed 24,000.
+      const apiMessages = fitChatHistory([...messages, { role: 'user', content: text }], {
+        pinFirst: true,
+      })
       const res = await fetch('/api/chat', {
         method: 'POST',
         signal: controller.signal,
@@ -282,7 +315,10 @@ export function ChatMain({ initialContext, navigationKey, onOpenChecklist, onMes
         )
       }
       if (!current()) return
-      setMessages((prev) => [...prev, { id: responseId, role: 'assistant', content: '' }])
+      setMessages((prev) => [
+        ...prev,
+        { id: responseId, role: 'assistant', content: '', createdAt: Date.now() },
+      ])
       let content = ''
       for await (const delta of readChatStream(res.body)) {
         if (!current()) return
@@ -293,7 +329,11 @@ export function ChatMain({ initialContext, navigationKey, onOpenChecklist, onMes
       if (!content.trim()) throw new Error('The AI returned an empty answer. Please try again.')
     } catch (error) {
       if (!current()) return
-      setRequestError(error.message)
+      setRequestError(
+        error instanceof TypeError || !error?.message
+          ? 'Could not reach the AI assistant. Check your connection and try again.'
+          : error.message,
+      )
       setInput(text)
       setMessages((prev) => prev.filter((m) => m.id !== responseId && m.id !== userMessage.id))
     } finally {
@@ -309,7 +349,11 @@ export function ChatMain({ initialContext, navigationKey, onOpenChecklist, onMes
     inputRef.current?.focus()
   }
 
-  const timestamp = new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })
+  // The typing indicator stands in for the answer until its first token arrives.
+  const lastMessage = messages[messages.length - 1]
+  const awaitingFirstToken =
+    isLoading && !(lastMessage?.role === 'assistant' && lastMessage.content)
+  const visibleMessages = messages.filter((m) => m.role !== 'assistant' || m.content)
 
   return (
     <div className="flex h-full min-h-0 flex-col bg-transparent">
@@ -346,7 +390,7 @@ export function ChatMain({ initialContext, navigationKey, onOpenChecklist, onMes
         }}
         className="min-h-0 flex-1 space-y-4 overflow-y-auto p-4 bg-[#080c14] px-4 py-6"
       >
-        {messages.map((message) => (
+        {visibleMessages.map((message) => (
           <div
             key={message.id}
             className={`motion-message flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
@@ -388,11 +432,13 @@ export function ChatMain({ initialContext, navigationKey, onOpenChecklist, onMes
                 )}
               </div>
               {message.role === 'assistant' && <IRSDisclaimer />}
-              <p className="mt-1 px-1 text-xs text-slate-500">{timestamp}</p>
+              {formatTime(message.createdAt) && (
+                <p className="mt-1 px-1 text-xs text-slate-500">{formatTime(message.createdAt)}</p>
+              )}
             </div>
           </div>
         ))}
-        {isLoading && (
+        {awaitingFirstToken && (
           <div role="status" className="motion-message flex justify-start">
             <span className="sr-only">Preparing an answer…</span>
             <div className="max-w-[85%] sm:max-w-[70%] rounded-2xl rounded-tl-sm border border-[#1e293b] border-l-2 border-l-[#3b82f6] bg-[#0f1629] px-4 py-3 text-[#cbd5e1]">

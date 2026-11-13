@@ -11,8 +11,18 @@ export default function LoginPage() {
   const [notice, setNotice] = useState('')
   const [loading, setLoading] = useState(false)
 
+  // Returning with the browser Back button after the Google redirect restores
+  // this page from the back/forward cache with the button still disabled.
   useEffect(() => {
-    if (!authLoading && user) {
+    const reset = (event) => event.persisted && setLoading(false)
+    window.addEventListener('pageshow', reset)
+    return () => window.removeEventListener('pageshow', reset)
+  }, [])
+
+  useEffect(() => {
+    // Guests stay on this page so they can upgrade to a Google account; before,
+    // they were bounced to /welcome and could only sign in by signing out first.
+    if (!authLoading && user && !user.is_guest) {
       navigate('/welcome', { replace: true })
     }
   }, [authLoading, navigate, user])
@@ -110,7 +120,7 @@ export default function LoginPage() {
                 className="w-full rounded-xl border border-[#1e293b] bg-transparent px-6 py-3 text-sm font-medium text-[#cbd5e1] transition-colors hover:border-[#2d4a6e] hover:text-[#f8fafc] flex items-center justify-center gap-3 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3b82f6] focus-visible:ring-offset-2 focus-visible:ring-offset-[#080c14]"
               >
                 <UserRound className="h-4 w-4" />
-                Continue as Guest
+                {user?.is_guest ? 'Keep using guest mode' : 'Continue as Guest'}
               </button>
 
               <p className="text-xs text-[#475569] text-center">

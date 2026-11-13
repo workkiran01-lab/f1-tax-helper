@@ -13,6 +13,10 @@ export function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const { user, loading, signOut } = useAuth()
+  const accountLabel = user?.is_guest ? 'Guest' : user?.email
+  // signOut rejects when the request fails; do not leave that unhandled, and do
+  // not pass the click event through as its redirect path.
+  const handleSignOut = () => signOut('/login').catch(() => {})
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8)
@@ -63,8 +67,13 @@ export function Navbar() {
         <div className="hidden items-center gap-3 md:flex">
           {user ? (
             <>
-              <span className="text-xs text-[#64748b] max-w-[160px] truncate">{user.email}</span>
-              <button type="button" onClick={signOut} className="btn-ghost py-2 px-4 text-xs">
+              <Link
+                to="/welcome"
+                className="text-xs text-[#64748b] max-w-[160px] truncate transition-colors hover:text-[#f8fafc]"
+              >
+                {accountLabel}
+              </Link>
+              <button type="button" onClick={handleSignOut} className="btn-ghost py-2 px-4 text-xs">
                 Sign Out
               </button>
             </>
@@ -123,10 +132,12 @@ export function Navbar() {
             <div className="mt-2 flex flex-col gap-2 border-t border-[#1e293b] pt-4">
               {user ? (
                 <>
-                  <span className="text-xs text-[#64748b]">{user.email}</span>
+                  <Link to="/welcome" className="text-xs text-[#64748b]" onClick={closeMenu}>
+                    {accountLabel}
+                  </Link>
                   <button
                     type="button"
-                    onClick={() => { closeMenu(); signOut() }}
+                    onClick={() => { closeMenu(); handleSignOut() }}
                     className="btn-ghost w-full justify-center py-2 text-xs"
                   >
                     Sign Out

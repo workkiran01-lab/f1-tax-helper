@@ -283,7 +283,16 @@ export default function QuestionnairePage() {
                 for assistance.
               </p>
             </div>
-            <div className="mt-6 text-center">
+            {/* Without this, a mis-tap on "No" was saved for the whole tab session
+                and every later visit to the questionnaire reopened this notice. */}
+            <button
+              type="button"
+              onClick={handleStartOver}
+              className="mt-6 w-full rounded-xl border border-[#1e293b] bg-transparent px-5 py-2.5 text-sm font-medium text-[#cbd5e1] transition-colors hover:border-[#2d4a6e] hover:text-[#f8fafc]"
+            >
+              ← Change my answer
+            </button>
+            <div className="mt-4 text-center">
               <Link
                 to="/"
                 className="inline-flex items-center gap-1.5 text-xs text-[#475569] hover:text-[#64748b] transition-colors"
@@ -575,7 +584,8 @@ function Question4({ onAnswer }) {
 }
 
 function Question5({ onSelect, selectedCountry, onContinue }) {
-  const [search, setSearch] = useState('')
+  // Show a restored selection (after Back or a reload) in the search box too.
+  const [search, setSearch] = useState(selectedCountry || '')
   const [isOpen, setIsOpen] = useState(false)
 
   const filteredCountries = useMemo(
