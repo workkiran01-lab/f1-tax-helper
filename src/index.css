@@ -377,3 +377,8 @@ main {
     transform: none !important;
   }
 }
+
+/* App shell: height reserved for the mobile tab bar, including the home indicator. */
+:root {
+  --tabbar: calc(4rem + env(safe-area-inset-bottom, 0px));
+}

@@ -1,6 +1,6 @@
 import Reveal from '../components/Reveal'
 import { useState, useEffect } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 import { AnimatedCheck, InteractiveSurface, Stagger, StaggerItem } from '../components/Motion'
 import SeasonNotice from '../components/SeasonNotice'
@@ -180,12 +180,7 @@ function TaxCheckupCard() {
 // ── Page ────────────────────────────────────────────────────────────────────
 
 export default function HomePage() {
-  const navigate = useNavigate()
   const { user } = useAuth()
-
-  const scrollToHowItWorks = () => {
-    document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })
-  }
 
   return (
     <div className="min-h-screen bg-[#080c14] text-[#cbd5e1]">
@@ -228,10 +223,10 @@ export default function HomePage() {
                       Generate Form 8843
                     </Link>
                     <Link
-                      to="/login"
+                      to={user ? '/home' : '/login'}
                       className="w-full sm:w-auto rounded-xl border border-[#1e293b] bg-transparent px-7 py-3.5 text-sm font-medium text-[#64748b] transition-colors hover:border-[#2d4a6e] hover:text-[#f8fafc]"
                     >
-                      Sign In →
+                      {user ? 'Open my app →' : 'Sign In →'}
                     </Link>
                   </div>
                 </StaggerItem>

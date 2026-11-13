@@ -16,19 +16,27 @@ export function AuthProvider({ children }) {
   const navigate = useNavigate()
   const [user, setUser] = useState(guestUser)
   const [loading, setLoading] = useState(Boolean(supabase))
+  // Where a signed-out visitor on a protected screen is sent. Signing out sets
+  // it to the requested destination; otherwise the route guard's own redirect
+  // to /login would win the race against navigate() and override it.
+  const [exitPath, setExitPath] = useState('/login')
   useEffect(() => {
     if (!supabase) return
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (session?.user) removeStored(GUEST_SESSION_KEY)
+      if (session?.user) {
+        removeStored(GUEST_SESSION_KEY)
+        setExitPath('/login')
+      }
       setUser(session?.user || guestUser())
       setLoading(false)
     })
     return () => listener.subscription.unsubscribe()
   }, [])
   const signInAsGuest = useCallback(
-    (path = '/welcome') => {
+    (path = '/home') => {
       writeStored(GUEST_SESSION_KEY, true)
       setUser(GUEST_USER)
+      setExitPath('/login')
       setLoading(false)
       navigate(path)
     },
@@ -42,14 +50,16 @@ export function AuthProvider({ children }) {
       }
       clearUserStorage(user?.id || 'guest')
       removeStored(GUEST_SESSION_KEY)
+      const destination = typeof path === 'string' ? path : '/login'
+      setExitPath(destination)
       setUser(null)
-      navigate(typeof path === 'string' ? path : '/login')
+      navigate(destination)
     },
     [navigate, user],
   )
   return createElement(
     AuthContext.Provider,
-    { value: { user, loading, signInAsGuest, signOut } },
+    { value: { user, loading, exitPath, signInAsGuest, signOut } },
     children,
   )
 }

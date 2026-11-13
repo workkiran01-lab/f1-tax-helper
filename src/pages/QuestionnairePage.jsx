@@ -5,6 +5,7 @@ import { cn } from '../utils/cn'
 import DisclaimerBanner from '../components/DisclaimerBanner'
 import supabase from '../utils/supabase'
 import useAuth from '../hooks/useAuth'
+import { FocusHeader } from '../components/app/PageHeader'
 import { COUNTRIES, getTreatyByCountryName, treatyGuidance } from '../data/treaties'
 import { TAX_YEAR } from '../data/taxSeason.js'
 import { buildActionItems, questionnaireResidency } from '../utils/taxRules.js'
@@ -174,7 +175,7 @@ export default function QuestionnairePage() {
   const handleBack = useCallback(() => {
     setDirection(-1)
     if (currentStep <= 1) {
-      navigate('/welcome')
+      navigate('/home')
       return
     }
 
@@ -240,10 +241,8 @@ export default function QuestionnairePage() {
 
       if (cancelled) return
       removeStored(STORAGE_KEY, 'sessionStorage')
-      navigate('/results', {
-        replace: true,
-        state: { answers, actionItems, hasTreatyBenefit, syncWarning },
-      })
+      // My Taxes reads the saved result; only the sync warning travels with the navigation.
+      navigate('/taxes', { replace: true, state: { syncWarning } })
     }
 
     persistAndContinue()
@@ -257,21 +256,10 @@ export default function QuestionnairePage() {
       <div className="relative flex min-h-screen flex-col overflow-hidden bg-[#080c14] text-slate-100">
         <div className="absolute inset-0 bg-grid opacity-30 pointer-events-none" />
         <DisclaimerBanner />
+        <FocusHeader title="Tax status check" />
         <div className="mx-auto w-full max-w-3xl px-4 pt-4">
           <SeasonNotice compact />
         </div>
-        <header className="sticky top-0 z-20 border-b border-[#1e293b] bg-[#080c14]/80 backdrop-blur">
-          <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-4 sm:px-6">
-            <Link to="/" className="flex items-center gap-3">
-              <span className="font-mono text-xs font-bold border border-[#3b82f6]/50 text-[#3b82f6] px-2 py-1 rounded">
-                F1
-              </span>
-              <span className="text-base font-semibold tracking-wide text-slate-100 sm:text-lg">
-                F1 Tax Helper
-              </span>
-            </Link>
-          </div>
-        </header>
         <main className="relative z-10 flex flex-1 items-center justify-center px-4 py-8 text-center sm:px-6">
           <div>
             <div className="w-full max-w-xl rounded-2xl border border-[#1e293b] bg-[#0f172a] p-8">
@@ -283,10 +271,19 @@ export default function QuestionnairePage() {
                 for assistance.
               </p>
             </div>
-            <div className="mt-6 text-center">
+            {/* Without this, a mis-tap on "No" was saved for the whole tab session
+                and every later visit to the questionnaire reopened this notice. */}
+            <button
+              type="button"
+              onClick={handleStartOver}
+              className="mt-6 w-full rounded-xl border border-[#1e293b] bg-transparent px-5 py-2.5 text-sm font-medium text-[#cbd5e1] transition-colors hover:border-[#2d4a6e] hover:text-[#f8fafc]"
+            >
+              ← Change my answer
+            </button>
+            <div className="mt-4 text-center">
               <Link
-                to="/"
-                className="inline-flex items-center gap-1.5 text-xs text-[#475569] hover:text-[#64748b] transition-colors"
+                to="/home"
+                className="inline-flex min-h-11 items-center gap-1.5 text-sm text-[#94a3b8] hover:text-[#f8fafc] transition-colors"
               >
                 ← Back to Home
               </Link>
@@ -301,21 +298,10 @@ export default function QuestionnairePage() {
     <div className="relative flex min-h-screen flex-col overflow-hidden bg-[#080c14] text-slate-100">
       <div className="absolute inset-0 bg-grid opacity-30 pointer-events-none" />
       <DisclaimerBanner />
+      <FocusHeader title="Tax status check" note="Saved automatically" />
       <div className="mx-auto w-full max-w-3xl px-4 pt-4">
         <SeasonNotice compact />
       </div>
-      <header className="sticky top-0 z-20 border-b border-[#1e293b] bg-[#080c14]/80 backdrop-blur">
-        <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-4 sm:px-6">
-          <Link to="/" className="flex items-center gap-3">
-            <span className="font-mono text-xs font-bold border border-[#3b82f6]/50 text-[#3b82f6] px-2 py-1 rounded">
-              F1
-            </span>
-            <span className="text-base font-semibold tracking-wide text-slate-100 sm:text-lg">
-              F1 Tax Helper
-            </span>
-          </Link>
-        </div>
-      </header>
 
       <main className="relative z-10 flex flex-1 items-center justify-center px-4 py-8 sm:px-6">
         <div className="w-full max-w-2xl">
@@ -575,7 +561,8 @@ function Question4({ onAnswer }) {
 }
 
 function Question5({ onSelect, selectedCountry, onContinue }) {
-  const [search, setSearch] = useState('')
+  // Show a restored selection (after Back or a reload) in the search box too.
+  const [search, setSearch] = useState(selectedCountry || '')
   const [isOpen, setIsOpen] = useState(false)
 
   const filteredCountries = useMemo(

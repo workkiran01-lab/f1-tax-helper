@@ -7,6 +7,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { ChevronLeft } from 'lucide-react'
 import DisclaimerBanner from '../components/DisclaimerBanner'
 import useAuth from '../hooks/useAuth'
+import { FocusHeader } from '../components/app/PageHeader'
 import { AnimatedProgress, StepTransition, Stagger, StaggerItem } from '../components/Motion'
 
 const QUESTIONS = [
@@ -113,20 +114,7 @@ export default function StatusCheckerPage() {
     <div className="relative flex min-h-screen flex-col overflow-hidden bg-[#080c14] text-slate-100">
       <div className="absolute inset-0 bg-grid opacity-30 pointer-events-none" />
 
-      {/* Header */}
-      <header className="sticky top-0 z-20 border-b border-[#1e293b] bg-[#080c14]/80 backdrop-blur">
-        <div className="mx-auto flex h-16 w-full max-w-3xl items-center justify-between px-4 sm:px-6">
-          <Link to="/" className="flex items-center gap-2">
-            <div className="font-mono text-xs font-bold border border-[#1e293b] px-2 py-1 text-[#3b82f6]">
-              F1
-            </div>
-            <span className="text-sm font-medium text-[#f8fafc]">Tax Helper</span>
-          </Link>
-          <span className="text-xs text-[#475569]">
-            Question {step + 1} of {totalSteps}
-          </span>
-        </div>
-      </header>
+      <FocusHeader title="Quick status check" note={`Question ${step + 1} of ${totalSteps}`} />
 
       <DisclaimerBanner />
 
@@ -206,7 +194,7 @@ function ResultScreen({ result, navigate, signInAsGuest, user }) {
 
   const handleChecklistClick = () => {
     if (user) {
-      navigate('/checklist')
+      navigate('/taxes')
       return
     }
     setShowChecklistPrompt(true)
@@ -216,17 +204,7 @@ function ResultScreen({ result, navigate, signInAsGuest, user }) {
     <div className="relative flex min-h-screen flex-col overflow-hidden bg-[#080c14] text-slate-100">
       <div className="absolute inset-0 bg-grid opacity-30 pointer-events-none" />
 
-      <header className="sticky top-0 z-20 border-b border-[#1e293b] bg-[#080c14]/80 backdrop-blur">
-        <div className="mx-auto flex h-16 w-full max-w-3xl items-center justify-between px-4 sm:px-6">
-          <Link to="/" className="flex items-center gap-2">
-            <div className="font-mono text-xs font-bold border border-[#1e293b] px-2 py-1 text-[#3b82f6]">
-              F1
-            </div>
-            <span className="text-sm font-medium text-[#f8fafc]">Tax Helper</span>
-          </Link>
-          <span className="text-xs text-[#475569]">Results Ready</span>
-        </div>
-      </header>
+      <FocusHeader title="Quick status check" note="Your result" />
 
       <DisclaimerBanner />
 
@@ -253,39 +231,62 @@ function ResultScreen({ result, navigate, signInAsGuest, user }) {
         </div>
 
         {/* Filing requirements */}
-        <Stagger className="mb-5 rounded-2xl border border-[#1e293b] bg-[#0f172a] p-5 sm:p-6">
-          <h2 className="text-xs font-mono uppercase tracking-widest text-[#475569] mb-4">
-            Your Filing Requirements
-          </h2>
-          <div className="space-y-3">
-            {result.forms.map((form) => (
-              <StaggerItem
-                key={form.id}
-                className="flex items-start justify-between gap-3 rounded-xl border border-[#1e293b] bg-[#080c14] p-4"
-              >
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-[#f8fafc]">{form.name}</p>
-                  <p className="mt-0.5 text-xs text-[#64748b]">{form.description}</p>
-                </div>
-                {form.ctaLink ? (
-                  <Link
-                    to={form.ctaLink}
-                    className="shrink-0 rounded-xl bg-[#3b82f6] px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-[#2563eb]"
-                  >
-                    {form.cta}
-                  </Link>
-                ) : (
-                  <Link
-                    to="/chat"
-                    className="shrink-0 rounded-xl border border-[#1e293b] bg-transparent px-3 py-1.5 text-xs font-medium text-[#64748b] transition-colors hover:border-[#2d4a6e] hover:text-[#f8fafc]"
-                  >
-                    {form.cta || 'Ask about this →'}
-                  </Link>
-                )}
-              </StaggerItem>
-            ))}
+        {result.forms.length === 0 && (
+          <div className="mb-5 rounded-2xl border border-[#1e293b] bg-[#0f172a] p-5 sm:p-6">
+            <h2 className="text-xs font-mono uppercase tracking-widest text-[#475569] mb-2">
+              Your Filing Requirements
+            </h2>
+            <p className="text-sm text-[#cbd5e1]">
+              Forms depend on your tax residency, which this screen could not determine. Your
+              checklist starts with the residency review.
+            </p>
           </div>
-        </Stagger>
+        )}
+        {result.forms.length > 0 && (
+          <Stagger className="mb-5 rounded-2xl border border-[#1e293b] bg-[#0f172a] p-5 sm:p-6">
+            <h2 className="text-xs font-mono uppercase tracking-widest text-[#475569] mb-4">
+              Your Filing Requirements
+            </h2>
+            <div className="space-y-3">
+              {result.forms.map((form) => (
+                <StaggerItem
+                  key={form.id}
+                  className="flex items-start justify-between gap-3 rounded-xl border border-[#1e293b] bg-[#080c14] p-4"
+                >
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-[#f8fafc]">{form.name}</p>
+                    <p className="mt-0.5 text-xs text-[#64748b]">{form.description}</p>
+                  </div>
+                  {/^https?:\/\//.test(form.ctaLink || '') ? (
+                    // IRS pages open in a new tab so this unsaved result screen stays open.
+                    <a
+                      href={form.ctaLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="shrink-0 rounded-xl bg-[#3b82f6] px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-[#2563eb]"
+                    >
+                      {form.cta}
+                    </a>
+                  ) : form.ctaLink ? (
+                    <Link
+                      to={form.ctaLink}
+                      className="shrink-0 rounded-xl bg-[#3b82f6] px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-[#2563eb]"
+                    >
+                      {form.cta}
+                    </Link>
+                  ) : (
+                    <Link
+                      to="/chat"
+                      className="shrink-0 rounded-xl border border-[#1e293b] bg-transparent px-3 py-1.5 text-xs font-medium text-[#64748b] transition-colors hover:border-[#2d4a6e] hover:text-[#f8fafc]"
+                    >
+                      {form.cta || 'Ask about this →'}
+                    </Link>
+                  )}
+                </StaggerItem>
+              ))}
+            </div>
+          </Stagger>
+        )}
 
         {/* Deadline card */}
         <div className="mb-5 rounded-2xl border border-[#1e293b] bg-[#0f172a] p-5 sm:p-6">
@@ -303,7 +304,7 @@ function ResultScreen({ result, navigate, signInAsGuest, user }) {
             onClick={handleChecklistClick}
             className="w-full rounded-xl bg-[#3b82f6] px-5 py-3 text-sm font-semibold text-white transition-all hover:bg-[#2563eb] active:scale-[0.98]"
           >
-            View My Document Checklist →
+            {user ? 'Open My Taxes →' : 'View My Document Checklist →'}
           </button>
           {showChecklistPrompt && (
             <div className="rounded-2xl border border-[#f59e0b]/30 bg-[#f59e0b]/10 p-4 text-sm text-[#f59e0b]">
@@ -321,7 +322,7 @@ function ResultScreen({ result, navigate, signInAsGuest, user }) {
                 </button>
                 <button
                   type="button"
-                  onClick={() => signInAsGuest('/checklist')}
+                  onClick={() => signInAsGuest('/taxes')}
                   className="rounded-xl border border-[#f59e0b]/40 bg-transparent px-4 py-2 text-xs font-semibold text-[#f59e0b] transition-colors hover:border-[#f59e0b]/60"
                 >
                   Continue as Guest

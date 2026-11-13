@@ -1,16 +1,14 @@
-import { readStored, writeStored, currentQuestionnaire, seasonKey } from '../utils/storage.js'
-import { useState, useMemo, useCallback, useRef, useEffect } from 'react'
-import { useLocation, useNavigate } from 'react-router-dom'
-import { Menu } from 'lucide-react'
-import { ChatSidebar } from '../components/chat/ChatSidebar'
-import { ChatMain, StructuredMessage } from '../components/chat/ChatMain'
-import { ChatChecklistPanel } from '../components/chat/ChatChecklistPanel'
-import DisclaimerBanner from '../components/DisclaimerBanner'
-import Button from '../components/ui/Button'
-import { X } from 'lucide-react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { Link, useLocation } from 'react-router-dom'
+import { History, Plus } from 'lucide-react'
 import useAuth from '../hooks/useAuth'
-
-const CHAT_STORAGE_KEY = 'f1-conversations'
+import { TAX_YEAR } from '../data/taxSeason.js'
+import { readStored, seasonKey, writeStored } from '../utils/storage.js'
+import { chatContextFor, currentTaxProfile } from '../utils/taxProfile.js'
+import { displayNameFor, initialOf } from '../utils/displayName.js'
+import { ChatHistory } from '../components/chat/ChatHistory'
+import { ChatMain, StructuredMessage } from '../components/chat/ChatMain'
+import DisclaimerBanner from '../components/DisclaimerBanner'
 
 const loadConversations = (key) => {
   const stored = readStored(key, [])
@@ -27,13 +25,14 @@ const loadConversations = (key) => {
     : []
 }
 
+const iconButton =
+  'flex h-11 w-11 items-center justify-center rounded-full border border-[#1e293b] bg-[#0f172a] text-[#f8fafc] transition-colors hover:border-[#2d4a6e]'
+
 export default function ChatPage() {
-  const navigate = useNavigate()
   const { user } = useAuth()
   const uid = user?.id || 'guest'
   const chatStorageKey = seasonKey('conversations', uid)
-  const [sidebarOpen, setSidebarOpen] = useState(false)
-  const [checklistOpen, setChecklistOpen] = useState(false)
+  const [historyOpen, setHistoryOpen] = useState(false)
   const [conversations, setConversations] = useState(() => loadConversations(chatStorageKey))
   const [selectedConversation, setSelectedConversation] = useState(null)
 
@@ -41,21 +40,13 @@ export default function ChatPage() {
   const [navKey, setNavKey] = useState(location.key)
   const sessionId = useRef(crypto.randomUUID())
 
-  const stored = currentQuestionnaire(user)
-  const answers = location.state?.answers || stored?.answers
-  const actionItems = location.state?.actionItems || stored?.actionItems
-
-  const contextKey = JSON.stringify({ answers, actionItems })
+  // The assistant starts from the same status My Taxes shows.
+  const profile = currentTaxProfile(user)
+  const contextKey = JSON.stringify(chatContextFor(profile))
   const initialContext = useMemo(() => JSON.parse(contextKey), [contextKey])
-  const handleOpenSidebar = useCallback(() => setSidebarOpen(true), [])
-  const handleCloseSidebar = useCallback(() => setSidebarOpen(false), [])
+
   useEffect(() => {
-    const escape = (e) => {
-      if (e.key === 'Escape') {
-        setSidebarOpen(false)
-        setChecklistOpen(false)
-      }
-    }
+    const escape = (e) => e.key === 'Escape' && setHistoryOpen(false)
     window.addEventListener('keydown', escape)
     return () => window.removeEventListener('keydown', escape)
   }, [])
@@ -69,20 +60,19 @@ export default function ChatPage() {
       setNavKey(location.key)
       sessionId.current = crypto.randomUUID()
       setSelectedConversation(null)
-      setChecklistOpen(false)
     }
   }, [location.key])
 
   const handleSelectConversation = useCallback((conv) => {
     setSelectedConversation(conv)
-    if (window.innerWidth < 1024) setSidebarOpen(false)
+    setHistoryOpen(false)
   }, [])
 
   const handleNewChat = useCallback(() => {
     setSelectedConversation(null)
     setNavKey(crypto.randomUUID())
     sessionId.current = crypto.randomUUID()
-    if (window.innerWidth < 1024) setSidebarOpen(false)
+    setHistoryOpen(false)
   }, [])
 
   const handleMessagesChange = useCallback(
@@ -113,46 +103,73 @@ export default function ChatPage() {
     [chatStorageKey, selectedConversation],
   )
 
+  const name = displayNameFor(user) || (user?.is_guest ? 'Guest' : 'Student')
+
   return (
-    <div className="relative flex h-dvh flex-col overflow-hidden bg-[#080c14] text-[#cbd5e1]">
-      <div className="absolute inset-0 bg-grid opacity-30 pointer-events-none" />
+    <div className="relative flex h-[calc(100dvh-var(--tabbar))] flex-col overflow-hidden bg-[#080c14] text-[#cbd5e1] lg:h-dvh">
       <DisclaimerBanner />
-      <header className="sticky top-0 z-20 border-b border-[#1e293b] bg-[#080c14]/80 backdrop-blur">
-        <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-4 sm:px-6">
+      <header className="flex shrink-0 items-center justify-between gap-3 border-b border-[#1e293b] px-5 py-3 lg:px-8">
+        <div className="min-w-0">
+          <h1 className="text-2xl font-bold tracking-tight text-[#f8fafc]">Ask AI</h1>
+          <p className="text-[13px] leading-snug text-[#94a3b8]">
+            {profile
+              ? `Using your status: ${profile.label.toLowerCase()}`
+              : `Questions about ${TAX_YEAR} income`}
+          </p>
+        </div>
+        <div className="flex shrink-0 items-center gap-2">
           <button
-            onClick={() => navigate('/results')}
-            className="text-sm font-medium text-[#cbd5e1] transition-colors hover:text-[#f8fafc]"
+            type="button"
+            onClick={() => setHistoryOpen(true)}
+            aria-label="Past conversations"
+            className={`${iconButton} xl:hidden`}
           >
-            ← Back to my results
+            <History aria-hidden="true" className="h-5 w-5" />
           </button>
-          <div className="flex items-center gap-3">
-            <div className="font-mono text-xs font-bold border border-[#1e293b] px-2 py-1 text-[#3b82f6] shrink-0">
-              F1
-            </div>
-            <span className="text-base font-semibold tracking-wide text-[#f8fafc] sm:text-lg">
-              F1 Tax Helper
-            </span>
-          </div>
+          <button
+            type="button"
+            onClick={handleNewChat}
+            aria-label="New chat"
+            className={iconButton}
+          >
+            <Plus aria-hidden="true" className="h-5 w-5" />
+          </button>
+          <Link
+            to="/account"
+            aria-label="Account and settings"
+            className={`${iconButton} text-[15px] font-semibold lg:hidden`}
+          >
+            {initialOf(name)}
+          </Link>
         </div>
       </header>
-      <div className="relative z-10 flex flex-1 min-h-0">
-        {sidebarOpen && (
+
+      <div className="relative flex min-h-0 flex-1">
+        {historyOpen && (
           <div
-            className="fixed inset-0 z-40 bg-black/60 lg:hidden"
-            onClick={handleCloseSidebar}
-            aria-hidden
+            className="fixed inset-0 z-40 bg-black/60 xl:hidden"
+            onClick={() => setHistoryOpen(false)}
+            aria-hidden="true"
           />
         )}
-
         <div
-          data-open={sidebarOpen}
-          className={`chat-sidebar-shell fixed inset-y-0 left-0 z-50 w-72 transform transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0 ${
-            sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+          inert={!historyOpen ? '' : undefined}
+          className={`fixed inset-y-0 left-0 z-50 w-72 transform transition-transform duration-300 ease-in-out xl:hidden ${
+            historyOpen ? 'translate-x-0' : '-translate-x-full'
           }`}
         >
-          <ChatSidebar
-            onClose={handleCloseSidebar}
+          <ChatHistory
             conversations={conversations}
+            activeId={selectedConversation?.id}
+            onSelect={handleSelectConversation}
+            onNewChat={handleNewChat}
+            onClose={() => setHistoryOpen(false)}
+          />
+        </div>
+        <div className="hidden w-72 shrink-0 xl:block">
+          <ChatHistory
+            conversations={conversations}
+            activeId={selectedConversation?.id}
             onSelect={handleSelectConversation}
             onNewChat={handleNewChat}
           />
@@ -160,49 +177,22 @@ export default function ChatPage() {
 
         <div className="flex min-w-0 flex-1 flex-col">
           {selectedConversation ? (
-            <div
-              id="past-conversation-view"
-              className="relative z-10 flex h-full flex-1 flex-col overflow-hidden rounded-none bg-transparent"
-            >
-              <div className="hidden items-center gap-3 border-b border-[#1e293b] bg-[#0f1629] p-4 lg:flex">
-                <div className="font-mono text-xs font-bold border border-[#1e293b] px-2 py-1 text-[#3b82f6]">
-                  F1
-                </div>
-                <div>
-                  <h1 className="font-semibold text-[#f8fafc]">F1 Tax Assistant</h1>
-                  <p className="text-xs text-[#64748b]">{selectedConversation.title}</p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-3 border-b border-[#1e293b] bg-[#0f1629] p-4 lg:hidden">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={handleOpenSidebar}
-                  className="text-[#cbd5e1]"
-                >
-                  <Menu className="h-5 w-5" />
-                  <span className="sr-only">Open sidebar</span>
-                </Button>
-                <div className="flex items-center gap-2">
-                  <div className="font-mono text-xs font-bold border border-[#1e293b] px-2 py-1 text-[#3b82f6]">
-                    F1
-                  </div>
-                  <span className="font-semibold text-[#f8fafc]">Past Conversation</span>
-                </div>
-              </div>
-
-              <div className="flex-1 space-y-4 overflow-y-auto p-4 bg-[#080c14]">
-                {selectedConversation.messages.map((message) => (
+            <div id="past-conversation-view" className="flex min-h-0 flex-1 flex-col">
+              <p className="shrink-0 truncate border-b border-[#1e293b] bg-[#0a0e1a] px-5 py-2.5 text-sm text-[#94a3b8]">
+                Past conversation ·{' '}
+                <span className="text-[#f8fafc]">{selectedConversation.title}</span>
+              </p>
+              <div className="flex-1 space-y-4 overflow-y-auto p-4">
+                {selectedConversation.messages.map((message, index) => (
                   <div
-                    key={message.id}
+                    key={message.id ?? index}
                     className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
                   >
                     <div
                       className={`max-w-[85%] rounded-2xl px-4 py-3 md:max-w-[70%] ${
                         message.role === 'user'
-                          ? 'rounded-tr-sm bg-[#3b82f6] text-white'
-                          : 'rounded-tl-sm border border-[#1e293b] bg-[#0f1629] text-[#cbd5e1]'
+                          ? 'rounded-tr-sm bg-[#2563eb] text-white'
+                          : 'rounded-tl-sm border border-[#1e293b] bg-[#0f172a] text-[#cbd5e1]'
                       }`}
                     >
                       <StructuredMessage content={message.content} isStreaming={false} />
@@ -210,66 +200,25 @@ export default function ChatPage() {
                   </div>
                 ))}
               </div>
-
-              <div className="flex shrink-0 justify-center border-t border-[#1e293b] bg-[#0a0e1a] p-4">
-                <p className="text-sm text-[#64748b]">
-                  This is a past conversation. Click &quot;New Chat&quot; to start a new one.
-                </p>
+              <div className="flex shrink-0 items-center justify-between gap-3 border-t border-[#1e293b] bg-[#0a0e1a] px-5 py-3">
+                <p className="text-sm text-[#94a3b8]">Past conversations are read-only.</p>
+                <button
+                  type="button"
+                  onClick={handleNewChat}
+                  className="min-h-11 shrink-0 rounded-xl bg-[#2563eb] px-4 text-sm font-semibold text-white transition-colors hover:bg-[#1d4ed8]"
+                >
+                  Start a new chat
+                </button>
               </div>
             </div>
           ) : (
-            <div className="relative z-10 flex h-full flex-1 flex-col overflow-hidden">
-              <div className="flex items-center gap-3 border-b border-[#1e293b] bg-[#0f1629] p-4 lg:hidden shrink-0">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={handleOpenSidebar}
-                  className="text-[#cbd5e1]"
-                >
-                  <Menu className="h-5 w-5" />
-                  <span className="sr-only">Open sidebar</span>
-                </Button>
-                <div className="flex items-center gap-2">
-                  <div className="font-mono text-xs font-bold border border-[#1e293b] px-2 py-1 text-[#3b82f6]">
-                    F1
-                  </div>
-                  <span className="font-semibold text-[#f8fafc]">F1 Tax Assistant</span>
-                </div>
-              </div>
-
-              <div className="flex-1 overflow-hidden relative">
-                <ChatMain
-                  key={`${uid}:${navKey}`}
-                  initialContext={initialContext}
-                  navigationKey={navKey}
-                  onOpenChecklist={() => setChecklistOpen(true)}
-                  onMessagesChange={handleMessagesChange}
-                />
-              </div>
-            </div>
+            <ChatMain
+              key={`${uid}:${navKey}`}
+              initialContext={initialContext}
+              navigationKey={navKey}
+              onMessagesChange={handleMessagesChange}
+            />
           )}
-        </div>
-
-        <div
-          inert={!checklistOpen ? '' : undefined}
-          aria-hidden={!checklistOpen}
-          className={`fixed inset-y-0 right-0 z-50 w-[280px] transform border-l border-[#1e293b] bg-[#0a0e1a] shadow-2xl transition-transform duration-300 ease-in-out sm:w-[380px] lg:relative lg:shadow-none ${
-            checklistOpen ? 'translate-x-0' : 'translate-x-full lg:hidden'
-          }`}
-        >
-          <div className="flex h-16 items-center justify-between border-b border-[#1e293b] px-4">
-            <h2 className="font-semibold text-[#f8fafc]">My Checklist</h2>
-            <button
-              aria-label="Close checklist"
-              onClick={() => setChecklistOpen(false)}
-              className="rounded-md p-2 text-[#64748b] transition-colors hover:bg-[#131c2e] hover:text-[#f8fafc]"
-            >
-              <X className="h-5 w-5" />
-            </button>
-          </div>
-          <div className="h-[calc(100vh-4rem)] overflow-y-auto">
-            <ChatChecklistPanel onClose={() => setChecklistOpen(false)} />
-          </div>
         </div>
       </div>
     </div>

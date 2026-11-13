@@ -14,6 +14,14 @@ export default {
         border: '#1e293b',
         'border-bright': '#2d4a6e',
         primary: '#3b82f6',
+        // Used by Button, FloatingChatButton and the chat checklist; without
+        // these the utilities were never generated and silently did nothing.
+        'primary-foreground': '#ffffff',
+        secondary: '#1e293b',
+        'secondary-foreground': '#f8fafc',
+        accent: '#131c2e',
+        'accent-foreground': '#f8fafc',
+        ring: '#3b82f6',
         'primary-soft': 'rgba(59, 130, 246, 0.12)',
         success: '#22c55e',
         'success-soft': 'rgba(34, 197, 94, 0.12)',

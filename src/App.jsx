@@ -2,9 +2,10 @@ import { lazy, Suspense } from 'react'
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import HomePage from './pages/HomePage'
 import QuestionnairePage from './pages/QuestionnairePage'
-import ChecklistPage from './pages/ChecklistPage'
-import ResultsPage from './pages/ResultsPage'
-import WelcomePage from './pages/WelcomePage'
+import DashboardPage from './pages/DashboardPage'
+import MyTaxesPage from './pages/MyTaxesPage'
+import AccountPage from './pages/AccountPage'
+import AppShell from './components/app/AppShell'
 import Disclaimer from './pages/Disclaimer'
 import ComingSoon from './pages/ComingSoon'
 import LoginPage from './pages/LoginPage'
@@ -47,17 +48,25 @@ function FullScreenSpinner() {
 }
 
 function ProtectedRoute({ children }) {
-  const { user, loading } = useAuth()
+  const { user, loading, exitPath } = useAuth()
 
   if (loading) {
     return <FullScreenSpinner />
   }
 
   if (!user) {
-    return <Navigate to="/login" replace />
+    return <Navigate to={exitPath} replace />
   }
 
   return children
+}
+
+function InApp({ children, focus = false }) {
+  return (
+    <ProtectedRoute>
+      <AppShell focus={focus}>{children}</AppShell>
+    </ProtectedRoute>
+  )
 }
 
 function AppRoutes() {
@@ -66,55 +75,66 @@ function AppRoutes() {
       <Route path="/" element={<HomePage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/auth/callback" element={<AuthCallbackPage />} />
+      {/* The app: one shell, four places, plus Account. */}
       <Route
-        path="/welcome"
+        path="/home"
         element={
-          <ProtectedRoute>
-            <WelcomePage />
-          </ProtectedRoute>
+          <InApp>
+            <DashboardPage />
+          </InApp>
+        }
+      />
+      <Route
+        path="/taxes"
+        element={
+          <InApp>
+            <MyTaxesPage />
+          </InApp>
+        }
+      />
+      <Route
+        path="/account"
+        element={
+          <InApp>
+            <AccountPage />
+          </InApp>
         }
       />
       <Route
         path="/chat"
         element={
-          <ProtectedRoute>
+          <InApp>
             <LazySuspense>
               <ChatPage />
             </LazySuspense>
-          </ProtectedRoute>
+          </InApp>
         }
       />
+      {/* Step-by-step flows hide the tab bar. The last two also work signed out. */}
       <Route
         path="/questionnaire"
         element={
-          <ProtectedRoute>
+          <InApp focus>
             <QuestionnairePage />
-          </ProtectedRoute>
+          </InApp>
         }
       />
       <Route
-        path="/results"
+        path="/status-checker"
         element={
-          <ProtectedRoute>
-            <ResultsPage />
-          </ProtectedRoute>
+          <AppShell focus>
+            <StatusCheckerPage />
+          </AppShell>
         }
       />
-      <Route
-        path="/checklist"
-        element={
-          <ProtectedRoute>
-            <ChecklistPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route path="/status-checker" element={<StatusCheckerPage />} />
       <Route
         path="/form-8843"
         element={
-          <LazySuspense>
-            <Form8843Page />
-          </LazySuspense>
+          <AppShell focus>
+            <LazySuspense>
+              <Form8843Page />
+            </LazySuspense>
+          </AppShell>
         }
       />
       <Route
@@ -135,7 +155,11 @@ function AppRoutes() {
       <Route path="/tax-treaties" element={<ComingSoon title="Tax Treaties" />} />
       <Route path="/privacy-policy" element={<Navigate to="/privacy" replace />} />
       <Route path="/terms-of-service" element={<Navigate to="/terms" replace />} />
-      <Route path="/dashboard" element={<Navigate to="/welcome" replace />} />
+      {/* Addresses from before the app shell keep working. */}
+      <Route path="/welcome" element={<Navigate to="/home" replace />} />
+      <Route path="/dashboard" element={<Navigate to="/home" replace />} />
+      <Route path="/results" element={<Navigate to="/taxes" replace />} />
+      <Route path="/checklist" element={<Navigate to="/taxes" replace />} />
       <Route path="*" element={<NotFoundPage />} />
     </Routes>
   )

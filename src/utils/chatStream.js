@@ -13,9 +13,15 @@ export async function* readChatStream(body) {
       return null
     }
     if (!data) return null
-    const event = JSON.parse(data)
-    if (event.error) throw new Error('The AI response was interrupted. Please try again.')
-    return event.choices?.[0]?.delta?.content || null
+    let event
+    try {
+      event = JSON.parse(data)
+    } catch {
+      // Never surface a raw parser message such as "Unexpected token" to the user.
+      throw new Error('The AI response was interrupted. Please try again.')
+    }
+    if (event?.error) throw new Error('The AI response was interrupted. Please try again.')
+    return event?.choices?.[0]?.delta?.content || null
   }
   try {
     while (!ended) {

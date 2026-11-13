@@ -2,7 +2,7 @@
 
 US tax preparation guidance for international students. The current season is **2027 filing for 2026 income**. The app provides educational guidance, a residency screening flow, document checklists, AI chat, and a client-side Form 8843 helper. It does not submit returns or certify tax eligibility.
 
-See [the September 2026 audit](docs/AUDIT-2027.md) for corrected bugs, IRS sources, verification, and release limits.
+See [the September 2026 audit](docs/AUDIT-2027.md) for corrected bugs, IRS sources, verification, and release limits. The [November 2026 bug sweep](docs/BUGFIXES-2026-11.md) lists later fixes.
 
 ## Run and verify
 
@@ -26,7 +26,7 @@ Copy `.env.example` to `.env.local` and replace placeholders for the services yo
 | ---------------------------------------------------- | ----------------- | ----------------------------------------------------------------------------------------------------- |
 | `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`        | Browser           | Public project URL and anon key for authentication; never use a service-role key here                 |
 | `VITE_SENTRY_DSN`                                    | Browser, optional | Error monitoring; user, request, breadcrumb, and extra data are removed before events are sent        |
-| `GROQ_API_KEY`, optional `GROQ_MODEL`                | Server only       | Chat inference; default model is `llama-3.3-70b-versatile`                                            |
+| `GROQ_API_KEY`, optional `GROQ_MODEL`                | Server only       | Chat inference; default model is `openai/gpt-oss-120b` (Groq retired `llama-3.3-70b-versatile`)      |
 | `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN` | Server only       | Recommended global rate limiting; without them, each server instance uses a bounded local fallback    |
 | `RESEND_API_KEY`                                     | Server only       | Waitlist confirmation email                                                                           |
 | `ALLOWED_ORIGINS`                                    | Server, optional  | Comma-separated exact additional origins; Vercel deployment and branch URLs are allowed automatically |
@@ -47,8 +47,10 @@ Before enabling a new form year: obtain the final IRS PDF, verify its printed ye
 
 - React 18, Vite, React Router, and Tailwind; preserve the existing navy/blue visual style. Motion uses short transitions and respects reduced-motion preferences.
 - `AuthProvider` in `src/hooks/useAuth.js` owns the shared auth/guest session. Use `useAuth()` from route components.
+- Signed-in screens share one shell (`src/components/app/AppShell.jsx`): a sidebar on desktop and a bottom tab bar on phones with four places — Home (`/home`), My Taxes (`/taxes`), Form 8843 (`/form-8843`) and Ask AI (`/chat`) — plus Account (`/account`). Step-by-step flows (`/questionnaire`, `/status-checker`, `/form-8843`) hide the tab bar and show a header with "Save & exit". The public status check and Form 8843 render without app chrome when signed out. Older addresses (`/welcome`, `/dashboard`, `/results`, `/checklist`) redirect.
+- `src/utils/taxProfile.js` is the only place that decides the student's current status (the newer of the questionnaire and the quick status check). `src/utils/journey.js` turns it into the four Home steps and the single "next step". The one document checklist is defined in `src/data/checklistItems.js`.
 - Shared rule helpers live in `src/utils/taxRules.js`; reviewed treaty guidance is in `src/data/treaties.js`. Unreviewed treaty entries require review rather than implying no treaty exists.
-- `lib/taxPrompt.js` uses the same season and treaty sources as the frontend. API handlers validate input and enforce rate limits before contacting paid services. Upstash supplies a shared production limit; an in-memory fallback keeps unconfigured previews usable.
+- `lib/taxPrompt.js` uses the same season and treaty sources as the frontend. API handlers validate input and enforce rate limits before contacting paid services. `lib/chatLimits.js` holds the chat size limits for both the server validator and the browser, which trims history to fit. Upstash supplies a shared production limit; an in-memory fallback keeps unconfigured previews usable.
 - Browser storage keys include tax year and user ID. Completed questionnaires can also sync to authenticated Supabase user metadata. Chat history and checklist progress are local to the browser.
 - Sensitive Form 8843 drafts use tab-scoped `sessionStorage`; PDF generation runs locally with `pdf-lib` and an embedded Inter font. Form fields are not sent to the chat API. Browser storage is not encrypted, and downloaded PDFs must be managed separately.
 

@@ -22,7 +22,11 @@ export default function ComingSoon({ title }) {
       if (res.ok) {
         setJoined(true)
       } else {
-        setError('Something went wrong — please try again.')
+        // Show the server's reason (invalid address, rate limit, unavailable).
+        const body = await res.json().catch(() => ({}))
+        setError(
+          typeof body.error === 'string' ? body.error : 'Something went wrong — please try again.',
+        )
       }
     } catch {
       setError('Something went wrong — please try again.')
