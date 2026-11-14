@@ -73,6 +73,18 @@ describe('public endpoint safety', () => {
     expect(response.status).toBe(503)
     expect(fetchImpl).not.toHaveBeenCalled()
   })
+  it('logs why the rate limiter failed without logging the request', async () => {
+    const log = vi.spyOn(console, 'error').mockImplementation(() => {})
+    await createChatHandler({
+      env,
+      fetchImpl: vi.fn(),
+      limiter: async () => {
+        throw new Error('Redis offline')
+      },
+    })(request())
+    expect(log).toHaveBeenCalledWith('Rate limiter failed: Error: Redis offline')
+    log.mockRestore()
+  })
   it('uses a bounded local limiter when Upstash is not configured', async () => {
     const fetchImpl = vi.fn(
       async () =>

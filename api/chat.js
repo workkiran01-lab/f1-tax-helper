@@ -51,7 +51,12 @@ export function createChatHandler({
         return jsonError('Too many requests. Please wait a minute and try again.', 429, {
           'Retry-After': '60',
         })
-    } catch {
+    } catch (error) {
+      // Log the cause (never the request or any secret) so a dead rate-limit backend is
+      // visible in Vercel logs instead of silently disabling chat.
+      console.error(
+        `Rate limiter failed: ${String(error?.name || 'Error')}: ${String(error?.message || '').slice(0, 120)}`,
+      )
       return jsonError('AI chat is temporarily unavailable. Please try again later.', 503, {
         'Retry-After': '60',
       })
