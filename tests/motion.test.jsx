@@ -144,7 +144,7 @@ it('keeps collapsed chat explanations hidden from assistive technology', () => {
       isStreaming={false}
     />,
   )
-  const toggle = screen.getByRole('button', { name: 'WHY' })
+  const toggle = screen.getByRole('button', { name: 'Why' })
   const panel = document.getElementById(toggle.getAttribute('aria-controls'))
   expect(panel.getAttribute('aria-hidden')).toBe('true')
   expect(panel.hasAttribute('inert')).toBe(true)
@@ -168,7 +168,7 @@ it('lets users choose and pause homepage examples without changing the tax flow'
   expect(carousel.getByRole('button', { name: 'Play examples' }).getAttribute('aria-pressed')).toBe(
     'true',
   )
-  expect(screen.getByRole('link', { name: 'Start Free Checkup →' }).getAttribute('href')).toBe(
+  expect(screen.getByRole('link', { name: 'Start free checkup' }).getAttribute('href')).toBe(
     '/status-checker',
   )
 })

@@ -36,24 +36,24 @@ export default function ComingSoon({ title }) {
   }
 
   return (
-    <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#080c14] px-4 text-[#cbd5e1]">
+    <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-bg px-4 text-ink-2">
       <div className="absolute inset-0 bg-grid opacity-30 pointer-events-none" />
 
-      <div className="relative z-10 w-full max-w-md rounded-2xl border border-[#1e293b] bg-[#0f1629] px-8 py-10 text-center">
-        <span className="mb-4 inline-flex font-mono text-[10px] uppercase tracking-widest text-[#475569]">
+      <div className="relative z-10 w-full max-w-md rounded-2xl border border-line bg-surface px-8 py-10 text-center">
+        <span className="mb-4 inline-flex text-xs text-ink-5">
           Coming Soon
         </span>
-        <h1 className="mt-3 text-3xl font-extrabold tracking-tight text-[#f8fafc]">
+        <h1 className="mt-3 text-3xl font-extrabold tracking-tight text-ink">
           {title}
         </h1>
-        <p className="mt-3 text-sm leading-6 text-[#64748b]">
+        <p className="mt-3 text-sm leading-6 text-ink-4">
           We're building more tools to make US taxes easier for F-1 students.
           Join the waitlist for early access.
         </p>
 
         <div className="mt-8">
           {joined ? (
-            <p className="rounded-xl border border-green-500/30 bg-green-500/10 px-4 py-3 text-sm font-medium text-green-400">
+            <p className="rounded-xl border border-ok/30 bg-ok/10 px-4 py-3 text-sm font-medium text-ok-ink">
               ✓ You're on the list! We'll email you at launch.
             </p>
           ) : (
@@ -64,17 +64,17 @@ export default function ComingSoon({ title }) {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="your@email.com"
-                className="w-full rounded-xl border border-[#1e293b] bg-transparent px-4 py-2.5 text-sm text-[#f8fafc] placeholder:text-[#475569] focus:border-[#3b82f6] focus:outline-none"
+                className="w-full rounded-xl border border-line bg-transparent px-4 py-2.5 text-sm text-ink placeholder:text-ink-5 focus:border-tint focus:outline-none"
               />
               <button
                 type="submit"
                 disabled={submitting}
-                className="w-full rounded-xl bg-[#3b82f6] py-2.5 text-sm font-semibold text-white transition-all hover:bg-[#2563eb] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
+                className="w-full rounded-xl bg-tint py-2.5 text-sm font-semibold text-white transition-all hover:bg-tint active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {submitting ? 'Joining…' : 'Join Waitlist'}
               </button>
               {error && (
-                <p className="text-sm font-medium text-red-400">{error}</p>
+                <p className="text-sm font-medium text-bad-ink">{error}</p>
               )}
             </form>
           )}
@@ -82,7 +82,7 @@ export default function ComingSoon({ title }) {
 
         <Link
           to="/"
-          className="mt-6 inline-flex text-xs text-[#475569] transition-colors hover:text-[#cbd5e1]"
+          className="mt-6 inline-flex text-xs text-ink-5 transition-colors hover:text-ink-2"
         >
           ← Back to Home
         </Link>

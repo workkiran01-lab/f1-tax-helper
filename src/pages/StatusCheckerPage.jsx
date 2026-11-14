@@ -111,7 +111,7 @@ export default function StatusCheckerPage() {
   }
 
   return (
-    <div className="relative flex min-h-screen flex-col overflow-hidden bg-[#080c14] text-slate-100">
+    <div className="relative flex min-h-screen flex-col overflow-hidden bg-bg text-ink">
       <div className="absolute inset-0 bg-grid opacity-30 pointer-events-none" />
 
       <FocusHeader title="Quick status check" note={`Question ${step + 1} of ${totalSteps}`} />
@@ -123,7 +123,7 @@ export default function StatusCheckerPage() {
         {/* Progress bar */}
         <div className="mb-8 mt-6 space-y-2">
           <AnimatedProgress value={progress} label="Status check progress" />
-          <div className="flex justify-between text-xs text-[#475569]">
+          <div className="flex justify-between text-xs text-ink-5">
             <span>F-1 Status Checker</span>
             <span>{progress}%</span>
           </div>
@@ -131,10 +131,10 @@ export default function StatusCheckerPage() {
 
         {/* Question card */}
         <StepTransition stepKey={step} direction={direction} className="flex-1">
-          <div className="rounded-2xl border border-[#1e293b] bg-[#0f172a] p-6 sm:p-8">
+          <div className="rounded-2xl border border-line bg-surface p-6 sm:p-8">
             <h2
               aria-live="polite"
-              className="text-lg font-semibold text-[#f8fafc] mb-6 leading-snug"
+              className="text-lg font-semibold text-ink mb-6 leading-snug"
             >
               {current.question}
             </h2>
@@ -148,12 +148,12 @@ export default function StatusCheckerPage() {
                     onClick={() => handleSelect(opt.value)}
                     className={`flex w-full items-center justify-between rounded-xl border px-5 py-4 text-left text-sm transition-all duration-150 active:scale-[0.99] ${
                       selected
-                        ? 'border-[#3b82f6] bg-[#3b82f6]/10 text-[#f8fafc]'
-                        : 'border-[#1e293b] bg-transparent text-[#cbd5e1] hover:border-[#2d4a6e] hover:text-[#f8fafc]'
+                        ? 'border-tint bg-tint/10 text-ink'
+                        : 'border-line bg-transparent text-ink-2 hover:border-line-strong hover:text-ink'
                     }`}
                   >
                     <span>{opt.label}</span>
-                    {selected && <span className="h-1.5 w-1.5 rounded-full bg-[#3b82f6]" />}
+                    {selected && <span className="h-1.5 w-1.5 rounded-full bg-tint" />}
                   </button>
                 )
               })}
@@ -167,7 +167,7 @@ export default function StatusCheckerPage() {
             <button
               type="button"
               onClick={handleBack}
-              className="flex items-center gap-1.5 border border-[#1e293b] bg-transparent text-[#64748b] hover:border-[#2d4a6e] hover:text-[#f8fafc] rounded-xl px-4 py-2 text-sm transition-colors"
+              className="flex items-center gap-1.5 border border-line bg-transparent text-ink-4 hover:border-line-strong hover:text-ink rounded-xl px-4 py-2 text-sm transition-colors"
             >
               <ChevronLeft className="h-4 w-4" />
               Back
@@ -175,13 +175,13 @@ export default function StatusCheckerPage() {
           ) : (
             <Link
               to="/"
-              className="flex items-center gap-1.5 border border-[#1e293b] bg-transparent text-[#64748b] hover:border-[#2d4a6e] hover:text-[#f8fafc] rounded-xl px-4 py-2 text-sm transition-colors"
+              className="flex items-center gap-1.5 border border-line bg-transparent text-ink-4 hover:border-line-strong hover:text-ink rounded-xl px-4 py-2 text-sm transition-colors"
             >
               <ChevronLeft className="h-4 w-4" />
               Home
             </Link>
           )}
-          <p className="text-xs text-[#475569]">Select an option to continue</p>
+          <p className="text-xs text-ink-5">Select an option to continue</p>
         </div>
       </main>
     </div>
@@ -201,7 +201,7 @@ function ResultScreen({ result, navigate, signInAsGuest, user }) {
   }
 
   return (
-    <div className="relative flex min-h-screen flex-col overflow-hidden bg-[#080c14] text-slate-100">
+    <div className="relative flex min-h-screen flex-col overflow-hidden bg-bg text-ink">
       <div className="absolute inset-0 bg-grid opacity-30 pointer-events-none" />
 
       <FocusHeader title="Quick status check" note="Your result" />
@@ -213,18 +213,18 @@ function ResultScreen({ result, navigate, signInAsGuest, user }) {
         <div className="mb-8 text-center">
           <div className="mb-4 inline-flex items-center gap-2">
             <span
-              className={`rounded-full px-5 py-2 text-sm font-mono font-medium ${
+              className={`rounded-full px-5 py-2 text-sm font-medium ${
                 isNRA
-                  ? 'border border-[#22c55e]/30 bg-[#22c55e]/10 text-[#22c55e]'
-                  : 'border border-[#f59e0b]/30 bg-[#f59e0b]/10 text-[#f59e0b]'
+                  ? 'border border-ok/30 bg-ok/10 text-ok-ink'
+                  : 'border border-warn/30 bg-warn/10 text-warn-ink'
               }`}
             >
               {result.status}
             </span>
           </div>
-          <h1 className="text-2xl font-bold text-[#f8fafc]">Your Tax Filing Results</h1>
+          <h1 className="text-2xl font-bold text-ink">Your Tax Filing Results</h1>
           {result.message && (
-            <p className="mt-3 rounded-xl border border-[#f59e0b]/20 bg-[#f59e0b]/10 p-3 text-sm text-[#f59e0b]">
+            <p className="mt-3 rounded-xl border border-warn/20 bg-warn/10 p-3 text-sm text-warn-ink">
               {result.message}
             </p>
           )}
@@ -232,30 +232,30 @@ function ResultScreen({ result, navigate, signInAsGuest, user }) {
 
         {/* Filing requirements */}
         {result.forms.length === 0 && (
-          <div className="mb-5 rounded-2xl border border-[#1e293b] bg-[#0f172a] p-5 sm:p-6">
-            <h2 className="text-xs font-mono uppercase tracking-widest text-[#475569] mb-2">
+          <div className="mb-5 rounded-2xl border border-line bg-surface p-5 sm:p-6">
+            <h2 className="text-xs text-ink-5 mb-2">
               Your Filing Requirements
             </h2>
-            <p className="text-sm text-[#cbd5e1]">
+            <p className="text-sm text-ink-2">
               Forms depend on your tax residency, which this screen could not determine. Your
               checklist starts with the residency review.
             </p>
           </div>
         )}
         {result.forms.length > 0 && (
-          <Stagger className="mb-5 rounded-2xl border border-[#1e293b] bg-[#0f172a] p-5 sm:p-6">
-            <h2 className="text-xs font-mono uppercase tracking-widest text-[#475569] mb-4">
+          <Stagger className="mb-5 rounded-2xl border border-line bg-surface p-5 sm:p-6">
+            <h2 className="text-xs text-ink-5 mb-4">
               Your Filing Requirements
             </h2>
             <div className="space-y-3">
               {result.forms.map((form) => (
                 <StaggerItem
                   key={form.id}
-                  className="flex items-start justify-between gap-3 rounded-xl border border-[#1e293b] bg-[#080c14] p-4"
+                  className="flex items-start justify-between gap-3 rounded-xl border border-line bg-bg p-4"
                 >
                   <div className="flex-1">
-                    <p className="text-sm font-medium text-[#f8fafc]">{form.name}</p>
-                    <p className="mt-0.5 text-xs text-[#64748b]">{form.description}</p>
+                    <p className="text-sm font-medium text-ink">{form.name}</p>
+                    <p className="mt-0.5 text-xs text-ink-4">{form.description}</p>
                   </div>
                   {/^https?:\/\//.test(form.ctaLink || '') ? (
                     // IRS pages open in a new tab so this unsaved result screen stays open.
@@ -263,21 +263,21 @@ function ResultScreen({ result, navigate, signInAsGuest, user }) {
                       href={form.ctaLink}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="shrink-0 rounded-xl bg-[#3b82f6] px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-[#2563eb]"
+                      className="shrink-0 rounded-xl bg-tint px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-tint"
                     >
                       {form.cta}
                     </a>
                   ) : form.ctaLink ? (
                     <Link
                       to={form.ctaLink}
-                      className="shrink-0 rounded-xl bg-[#3b82f6] px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-[#2563eb]"
+                      className="shrink-0 rounded-xl bg-tint px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-tint"
                     >
                       {form.cta}
                     </Link>
                   ) : (
                     <Link
                       to="/chat"
-                      className="shrink-0 rounded-xl border border-[#1e293b] bg-transparent px-3 py-1.5 text-xs font-medium text-[#64748b] transition-colors hover:border-[#2d4a6e] hover:text-[#f8fafc]"
+                      className="shrink-0 rounded-xl border border-line bg-transparent px-3 py-1.5 text-xs font-medium text-ink-4 transition-colors hover:border-line-strong hover:text-ink"
                     >
                       {form.cta || 'Ask about this →'}
                     </Link>
@@ -289,12 +289,12 @@ function ResultScreen({ result, navigate, signInAsGuest, user }) {
         )}
 
         {/* Deadline card */}
-        <div className="mb-5 rounded-2xl border border-[#1e293b] bg-[#0f172a] p-5 sm:p-6">
-          <h2 className="text-xs font-mono uppercase tracking-widest text-[#475569] mb-2">
+        <div className="mb-5 rounded-2xl border border-line bg-surface p-5 sm:p-6">
+          <h2 className="text-xs text-ink-5 mb-2">
             Expected Filing Deadline
           </h2>
-          <p className="text-sm font-medium text-[#3b82f6] font-mono">{result.deadline}</p>
-          <p className="text-xs text-[#64748b] mt-1">{DEADLINE_NOTE}</p>
+          <p className="text-sm font-medium text-tint-ink ">{result.deadline}</p>
+          <p className="text-xs text-ink-4 mt-1">{DEADLINE_NOTE}</p>
         </div>
 
         {/* Actions */}
@@ -302,12 +302,12 @@ function ResultScreen({ result, navigate, signInAsGuest, user }) {
           <button
             type="button"
             onClick={handleChecklistClick}
-            className="w-full rounded-xl bg-[#3b82f6] px-5 py-3 text-sm font-semibold text-white transition-all hover:bg-[#2563eb] active:scale-[0.98]"
+            className="w-full rounded-xl bg-tint px-5 py-3 text-sm font-semibold text-white transition-all hover:bg-tint active:scale-[0.98]"
           >
             {user ? 'Open My Taxes →' : 'View My Document Checklist →'}
           </button>
           {showChecklistPrompt && (
-            <div className="rounded-2xl border border-[#f59e0b]/30 bg-[#f59e0b]/10 p-4 text-sm text-[#f59e0b]">
+            <div className="rounded-2xl border border-warn/30 bg-warn/10 p-4 text-sm text-warn-ink">
               <p className="leading-6">
                 Continue as a guest to use this checklist in this browser. Signing in keeps account
                 progress separate; you may need to repeat this short check.
@@ -316,14 +316,14 @@ function ResultScreen({ result, navigate, signInAsGuest, user }) {
                 <button
                   type="button"
                   onClick={() => navigate('/login')}
-                  className="rounded-xl bg-[#f59e0b] px-4 py-2 text-xs font-semibold text-slate-950 transition-colors hover:bg-[#d97706]"
+                  className="rounded-xl bg-warn px-4 py-2 text-xs font-semibold text-black transition-colors hover:bg-warn-deep"
                 >
                   Sign in with Google
                 </button>
                 <button
                   type="button"
                   onClick={() => signInAsGuest('/taxes')}
-                  className="rounded-xl border border-[#f59e0b]/40 bg-transparent px-4 py-2 text-xs font-semibold text-[#f59e0b] transition-colors hover:border-[#f59e0b]/60"
+                  className="rounded-xl border border-warn/40 bg-transparent px-4 py-2 text-xs font-semibold text-warn-ink transition-colors hover:border-warn/60"
                 >
                   Continue as Guest
                 </button>
@@ -336,14 +336,14 @@ function ResultScreen({ result, navigate, signInAsGuest, user }) {
               removeStored(seasonKey('status', user?.id))
               window.location.reload()
             }}
-            className="w-full rounded-xl border border-[#1e293b] bg-transparent px-5 py-3 text-sm font-medium text-[#64748b] transition-colors hover:border-[#2d4a6e] hover:text-[#f8fafc]"
+            className="w-full rounded-xl border border-line bg-transparent px-5 py-3 text-sm font-medium text-ink-4 transition-colors hover:border-line-strong hover:text-ink"
           >
             ← Retake the Checker
           </button>
         </div>
 
         {/* IRS disclaimer */}
-        <p className="mt-6 text-xs text-[#475569] text-center leading-5">
+        <p className="mt-6 text-xs text-ink-5 text-center leading-5">
           This tool provides general guidance based on IRS Publication 519. Results are not tax
           advice. Consult your university&apos;s international student office or a CPA for your
           specific situation.

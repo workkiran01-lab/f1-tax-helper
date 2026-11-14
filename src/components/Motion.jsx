@@ -72,10 +72,10 @@ export function AnimatedProgress({ value, label, className = '', barClassName = 
       aria-valuemin={0}
       aria-valuemax={100}
       aria-valuenow={Math.round(progress)}
-      className={`motion-progress h-1.5 overflow-hidden rounded-full bg-[#1e293b] ${className}`}
+      className={`motion-progress h-1.5 overflow-hidden rounded-full bg-line ${className}`}
     >
       <motion.div
-        className={`relative h-full w-full origin-left rounded-full bg-[#3b82f6] ${barClassName}`}
+        className={`relative h-full w-full origin-left rounded-full bg-tint ${barClassName}`}
         initial={reduced ? false : { scaleX: 0 }}
         animate={{ scaleX: progress / 100 }}
         transition={{ duration: reduced ? 0 : 0.55, ease }}

@@ -15,11 +15,11 @@ import SeasonNotice from '../components/SeasonNotice'
 import { cn } from '../utils/cn'
 
 const DEADLINE_COLORS = {
-  blue: 'border-blue-500/30 bg-blue-500/10 text-blue-300',
-  violet: 'border-violet-500/30 bg-violet-500/10 text-violet-300',
-  red: 'border-red-500/30 bg-red-500/10 text-red-400',
-  amber: 'border-amber-500/30 bg-amber-500/10 text-amber-300',
-  green: 'border-green-500/30 bg-green-500/10 text-green-400',
+  blue: 'border-tint/30 bg-tint/10 text-tint-ink',
+  violet: 'border-violet/30 bg-violet/10 text-violet-ink',
+  red: 'border-bad/30 bg-bad/10 text-bad-ink',
+  amber: 'border-warn/30 bg-warn/10 text-warn-ink',
+  green: 'border-ok/30 bg-ok/10 text-ok-ink',
 }
 const INCOME_LABELS = {
   w2: 'wages (W-2)',
@@ -27,8 +27,8 @@ const INCOME_LABELS = {
   1099: '1099 income',
   investment: 'investment income',
 }
-const sectionTitle = 'text-base font-semibold text-[#f8fafc]'
-const card = 'rounded-2xl border border-[#1e293b] bg-[#0f172a]'
+const sectionTitle = 'text-xl font-bold text-ink'
+const card = 'rounded-3xl border border-line bg-surface'
 
 function readChecked(key, ids) {
   const saved = readStored(key, {})
@@ -54,64 +54,55 @@ function summaryFor(profile) {
 function itemStyle(item) {
   const lowered = item.toLowerCase()
   if (lowered.includes('warning') || lowered.includes('risk') || lowered.includes('unauthorized'))
-    return { Icon: AlertTriangle, color: 'text-[#f59e0b]', label: 'Warning' }
+    return { Icon: AlertTriangle, color: 'text-warn-ink', label: 'Warning' }
   if (lowered.includes('must') || lowered.includes('required') || lowered.includes('crucial'))
-    return { Icon: Sparkles, color: 'text-[#a78bfa]', label: 'Important' }
-  return { Icon: Check, color: 'text-[#60a5fa]', label: null }
+    return { Icon: Sparkles, color: 'text-violet-ink', label: 'Important' }
+  return { Icon: Check, color: 'text-tint-ink', label: null }
 }
 
+// One row of the checklist. Rows sit together in a single grouped card with
+// hairline separators, so the list reads as one thing to work through.
 function CheckItem({ item, checked, onToggle }) {
   return (
-    <div
-      className={cn(
-        'motion-check-item flex items-start gap-3 rounded-2xl border p-4 text-sm',
-        checked
-          ? 'border-green-500/30 bg-green-500/10'
-          : 'border-[#1e293b] bg-[#0f172a] hover:border-[#2d4a6e]',
-      )}
-    >
+    <div className="motion-check-item flex items-start gap-3 px-4 py-3.5">
       <button
         type="button"
         onClick={onToggle}
-        className="motion-button -m-3 mt-[-10px] flex h-11 w-11 shrink-0 items-center justify-center rounded-full"
+        className="-m-2.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-full"
         aria-pressed={Boolean(checked)}
         aria-label={`Mark ${item.name} as ${checked ? 'not collected' : 'collected'}`}
       >
         <span
           className={cn(
-            'flex h-5 w-5 items-center justify-center rounded-full border-2 transition-colors',
-            checked
-              ? 'border-[#3b82f6] bg-[#3b82f6] text-white'
-              : 'border-[#64748b] bg-transparent',
+            'flex h-6 w-6 items-center justify-center rounded-full border-2 transition-colors duration-200',
+            checked ? 'border-tint bg-tint text-white' : 'border-line-strong bg-transparent',
           )}
         >
-          <AnimatedCheck checked={Boolean(checked)} className="h-3 w-3" />
+          <AnimatedCheck checked={Boolean(checked)} className="h-3.5 w-3.5" />
         </span>
       </button>
       <div className="min-w-0 flex-1">
-        <div className="flex items-start justify-between gap-2">
-          <p className={cn('font-medium text-[#f8fafc]', checked && 'line-through opacity-60')}>
-            {item.name}
-          </p>
-          <span
+        <div className="flex items-baseline justify-between gap-3">
+          <p
             className={cn(
-              'shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-medium',
-              item.required
-                ? 'border-red-500/30 bg-red-500/20 text-red-300'
-                : 'border-yellow-500/30 bg-yellow-500/20 text-yellow-200',
+              'text-[17px] font-medium leading-snug transition-colors duration-300',
+              checked ? 'text-ink-3' : 'text-ink',
             )}
           >
-            {item.required ? 'Required' : 'If applicable'}
+            {item.name}
+          </p>
+          <span className="shrink-0 text-[13px] text-ink-3">
+            {item.required ? 'Required' : 'If it applies'}
           </span>
         </div>
-        <p className="mt-0.5 text-xs text-[#94a3b8]">{item.description}</p>
+        <p className="mt-0.5 text-[13px] leading-relaxed text-ink-3">{item.description}</p>
         {item.link &&
           (item.external ? (
             <a
               href={item.link}
               target="_blank"
               rel="noopener noreferrer"
-              className="mt-1 inline-flex min-h-8 items-center gap-1 text-xs font-medium text-blue-300 hover:text-blue-200"
+              className="mt-1 inline-flex min-h-8 items-center gap-1 text-[13px] font-medium text-tint-ink hover:text-tint-ink-strong"
             >
               {item.linkLabel || 'Learn more'}
               <ExternalLink aria-hidden="true" className="h-3 w-3" />
@@ -119,7 +110,7 @@ function CheckItem({ item, checked, onToggle }) {
           ) : (
             <Link
               to={item.link}
-              className="mt-1 inline-flex min-h-8 items-center gap-1 text-xs font-medium text-blue-300 hover:text-blue-200"
+              className="mt-1 inline-flex min-h-8 items-center gap-1 text-[13px] font-medium text-tint-ink hover:text-tint-ink-strong"
             >
               {item.linkLabel || 'Learn more'}
             </Link>
@@ -172,17 +163,17 @@ export default function MyTaxesPage() {
     return (
       <>
         <DisclaimerBanner />
-        <main className="mx-auto w-full max-w-3xl px-5 py-6 lg:px-10 lg:py-10">
+        <main className="mx-auto w-full max-w-3xl px-5 pb-8 lg:px-10 lg:pb-12">
           <PageHeader eyebrow={`Tax year ${TAX_YEAR}`} title="My Taxes" />
           <section className={cn(card, 'mt-6 p-6 text-center')}>
-            <h2 className="text-lg font-semibold text-[#f8fafc]">Start with your tax status</h2>
-            <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-[#94a3b8]">
+            <h2 className="text-lg font-semibold text-ink">Start with your tax status</h2>
+            <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-ink-3">
               Answer 5 quick questions and this page will show your status, the forms that apply to
               you and a document checklist for {TAX_YEAR}.
             </p>
             <Link
               to="/questionnaire"
-              className="mt-5 inline-flex min-h-12 items-center justify-center rounded-[14px] bg-[#2563eb] px-6 text-[15px] font-semibold text-white transition-colors hover:bg-[#1d4ed8]"
+              className="mt-5 inline-flex min-h-12 items-center justify-center rounded-[14px] bg-tint px-6 text-[15px] font-semibold text-white transition-colors hover:bg-tint-hover"
             >
               Check my tax status
             </Link>
@@ -244,39 +235,39 @@ export default function MyTaxesPage() {
   return (
     <>
       <DisclaimerBanner />
-      <main className="mx-auto w-full max-w-3xl space-y-6 px-5 py-6 lg:px-10 lg:py-10">
+      <main className="mx-auto w-full max-w-3xl space-y-7 px-5 pb-8 lg:px-10 lg:pb-12">
         <PageHeader eyebrow={`Tax year ${TAX_YEAR}`} title="My Taxes" />
 
         {syncWarning && (
           <p
             role="status"
-            className="rounded-xl border border-[#f59e0b]/20 bg-[#f59e0b]/10 px-4 py-3 text-sm text-[#fbbf24]"
+            className="rounded-xl border border-warn/20 bg-warn/10 px-4 py-3 text-sm text-warn-ink"
           >
             {syncWarning}
           </p>
         )}
 
-        <section aria-labelledby="status-title" className={cn(card, 'rounded-[20px] p-5')}>
-          <h2
-            id="status-title"
-            className="text-xs font-semibold uppercase tracking-[0.08em] text-[#94a3b8]"
-          >
+        <section
+          aria-labelledby="status-title"
+          className={cn(card, 'rounded-4xl p-5 shadow-raised')}
+        >
+          <h2 id="status-title" className="text-[13px] font-medium text-ink-3">
             Your tax status
           </h2>
           <p className="mt-3">
             <span
               className={cn(
-                'inline-flex rounded-full px-3 py-1 text-[13px] font-semibold',
+                'inline-flex rounded-full px-3.5 py-1.5 text-[15px] font-semibold',
                 profile.needsReview
-                  ? 'bg-[#f59e0b]/15 text-[#fbbf24]'
-                  : 'bg-[#10233f] text-[#93c5fd]',
+                  ? 'bg-warn/15 text-warn-ink'
+                  : 'bg-tint/15 text-tint-ink-strong',
               )}
             >
               {profile.label}
             </span>
           </p>
-          <p className="mt-3 text-sm leading-relaxed text-[#cbd5e1]">{summaryFor(profile)}</p>
-          <p className="mt-1 text-[13px] text-[#94a3b8]">
+          <p className="mt-3 text-sm leading-relaxed text-ink-2">{summaryFor(profile)}</p>
+          <p className="mt-1 text-[13px] text-ink-3">
             From your {profile.source === 'questionnaire' ? 'questionnaire' : 'quick status check'}
             {dateLabel ? ` on ${dateLabel}` : ''}. A screening result, not a final determination.
           </p>
@@ -284,13 +275,13 @@ export default function MyTaxesPage() {
             <button
               type="button"
               onClick={restartQuestionnaire}
-              className="min-h-11 rounded-xl border border-[#1e293b] px-4 text-sm font-medium text-[#f8fafc] transition-colors hover:border-[#2d4a6e]"
+              className="min-h-11 rounded-xl border border-line px-4 text-sm font-medium text-ink transition-colors hover:border-line-strong"
             >
               Edit my answers
             </button>
             <Link
               to="/chat"
-              className="inline-flex min-h-11 items-center text-sm font-medium text-[#60a5fa] hover:text-[#93c5fd]"
+              className="inline-flex min-h-11 items-center text-sm font-medium text-tint-ink hover:text-tint-ink-strong"
             >
               Ask AI about this result
             </Link>
@@ -303,7 +294,7 @@ export default function MyTaxesPage() {
               What this means for you
             </h2>
             {profile.message && (
-              <p className={cn(card, 'p-4 text-sm leading-relaxed text-[#cbd5e1]')}>
+              <p className={cn(card, 'p-4 text-sm leading-relaxed text-ink-2')}>
                 {profile.message}
               </p>
             )}
@@ -314,26 +305,19 @@ export default function MyTaxesPage() {
                   <Icon aria-hidden="true" className={cn('mt-0.5 h-4 w-4 shrink-0', color)} />
                   <div>
                     {label && (
-                      <p
-                        className={cn(
-                          'mb-1 text-[11px] font-semibold uppercase tracking-wider',
-                          color,
-                        )}
-                      >
-                        {label}
-                      </p>
+                      <p className={cn('mb-1 text-[13px] font-semibold', color)}>{label}</p>
                     )}
-                    <p className="text-sm leading-relaxed text-[#cbd5e1]">{item}</p>
+                    <p className="text-sm leading-relaxed text-ink-2">{item}</p>
                   </div>
                 </div>
               )
             })}
             {profile.hasTreatyBenefit && (
-              <div className="rounded-2xl border border-[#3b82f6]/20 bg-[#3b82f6]/5 p-4">
-                <h3 className="text-[15px] font-semibold text-[#f8fafc]">
+              <div className="rounded-2xl border border-tint/20 bg-tint/5 p-4">
+                <h3 className="text-[15px] font-semibold text-ink">
                   You may qualify for a tax treaty benefit
                 </h3>
-                <p className="mt-1.5 text-sm leading-relaxed text-[#94a3b8]">
+                <p className="mt-1.5 text-sm leading-relaxed text-ink-3">
                   We detected that your country may have treaty-based exemptions. Verify treaty
                   residence, income limits and disclosure exceptions with the IRS. Form 8833 is not
                   required for every student treaty claim.
@@ -343,26 +327,26 @@ export default function MyTaxesPage() {
           </section>
         )}
 
-        <section id="checklist" aria-labelledby="checklist-title" className="scroll-mt-6 space-y-3">
+        <section id="checklist" aria-labelledby="checklist-title" className="scroll-mt-16 space-y-3">
           <div className="flex items-baseline justify-between gap-3">
             <h2 id="checklist-title" className={sectionTitle}>
               Checklist
             </h2>
-            <p role="status" className="text-[13px] text-[#94a3b8]">
+            <p role="status" className="text-[13px] text-ink-3">
               {completed} of {total} items collected
             </p>
           </div>
           <AnimatedProgress value={progress} label="Documents collected" />
           {completed === total && total > 0 && (
-            <p className="motion-message flex items-center gap-2 text-sm text-[#22c55e]">
+            <p className="motion-message flex items-center gap-2 text-sm text-ok-ink">
               <AnimatedCheck />
               Documents collected. You can now review your filing options.
             </p>
           )}
-          <h3 className="pt-2 text-xs font-semibold uppercase tracking-[0.08em] text-[#94a3b8]">
+          <h3 className="px-1 pt-3 text-[13px] font-medium text-ink-3">
             Documents you need to file
           </h3>
-          <div className="space-y-2">
+          <div className={cn(card, 'divide-y divide-line overflow-hidden')}>
             {items.filing.map((item) => (
               <CheckItem
                 key={item.id}
@@ -372,10 +356,8 @@ export default function MyTaxesPage() {
               />
             ))}
           </div>
-          <h3 className="pt-2 text-xs font-semibold uppercase tracking-[0.08em] text-[#94a3b8]">
-            Identity documents
-          </h3>
-          <div className="space-y-2">
+          <h3 className="px-1 pt-3 text-[13px] font-medium text-ink-3">Identity documents</h3>
+          <div className={cn(card, 'divide-y divide-line overflow-hidden')}>
             {items.identity.map((item) => (
               <CheckItem
                 key={item.id}
@@ -388,14 +370,14 @@ export default function MyTaxesPage() {
           <button
             type="button"
             onClick={handleDownload}
-            className="flex min-h-12 w-full items-center justify-center gap-2 rounded-xl border border-[#1e293b] px-5 text-sm font-semibold text-[#cbd5e1] transition-colors hover:border-[#2d4a6e] hover:text-[#f8fafc]"
+            className="flex min-h-12 w-full items-center justify-center gap-2 rounded-xl border border-line px-5 text-sm font-semibold text-ink-2 transition-colors hover:border-line-strong hover:text-ink"
           >
             <Download aria-hidden="true" className="h-4 w-4" />
             Download my checklist
           </button>
         </section>
 
-        <section aria-labelledby="deadlines-title" className="space-y-3">
+        <section aria-labelledby="deadlines-title" className="scroll-mt-16 space-y-3">
           <h2 id="deadlines-title" className={sectionTitle}>
             Filing deadlines
           </h2>
@@ -404,33 +386,31 @@ export default function MyTaxesPage() {
               <div key={`${d.date}-${d.label}`} className="flex items-start gap-3">
                 <span
                   className={cn(
-                    'mt-0.5 shrink-0 rounded-full border px-2 py-0.5 text-[11px] font-semibold',
+                    'mt-0.5 shrink-0 rounded-full border px-2 py-0.5 text-xs font-semibold',
                     DEADLINE_COLORS[d.color],
                   )}
                 >
                   {d.date}
                 </span>
-                <p className="text-[13px] text-[#cbd5e1]">{d.label}</p>
+                <p className="text-[13px] text-ink-2">{d.label}</p>
               </div>
             ))}
           </div>
-          <p className="text-xs leading-relaxed text-[#94a3b8]">{DEADLINE_NOTE}</p>
+          <p className="text-xs leading-relaxed text-ink-3">{DEADLINE_NOTE}</p>
         </section>
 
-        <section id="filing" aria-labelledby="filing-title" className="scroll-mt-6 space-y-3">
+        <section id="filing" aria-labelledby="filing-title" className="scroll-mt-16 space-y-3">
           <h2 id="filing-title" className={sectionTitle}>
             When you’re ready to file
           </h2>
           <SeasonNotice />
           {formDownloaded && (
-            <label
-              className={cn(card, 'flex min-h-12 items-center gap-3 p-4 text-sm text-[#f8fafc]')}
-            >
+            <label className={cn(card, 'flex min-h-12 items-center gap-3 p-4 text-sm text-ink')}>
               <input
                 type="checkbox"
                 checked={filed}
                 onChange={(e) => writeStored(filedKey, e.target.checked)}
-                className="h-5 w-5 accent-[#3b82f6]"
+                className="h-5 w-5 accent-tint"
               />
               I have printed, signed and mailed my Form 8843
             </label>

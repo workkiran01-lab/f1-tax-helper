@@ -2,32 +2,222 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Base */
+/*
+ * Design tokens. One palette for the whole app, as "R G B" channels so Tailwind
+ * opacity modifiers (bg-tint/10) keep working. Components never use hex values.
+ *
+ * Depth comes from fill, not outlines: a true-black base, surfaces that get
+ * lighter as they rise, and hairline separators that stay quiet.
+ */
+:root {
+  color-scheme: dark;
+
+  --bg: 0 0 0;
+  --chrome: 10 10 12;
+  --surface: 22 23 27;
+  --surface-2: 32 33 39;
+  --surface-3: 46 47 55;
+  --line: 44 45 53;
+  --line-strong: 70 72 84;
+
+  --ink: 245 245 247;
+  --ink-2: 208 209 216;
+  --ink-3: 160 162 173;
+  --ink-4: 142 144 156;
+  --ink-5: 128 130 142;
+
+  --tint: 47 111 237;
+  --tint-hover: 35 92 214;
+  --tint-ink: 110 170 255;
+  --tint-ink-strong: 160 200 255;
+  --tint-soft: 14 30 58;
+
+  --warn: 245 158 11;
+  --warn-ink: 251 191 36;
+  --warn-deep: 217 119 6;
+  --ok: 48 200 100;
+  --ok-ink: 74 222 128;
+  --bad: 239 68 68;
+  --bad-ink: 252 165 165;
+  --violet: 139 92 246;
+  --violet-ink: 167 139 250;
+
+  /* The one rich surface per screen: a deep blue that drifts toward violet. */
+  --hero-a: 37 99 235;
+  --hero-b: 79 70 229;
+  --hero-c: 14 116 144;
+
+  --shadow-card: inset 0 1px 0 rgb(255 255 255 / 0.04);
+  --shadow-raised: inset 0 1px 0 rgb(255 255 255 / 0.05), 0 12px 32px -12px rgb(0 0 0 / 0.7);
+  --shadow-float: 0 24px 60px -20px rgb(0 0 0 / 0.8);
+
+  /* Height reserved for the phone tab bar, including the home indicator. */
+  --tabbar: calc(4rem + env(safe-area-inset-bottom, 0px));
+}
+
+/*
+ * Light appearance. Same roles, opposite direction: a soft grey page, white
+ * surfaces that sit on it, and shadow instead of an inner highlight.
+ * public/theme.js sets data-theme before first paint; the switch lives in
+ * src/hooks/useTheme.js.
+ */
+:root[data-theme='light'] {
+  color-scheme: light;
+
+  --bg: 242 242 247;
+  --chrome: 249 249 252;
+  --surface: 255 255 255;
+  --surface-2: 240 240 245;
+  --surface-3: 226 226 233;
+  --line: 224 224 231;
+  --line-strong: 188 188 198;
+
+  --ink: 17 17 21;
+  --ink-2: 52 52 60;
+  --ink-3: 96 96 107;
+  --ink-4: 104 104 115;
+  --ink-5: 110 110 121;
+
+  --tint: 30 98 228;
+  --tint-hover: 22 82 200;
+  --tint-ink: 18 84 208;
+  --tint-ink-strong: 12 66 172;
+  --tint-soft: 226 236 255;
+
+  --warn: 214 128 0;
+  --warn-ink: 146 84 0;
+  --warn-deep: 180 100 0;
+  --ok: 24 150 70;
+  --ok-ink: 16 116 52;
+  --bad: 214 48 48;
+  --bad-ink: 180 28 28;
+  --violet: 124 77 240;
+  --violet-ink: 100 56 206;
+
+  --shadow-card: 0 1px 2px rgb(15 15 30 / 0.04), 0 6px 20px -12px rgb(15 15 30 / 0.14);
+  --shadow-raised: 0 1px 2px rgb(15 15 30 / 0.05), 0 16px 36px -16px rgb(15 15 30 / 0.22);
+  --shadow-float: 0 30px 70px -24px rgb(15 15 30 / 0.3);
+}
+
+/* Switching appearance: the new look opens out from the switch itself. */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
 * {
-  border-color: #1e293b;
+  border-color: rgb(var(--line));
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
 }
 
 body {
-  background-color: #080c14;
-  color: #cbd5e1;
-  font-family: 'Inter', system-ui, sans-serif;
+  background-color: rgb(var(--bg));
+  color: rgb(var(--ink-2));
+  font-family:
+    -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, system-ui, sans-serif;
+  font-feature-settings: 'cv11', 'ss01', 'calt';
+  letter-spacing: -0.006em;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  overscroll-behavior-y: none;
+}
+
+/* Large type is set tighter, the way display sizes are meant to be. */
+h1,
+h2 {
+  letter-spacing: -0.022em;
+}
+h3 {
+  letter-spacing: -0.014em;
+}
+
+/* Translucent bars: content scrolls underneath and stays faintly visible. */
+.material {
+  background-color: rgb(var(--chrome) / 0.72);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  backdrop-filter: saturate(180%) blur(20px);
+}
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .material {
+    background-color: rgb(var(--chrome) / 0.97);
+  }
+}
+
+/* Surfaces lift off the page: a lit top edge in dark, a soft shadow in light. */
+:where(.bg-surface.border, .bg-card.border) {
+  box-shadow: var(--shadow-card);
+}
+:root[data-theme='light'] :where(.bg-surface.border, .bg-card.border) {
+  border-color: transparent;
+}
+
+/* The hero surface and its slow drift of light. */
+.hero-surface {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  color: #fff;
+  background:
+    radial-gradient(120% 140% at 0% 0%, rgb(var(--hero-a)) 0%, transparent 60%),
+    radial-gradient(120% 140% at 100% 100%, rgb(var(--hero-b)) 0%, transparent 62%),
+    linear-gradient(135deg, rgb(var(--hero-a)), rgb(var(--hero-b)));
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.22),
+    0 24px 50px -24px rgb(var(--hero-b) / 0.75);
+}
+.hero-surface::before {
+  content: '';
+  position: absolute;
+  inset: -40%;
+  z-index: -1;
+  background:
+    radial-gradient(38% 38% at 30% 30%, rgb(var(--hero-c) / 0.7), transparent 70%),
+    radial-gradient(34% 34% at 72% 64%, rgb(255 255 255 / 0.16), transparent 70%);
+  animation: hero-drift 18s ease-in-out infinite alternate;
+}
+@keyframes hero-drift {
+  from {
+    transform: translate3d(-6%, -4%, 0) rotate(0deg);
+  }
+  to {
+    transform: translate3d(8%, 6%, 0) rotate(18deg);
+  }
+}
+
+/* Ambient glow behind a centred hero (landing, sign-in). */
+.aurora {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(50% 40% at 50% 0%, rgb(var(--hero-a) / 0.32), transparent 70%),
+    radial-gradient(36% 30% at 78% 18%, rgb(var(--hero-b) / 0.26), transparent 70%),
+    radial-gradient(30% 26% at 20% 22%, rgb(var(--hero-c) / 0.2), transparent 70%);
+}
+:root[data-theme='light'] .aurora {
+  opacity: 0.75;
 }
 
 /* Dot grid background */
 .bg-grid {
-  background-image: radial-gradient(circle, #1e293b 1px, transparent 1px);
+  background-image: radial-gradient(circle, rgb(var(--line)) 1px, transparent 1px);
   background-size: 24px 24px;
 }
 
 /* Input base style */
 .input-base {
   background: transparent;
-  border: 1px solid #1e293b;
-  border-radius: 8px;
-  padding: 10px 14px;
-  color: #f8fafc;
+  border: 1px solid rgb(var(--line));
+  border-radius: 12px;
+  padding: 12px 14px;
+  color: rgb(var(--ink));
   font-size: 14px;
   width: 100%;
   transition:
@@ -37,12 +227,12 @@ body {
 }
 
 .input-base::placeholder {
-  color: #475569;
+  color: rgb(var(--ink-5));
 }
 
 .input-base:focus {
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  border-color: rgb(var(--tint));
+  box-shadow: 0 0 0 3px rgb(var(--tint) / 0.28);
 }
 
 /* Label style */
@@ -51,31 +241,31 @@ body {
   font-weight: 500;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #64748b;
+  color: rgb(var(--ink-4));
   margin-bottom: 6px;
   display: block;
 }
 
 /* Card base */
 .card-base {
-  background: #0f172a;
-  border: 1px solid #1e293b;
-  border-radius: 12px;
+  background: rgb(var(--surface));
+  border: 1px solid rgb(var(--line));
+  border-radius: 20px;
   transition: border-color 0.15s;
 }
 
 .card-base:hover {
-  border-color: #2d4a6e;
+  border-color: rgb(var(--line-strong));
 }
 
 /* Button base */
 .btn-primary {
-  background: #3b82f6;
+  background: rgb(var(--tint));
   color: #ffffff;
   font-weight: 500;
   font-size: 14px;
-  padding: 10px 20px;
-  border-radius: 8px;
+  padding: 11px 20px;
+  border-radius: 12px;
   border: none;
   cursor: pointer;
   transition: all 0.15s;
@@ -85,7 +275,7 @@ body {
 }
 
 .btn-primary:hover {
-  background: #2563eb;
+  background: rgb(var(--tint-hover));
 }
 
 .btn-primary:active {
@@ -94,12 +284,12 @@ body {
 
 .btn-ghost {
   background: transparent;
-  color: #cbd5e1;
+  color: rgb(var(--ink-2));
   font-weight: 500;
   font-size: 14px;
-  padding: 10px 20px;
-  border-radius: 8px;
-  border: 1px solid #1e293b;
+  padding: 11px 20px;
+  border-radius: 12px;
+  border: 1px solid rgb(var(--line));
   cursor: pointer;
   transition: all 0.15s;
   display: inline-flex;
@@ -108,8 +298,8 @@ body {
 }
 
 .btn-ghost:hover {
-  border-color: #2d4a6e;
-  color: #f8fafc;
+  border-color: rgb(var(--line-strong));
+  color: rgb(var(--ink));
 }
 
 .btn-ghost:active {
@@ -118,52 +308,52 @@ body {
 
 /* Status badges */
 .badge-success {
-  background: rgba(34, 197, 94, 0.12);
-  color: #22c55e;
+  background: rgb(var(--ok) / 0.14);
+  color: rgb(var(--ok));
   font-size: 12px;
   font-weight: 500;
   padding: 3px 10px;
   border-radius: 999px;
-  border: 1px solid rgba(34, 197, 94, 0.2);
+  border: 1px solid rgb(var(--ok) / 0.24);
   display: inline-flex;
   align-items: center;
   gap: 5px;
 }
 
 .badge-warning {
-  background: rgba(245, 158, 11, 0.12);
-  color: #f59e0b;
+  background: rgb(var(--warn) / 0.14);
+  color: rgb(var(--warn));
   font-size: 12px;
   font-weight: 500;
   padding: 3px 10px;
   border-radius: 999px;
-  border: 1px solid rgba(245, 158, 11, 0.2);
+  border: 1px solid rgb(var(--warn) / 0.24);
   display: inline-flex;
   align-items: center;
   gap: 5px;
 }
 
 .badge-danger {
-  background: rgba(239, 68, 68, 0.12);
-  color: #ef4444;
+  background: rgb(var(--bad) / 0.14);
+  color: rgb(var(--bad));
   font-size: 12px;
   font-weight: 500;
   padding: 3px 10px;
   border-radius: 999px;
-  border: 1px solid rgba(239, 68, 68, 0.2);
+  border: 1px solid rgb(var(--bad) / 0.24);
   display: inline-flex;
   align-items: center;
   gap: 5px;
 }
 
 .badge-info {
-  background: rgba(59, 130, 246, 0.12);
-  color: #3b82f6;
+  background: rgb(var(--tint) / 0.14);
+  color: rgb(var(--tint));
   font-size: 12px;
   font-weight: 500;
   padding: 3px 10px;
   border-radius: 999px;
-  border: 1px solid rgba(59, 130, 246, 0.2);
+  border: 1px solid rgb(var(--tint) / 0.24);
   display: inline-flex;
   align-items: center;
   gap: 5px;
@@ -171,7 +361,7 @@ body {
 
 /* Skeleton loader */
 .skeleton {
-  background: linear-gradient(90deg, #0f172a 25%, #1e293b 50%, #0f172a 75%);
+  background: linear-gradient(90deg, rgb(var(--surface)) 25%, rgb(var(--line)) 50%, rgb(var(--surface)) 75%);
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
   border-radius: 6px;
@@ -183,16 +373,16 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: #080c14;
+  background: rgb(var(--bg));
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #1e293b;
+  background: rgb(var(--line));
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #2d4a6e;
+  background: rgb(var(--line-strong));
 }
 
 /* Page transition */
@@ -209,11 +399,6 @@ body {
     transform 0.3s ease;
 }
 
-/* Smooth scroll */
-html {
-  scroll-behavior: smooth;
-}
-
 /* Better tap targets on mobile */
 @media (max-width: 640px) {
   button {
@@ -223,8 +408,8 @@ html {
 
 /* Selection color */
 ::selection {
-  background: rgba(59, 130, 246, 0.3);
-  color: #f8fafc;
+  background: rgb(var(--tint) / 0.35);
+  color: rgb(var(--ink));
 }
 
 /* Focus visible only for keyboard nav */
@@ -233,14 +418,11 @@ html {
 }
 
 :focus-visible {
-  outline: 2px solid #3b82f6;
+  outline: 2px solid rgb(var(--tint));
   outline-offset: 2px;
 }
 
-/* Preserve the original dark surface while adding quiet, purposeful movement. */
-:root {
-  color-scheme: dark;
-}
+/* Interaction basics. */
 button,
 a,
 input,
@@ -249,7 +431,7 @@ textarea {
   -webkit-tap-highlight-color: transparent;
 }
 :focus-visible {
-  outline: 2px solid #3b82f6;
+  outline: 2px solid rgb(var(--tint));
   outline-offset: 4px;
 }
 button:disabled {
@@ -321,7 +503,7 @@ main {
   transition: opacity 250ms ease;
 }
 .motion-progress {
-  box-shadow: 0 0 18px rgb(59 130 246 / 7%);
+  box-shadow: 0 0 18px rgb(var(--tint) / 0.1);
 }
 .motion-preview-field {
   transition:
@@ -346,12 +528,12 @@ main {
   .motion-button:hover:not(:active):not(:disabled),
   .motion-actions > button:hover:not(:active):not(:disabled) {
     transform: translateY(-2px);
-    box-shadow: 0 6px 24px rgb(59 130 246 / 14%);
+    box-shadow: 0 6px 24px rgb(var(--tint) / 0.22);
   }
   .motion-choice:hover:not(:active):not(:disabled),
   .choice-group button:hover:not(:active):not(:disabled) {
     transform: translateX(4px);
-    box-shadow: inset 3px 0 0 #3b82f6;
+    box-shadow: inset 3px 0 0 rgb(var(--tint));
   }
   .motion-check-item:hover {
     transform: translateX(3px);
@@ -378,7 +560,97 @@ main {
   }
 }
 
-/* App shell: height reserved for the mobile tab bar, including the home indicator. */
-:root {
-  --tabbar: calc(4rem + env(safe-area-inset-bottom, 0px));
+
+/*
+ * Press feedback. Controls sink slightly under the finger and spring back;
+ * list rows dim instead of moving.
+ */
+button,
+.btn-primary,
+.btn-ghost,
+.press {
+  transition:
+    transform 160ms cubic-bezier(0.32, 0.72, 0, 1),
+    background-color 180ms ease,
+    border-color 180ms ease,
+    color 180ms ease,
+    opacity 180ms ease;
+}
+button:active:not(:disabled),
+.press:active {
+  transform: scale(0.97);
+}
+.row-press:active {
+  background-color: rgb(var(--surface-2));
+}
+
+/* Primary actions: a lit top edge and a soft glow in the accent colour. */
+.btn-primary,
+:where(a, button).bg-tint {
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.18),
+    0 6px 20px -8px rgb(var(--tint) / 0.7);
+}
+
+/* Fields: filled, calm, with a wide focus halo instead of a hard outline. */
+:where(input:not([type='checkbox']):not([type='radio']), select, textarea) {
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    background-color 160ms ease;
+}
+:where(input:not([type='checkbox']):not([type='radio']), select, textarea):focus-visible {
+  outline: none;
+  border-color: rgb(var(--tint));
+  box-shadow: 0 0 0 4px rgb(var(--tint) / 0.28);
+}
+
+/* Typing indicator in the chat. */
+@keyframes typing-dot {
+  0%,
+  60%,
+  100% {
+    opacity: 0.3;
+    transform: translateY(0);
+  }
+  30% {
+    opacity: 1;
+    transform: translateY(-3px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  button:active:not(:disabled),
+  .press:active {
+    transform: none;
+  }
+}
+
+/*
+ * Answer choices in the questionnaire and status check: large filled rows that
+ * read as things to tap, not outlined boxes.
+ */
+.choice-group button,
+.motion-choice {
+  min-height: 56px;
+  border-radius: 16px;
+  font-size: 17px;
+  background-color: rgb(var(--surface-2));
+  border-color: transparent;
+  color: rgb(var(--ink));
+}
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .motion-choice:hover:not(:active):not(:disabled),
+  .choice-group button:hover:not(:active):not(:disabled) {
+    transform: none;
+    box-shadow: none;
+    background-color: rgb(var(--surface-3));
+  }
+  .motion-button:hover:not(:active):not(:disabled),
+  .motion-actions > button:hover:not(:active):not(:disabled) {
+    transform: none;
+  }
+  .motion-check-item:hover {
+    transform: none;
+  }
 }

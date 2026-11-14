@@ -292,7 +292,7 @@ describe('My Taxes, Ask AI and Account', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Delete my saved data' }))
     const dialog = await screen.findByRole('dialog', { name: 'Delete your saved data?' })
     fireEvent.click(within(dialog).getByRole('button', { name: 'Cancel' }))
-    expect(screen.queryByRole('dialog')).toBeNull()
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
 
     fireEvent.click(screen.getByRole('button', { name: 'Sign out' }))
     await waitFor(() => expect(window.location.pathname).toBe('/'))
