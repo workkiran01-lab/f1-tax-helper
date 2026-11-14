@@ -5,6 +5,8 @@ import useAuth from '../../hooks/useAuth'
 import { cn } from '../../utils/cn'
 import { displayNameFor, initialOf } from '../../utils/displayName.js'
 import { ScreenTransition, snappy } from './motion'
+import { ThemeToggle } from './ThemeSwitch'
+import { BrandMark } from '../Brand'
 
 // The four places in the app. Every signed-in screen shows the same list, so a
 // student always knows where they are and how to get anywhere else.
@@ -20,9 +22,7 @@ function Sidebar({ user }) {
   return (
     <aside className="material fixed inset-y-0 left-0 z-30 hidden w-60 flex-col border-r border-line/70 px-3 py-5 lg:flex">
       <Link to="/home" className="flex items-center gap-2.5 px-3">
-        <span className="flex h-8 w-8 items-center justify-center rounded-[10px] bg-tint text-[13px] font-bold text-white shadow-raised">
-          F1
-        </span>
+        <BrandMark />
         <span className="text-[15px] font-semibold text-ink">Tax Helper</span>
       </Link>
       <nav aria-label="Main" className="mt-8 flex flex-col gap-0.5">
@@ -57,11 +57,15 @@ function Sidebar({ user }) {
           </NavLink>
         ))}
       </nav>
+      <div className="mt-auto flex items-center justify-between px-3 pb-3">
+        <span className="text-[13px] font-medium text-ink-3">Appearance</span>
+        <ThemeToggle />
+      </div>
       <NavLink
         to="/account"
         className={({ isActive }) =>
           cn(
-            'mt-auto flex items-center gap-3 rounded-2xl px-3 py-2.5 transition-colors',
+            'flex items-center gap-3 rounded-2xl px-3 py-2.5 transition-colors',
             isActive ? 'bg-surface-2' : 'hover:bg-surface',
           )
         }

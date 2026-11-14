@@ -135,9 +135,9 @@ function WhySection({ text, isStreaming }) {
         aria-controls={contentId}
         className="flex items-center gap-1.5"
       >
-        <span className="font-mono text-[10px] uppercase tracking-widest text-violet">WHY</span>
+        <span className="text-xs font-medium text-violet-ink">Why</span>
         <ChevronDown
-          className={`h-3 w-3 text-violet transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
+          className={`h-3 w-3 text-violet-ink transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
         />
       </button>
       <div
@@ -175,7 +175,7 @@ function ReferenceSection({ text }) {
   if (!links.length && !fallback) return null
   return (
     <div className="rounded-lg border border-line bg-bg p-3">
-      <p className="mb-2 font-mono text-[10px] uppercase tracking-widest text-ink-5">
+      <p className="mb-2 text-xs text-ink-5">
         IRS REFERENCE
       </p>
       {links.map(([, label, url], i) => (
@@ -184,13 +184,13 @@ function ReferenceSection({ text }) {
           href={safeIRSUrl(url)}
           target="_blank"
           rel="noopener noreferrer"
-          className="block font-mono text-xs text-tint-ink hover:underline"
+          className="block text-xs text-tint-ink hover:underline"
         >
           {label}
         </a>
       ))}
       {fallback && (
-        <p className="whitespace-pre-wrap break-words font-mono text-xs text-ink-3">{fallback}</p>
+        <p className="whitespace-pre-wrap break-words text-xs text-ink-3">{fallback}</p>
       )}
     </div>
   )
@@ -391,11 +391,11 @@ export function ChatMain({ initialContext, navigationKey, onMessagesChange }) {
                 {message.role === 'assistant' && message.content && (
                   <button
                     onClick={() => copyMessage(message.id, message.content)}
-                    className="absolute right-2 top-2 rounded-md p-1 text-slate-500 opacity-0 transition-opacity group-hover/bubble:opacity-100 focus:opacity-100 hover:bg-white/10 hover:text-slate-300"
+                    className="absolute right-2 top-2 rounded-md p-1 text-ink-4 opacity-0 transition-opacity group-hover/bubble:opacity-100 focus:opacity-100 hover:bg-ink/10 hover:text-ink-2"
                     aria-label="Copy message"
                   >
                     {copiedId === message.id ? (
-                      <AnimatedCheck className="h-3.5 w-3.5 text-green-400" />
+                      <AnimatedCheck className="h-3.5 w-3.5 text-ok-ink" />
                     ) : (
                       <Copy className="h-3.5 w-3.5" />
                     )}
@@ -404,7 +404,7 @@ export function ChatMain({ initialContext, navigationKey, onMessagesChange }) {
               </div>
               {message.role === 'assistant' && <IRSDisclaimer />}
               {formatTime(message.createdAt) && (
-                <p className="mt-1 px-1 text-xs text-slate-500">{formatTime(message.createdAt)}</p>
+                <p className="mt-1 px-1 text-xs text-ink-4">{formatTime(message.createdAt)}</p>
               )}
             </div>
           </div>
@@ -442,7 +442,7 @@ export function ChatMain({ initialContext, navigationKey, onMessagesChange }) {
           ))}
         </div>
         {requestError && (
-          <p role="alert" className="mb-3 text-sm text-warning">
+          <p role="alert" className="mb-3 text-sm text-warn-ink">
             {requestError}
           </p>
         )}
@@ -464,7 +464,7 @@ export function ChatMain({ initialContext, navigationKey, onMessagesChange }) {
             />
             {input.length > 0 && (
               <span
-                className={`absolute right-3 top-1/2 -translate-y-1/2 text-xs tabular-nums ${input.length > MAX_INPUT * 0.9 ? 'text-amber-400' : 'text-ink-5'}`}
+                className={`absolute right-3 top-1/2 -translate-y-1/2 text-xs tabular-nums ${input.length > MAX_INPUT * 0.9 ? 'text-warn-ink' : 'text-ink-5'}`}
               >
                 {MAX_INPUT - input.length}
               </span>

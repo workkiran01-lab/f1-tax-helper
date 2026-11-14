@@ -40,7 +40,7 @@ export default function ComingSoon({ title }) {
       <div className="absolute inset-0 bg-grid opacity-30 pointer-events-none" />
 
       <div className="relative z-10 w-full max-w-md rounded-2xl border border-line bg-surface px-8 py-10 text-center">
-        <span className="mb-4 inline-flex font-mono text-[10px] uppercase tracking-widest text-ink-5">
+        <span className="mb-4 inline-flex text-xs text-ink-5">
           Coming Soon
         </span>
         <h1 className="mt-3 text-3xl font-extrabold tracking-tight text-ink">
@@ -53,7 +53,7 @@ export default function ComingSoon({ title }) {
 
         <div className="mt-8">
           {joined ? (
-            <p className="rounded-xl border border-green-500/30 bg-green-500/10 px-4 py-3 text-sm font-medium text-green-400">
+            <p className="rounded-xl border border-ok/30 bg-ok/10 px-4 py-3 text-sm font-medium text-ok-ink">
               ✓ You're on the list! We'll email you at launch.
             </p>
           ) : (
@@ -74,7 +74,7 @@ export default function ComingSoon({ title }) {
                 {submitting ? 'Joining…' : 'Join Waitlist'}
               </button>
               {error && (
-                <p className="text-sm font-medium text-red-400">{error}</p>
+                <p className="text-sm font-medium text-bad-ink">{error}</p>
               )}
             </form>
           )}

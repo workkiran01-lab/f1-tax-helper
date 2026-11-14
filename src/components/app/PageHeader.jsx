@@ -4,6 +4,7 @@ import { ChevronLeft } from 'lucide-react'
 import useAuth from '../../hooks/useAuth'
 import { cn } from '../../utils/cn'
 import { displayNameFor, initialOf } from '../../utils/displayName.js'
+import { ThemeToggle } from './ThemeSwitch'
 
 function AccountButton() {
   const { user } = useAuth()
@@ -52,6 +53,7 @@ export function PageHeader({ eyebrow, title, children, account = true }) {
         </p>
         <div className="flex shrink-0 items-center gap-2">
           {children}
+          <ThemeToggle className="lg:hidden" />
           {account && <AccountButton />}
         </div>
       </div>

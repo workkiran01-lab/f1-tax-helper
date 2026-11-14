@@ -32,8 +32,8 @@ ReactDOM.createRoot(document.getElementById('root')).render(
         <div
           style={{
             minHeight: '100vh',
-            background: '#080c14',
-            color: '#94a3b8',
+            background: 'rgb(var(--bg))',
+            color: 'rgb(var(--ink-3))',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -43,7 +43,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
           }}
         >
           <p style={{ fontSize: '48px', margin: 0 }}>⚠</p>
-          <p style={{ fontSize: '18px', fontWeight: 600, color: '#f8fafc', margin: 0 }}>
+          <p style={{ fontSize: '18px', fontWeight: 600, color: 'rgb(var(--ink))', margin: 0 }}>
             Something went wrong
           </p>
           <p style={{ fontSize: '14px', margin: 0 }}>Please refresh the page or return home.</p>
@@ -52,7 +52,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
             style={{
               marginTop: '8px',
               padding: '10px 24px',
-              background: '#3b82f6',
+              background: 'rgb(var(--tint))',
               color: '#fff',
               borderRadius: '12px',
               textDecoration: 'none',

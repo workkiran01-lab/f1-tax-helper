@@ -7,13 +7,13 @@ export function LegalLayout({ title, lastUpdated, intro, sections }) {
   }, [title])
 
   return (
-    <main className="relative min-h-screen overflow-hidden bg-bg text-slate-100">
+    <main className="relative min-h-screen overflow-hidden bg-bg text-ink">
       <div className="absolute inset-0 bg-grid opacity-30 pointer-events-none" />
 
       <header className="sticky top-0 z-20 border-b border-line bg-bg/80 backdrop-blur">
         <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-4 sm:px-6">
           <Link to="/" className="flex items-center gap-2">
-            <div className="font-mono text-xs font-bold border border-line px-2 py-1 text-tint-ink">F1</div>
+            <div className="text-xs font-bold border border-line px-2 py-1 text-tint-ink">F1</div>
             <span className="text-sm font-medium text-ink">Tax Helper</span>
           </Link>
         </div>
@@ -24,13 +24,13 @@ export function LegalLayout({ title, lastUpdated, intro, sections }) {
           <h1 className="text-2xl font-semibold text-ink">
             {title}
           </h1>
-          <p className="text-xs text-ink-5 font-mono mt-1">Last Updated: {lastUpdated}</p>
+          <p className="text-xs text-ink-5 mt-1">Last Updated: {lastUpdated}</p>
           {intro && (
             <p className="text-sm text-ink-3 mt-4 leading-relaxed">{intro}</p>
           )}
 
           <nav className="mt-8 rounded-xl border border-line bg-bg p-4">
-            <p className="font-mono text-[10px] uppercase tracking-widest text-ink-5 mb-3">
+            <p className="text-xs text-ink-5 mb-3">
               Contents
             </p>
             <ol className="space-y-1.5">
@@ -52,7 +52,7 @@ export function LegalLayout({ title, lastUpdated, intro, sections }) {
             {sections.map((section, i) => (
               <section key={section.id} id={section.id} className="scroll-mt-24">
                 <h2 className="text-base font-semibold text-ink mt-8 mb-3">
-                  <span className="text-tint-ink font-mono text-sm mr-2">{i + 1}.</span>
+                  <span className="text-tint-ink text-sm mr-2">{i + 1}.</span>
                   {section.title}
                 </h2>
                 <div className="text-sm text-ink-3 leading-relaxed whitespace-pre-line">

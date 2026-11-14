@@ -84,7 +84,7 @@ it('keeps homepage examples static when reduced motion is requested', () => {
   expect(
     screen.getByRole('button', { name: 'Show Nepal example' }).getAttribute('aria-pressed'),
   ).toBe('true')
-  expect(screen.getByRole('link', { name: 'Start Free Checkup →' })).toBeTruthy()
+  expect(screen.getByRole('link', { name: 'Start free checkup' })).toBeTruthy()
 })
 it('aborts an old chat on navigation and ignores its late response', async () => {
   let resolveFetch

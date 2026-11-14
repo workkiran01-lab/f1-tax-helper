@@ -1,11 +1,20 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { CalendarDays, Check, ChevronRight, Lock } from 'lucide-react'
+import {
+  CalendarDays,
+  Check,
+  ChevronRight,
+  FolderCheck,
+  Lock,
+  ShieldCheck,
+  Sparkles,
+} from 'lucide-react'
 import useAuth from '../hooks/useAuth'
 import useStoredRefresh from '../hooks/useStoredRefresh'
 import supabase from '../utils/supabase'
 import { writeStored } from '../utils/storage.js'
-import { computeJourney } from '../utils/journey.js'
+import { checklistProgress, computeJourney } from '../utils/journey.js'
+import IconTile from '../components/app/IconTile'
 import { displayNameFor, firstName, universityFor } from '../utils/displayName.js'
 import { TAX_YEAR, FILING_YEAR } from '../data/taxSeason.js'
 import { PageHeader } from '../components/app/PageHeader'
@@ -179,14 +188,38 @@ function StepRow({ step, number, last }) {
   )
 }
 
-function deadlineReason(profile) {
-  if (profile.hasW2) return 'Form 1040-NR with wages subject to US tax withholding.'
-  if (profile.hasIncome) return 'Form 1040-NR without wages subject to withholding.'
-  return 'Form 8843 alone, with no US income.'
+// Whole days from today until a date written like "June 15, 2027".
+function daysUntil(dateText) {
+  const target = Date.parse(dateText)
+  if (Number.isNaN(target)) return null
+  const today = new Date()
+  const start = new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime()
+  return Math.max(0, Math.ceil((target - start) / 86_400_000))
 }
 
-const primaryAction =
-  'press mt-5 flex min-h-[52px] items-center justify-center rounded-2xl px-6 text-[17px] font-semibold lg:inline-flex'
+// A small tappable tile: one fact, and where to go for more.
+function Widget({ to, icon, tone, label, children }) {
+  return (
+    <SequenceItem>
+      <Link
+        to={to}
+        className="press flex h-full min-h-[132px] flex-col justify-between rounded-3xl border border-line bg-surface p-4 transition-colors hover:bg-surface-2"
+      >
+        <span className="flex items-center justify-between">
+          <IconTile icon={icon} tone={tone} />
+          <ChevronRight aria-hidden="true" className="h-4 w-4 text-ink-4" />
+        </span>
+        <span className="mt-3 block">
+          {children}
+          <span className="mt-0.5 block text-[13px] leading-snug text-ink-3">{label}</span>
+        </span>
+      </Link>
+    </SequenceItem>
+  )
+}
+
+const bigFigure = 'block text-[28px] font-bold leading-none tracking-tight text-ink tabular-nums'
+const smallFigure = 'block text-[17px] font-semibold leading-snug text-ink'
 
 export default function DashboardPage() {
   const { user } = useAuth()
@@ -197,13 +230,18 @@ export default function DashboardPage() {
 
   if (needsOnboarding)
     return (
-      <main className="flex min-h-[calc(100dvh-var(--tabbar))] items-center px-4 py-10 lg:min-h-dvh">
-        <Onboarding user={user} onDone={() => setOnboarded(true)} />
+      <main className="relative flex min-h-[calc(100dvh-var(--tabbar))] items-center px-4 py-10 lg:min-h-dvh">
+        <div className="aurora" />
+        <div className="relative w-full">
+          <Onboarding user={user} onDone={() => setOnboarded(true)} />
+        </div>
       </main>
     )
 
   const { profile, steps, next, done, total } = computeJourney(user)
   const waiting = steps.find((s) => s.state === 'waiting')
+  const docs = checklistProgress(user?.id || 'guest', profile)
+  const days = profile?.deadline ? daysUntil(profile.deadline) : null
 
   return (
     <>
@@ -214,28 +252,32 @@ export default function DashboardPage() {
           title={`Hi, ${firstName(name) || 'there'}`}
         />
 
-        <Sequence className="mt-6 grid items-start gap-5 lg:grid-cols-2">
+        <Sequence className="mt-6 grid items-start gap-5 lg:grid-cols-2 lg:gap-6">
           <div className="space-y-4">
             <SequenceItem
               as="section"
               aria-labelledby="next-step"
-              className="rounded-4xl border border-line bg-surface p-5 shadow-raised lg:p-7"
+              className="hero-surface rounded-4xl p-5 lg:p-7"
             >
               <div className="flex items-center gap-4">
-                <ProgressRing value={done} total={total} label="Filing steps completed">
-                  <span className="text-[15px] font-semibold tabular-nums text-ink">
+                <ProgressRing
+                  value={done}
+                  total={total}
+                  size={68}
+                  label="Filing steps completed"
+                  trackClass="stroke-white/25"
+                  barClass="stroke-white"
+                >
+                  <span className="text-[15px] font-semibold tabular-nums text-white">
                     <CountUp value={done} />
-                    <span className="text-ink-3">/{total}</span>
+                    <span className="text-white/70">/{total}</span>
                   </span>
                 </ProgressRing>
                 <div className="min-w-0">
-                  <p className="text-[13px] font-medium text-tint-ink">
+                  <p className="text-[13px] font-medium text-white/80">
                     {next ? 'Your next step' : 'Nothing to do right now'}
                   </p>
-                  <h2
-                    id="next-step"
-                    className="text-[22px] font-bold leading-tight text-ink lg:text-2xl"
-                  >
+                  <h2 id="next-step" className="text-[24px] font-bold leading-tight lg:text-[28px]">
                     {next
                       ? next.title
                       : waiting
@@ -244,55 +286,75 @@ export default function DashboardPage() {
                   </h2>
                 </div>
               </div>
-              <p className="mt-4 text-[15px] leading-relaxed text-ink-2">
+              <p className="mt-4 text-[15px] leading-relaxed text-white/90">
                 {next
                   ? next.about
                   : waiting
                     ? `The IRS has not released the final ${TAX_YEAR} Form 8843. Come back when it does to download yours. Your draft stays in this browser tab, so keep a copy of your details.`
                     : 'Every step is done. Keep copies of what you filed with your records.'}
               </p>
-              {next ? (
-                <Link
-                  to={next.to}
-                  className={cn(primaryAction, 'bg-tint text-white hover:bg-tint-hover')}
-                >
-                  {next.action}
-                </Link>
-              ) : (
-                <Link
-                  to="/taxes"
-                  className={cn(primaryAction, 'bg-surface-2 text-ink hover:bg-surface-3')}
-                >
-                  Review My Taxes
-                </Link>
-              )}
+              <Link
+                to={next ? next.to : '/taxes'}
+                className="press mt-5 flex min-h-[52px] items-center justify-center rounded-2xl bg-white px-6 text-[17px] font-semibold text-[rgb(24,64,180)] shadow-[0_8px_24px_-10px_rgb(0_0_0/0.5)] hover:bg-white/90 lg:inline-flex"
+              >
+                {next ? next.action : 'Review My Taxes'}
+              </Link>
             </SequenceItem>
 
-            {profile && (
-              <SequenceItem
-                as="section"
-                aria-labelledby="deadline"
-                className="flex items-start gap-3.5 rounded-3xl border border-line bg-surface p-4"
-              >
-                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-warn/15">
-                  <CalendarDays aria-hidden="true" className="h-5 w-5 text-warn" />
-                </span>
-                <div>
-                  <h2 id="deadline" className="text-[15px] font-semibold text-ink">
-                    {profile.deadline
-                      ? `Your expected deadline: ${profile.deadline}`
-                      : 'Confirm your deadline during your residency review'}
-                  </h2>
-                  <p className="mt-1 text-[13px] leading-relaxed text-ink-3">
-                    {profile.deadline ? `${deadlineReason(profile)} ` : ''}
-                    An expected date under current IRS rules.{' '}
-                    <Link to="/taxes" className="text-tint-ink hover:text-tint-ink-strong">
-                      See all deadlines
-                    </Link>
-                  </p>
-                </div>
-              </SequenceItem>
-            )}
+            <Sequence className="grid grid-cols-2 gap-3">
+              {profile ? (
+                <>
+                  <Widget
+                    to="/taxes#deadlines-title"
+                    icon={CalendarDays}
+                    tone="amber"
+                    label={
+                      profile.deadline ? `until ${profile.deadline}` : 'Confirm it in your review'
+                    }
+                  >
+                    <h2 className="sr-only">
+                      {profile.deadline
+                        ? `Your expected deadline: ${profile.deadline}`
+                        : 'Confirm your deadline during your residency review'}
+                    </h2>
+                    {days === null ? (
+                      <span className={smallFigure}>Deadline</span>
+                    ) : (
+                      <span aria-hidden="true" className={bigFigure}>
+                        <CountUp value={days} />
+                        <span className="ml-1 text-[15px] font-semibold text-ink-3">days</span>
+                      </span>
+                    )}
+                  </Widget>
+                  <Widget
+                    to="/taxes#checklist"
+                    icon={FolderCheck}
+                    tone="green"
+                    label="documents ready"
+                  >
+                    <span className={bigFigure}>
+                      <CountUp value={docs.done} />
+                      <span className="text-ink-3">/{docs.total}</span>
+                    </span>
+                  </Widget>
+                  <Widget to="/taxes" icon={ShieldCheck} tone="blue" label="Your tax status">
+                    <span className={smallFigure}>{profile.label}</span>
+                  </Widget>
+                </>
+              ) : (
+                <Widget
+                  to="/questionnaire"
+                  icon={ShieldCheck}
+                  tone="blue"
+                  label="5 quick questions"
+                >
+                  <span className={smallFigure}>Status not checked</span>
+                </Widget>
+              )}
+              <Widget to="/chat" icon={Sparkles} tone="violet" label="Questions about your taxes">
+                <span className={smallFigure}>Ask AI</span>
+              </Widget>
+            </Sequence>
           </div>
 
           <SequenceItem as="section" aria-labelledby="steps">
@@ -314,16 +376,15 @@ export default function DashboardPage() {
                 />
               ))}
             </Sequence>
+            <p className="mt-4 px-1 text-[13px] text-ink-3">
+              Filing a 2025 form late?{' '}
+              <Link to="/form-8843" className="text-tint-ink hover:text-tint-ink-strong">
+                Prior-year Form 8843 is available
+              </Link>
+              .
+            </p>
           </SequenceItem>
         </Sequence>
-
-        <p className="mt-6 px-1 text-[13px] text-ink-3">
-          Filing a 2025 form late?{' '}
-          <Link to="/form-8843" className="text-tint-ink hover:text-tint-ink-strong">
-            Prior-year Form 8843 is available
-          </Link>
-          .
-        </p>
       </main>
     </>
   )

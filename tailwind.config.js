@@ -29,7 +29,9 @@ export default {
         'warn-ink': token('warn-ink'),
         'warn-deep': token('warn-deep'),
         ok: token('ok'),
+        'ok-ink': token('ok-ink'),
         bad: token('bad'),
+        'bad-ink': token('bad-ink'),
         violet: token('violet'),
         'violet-ink': token('violet-ink'),
 
@@ -83,8 +85,9 @@ export default {
         glide: 'cubic-bezier(0.32, 0.72, 0, 1)',
       },
       boxShadow: {
-        raised: 'inset 0 1px 0 rgb(255 255 255 / 0.05), 0 12px 32px -12px rgb(0 0 0 / 0.7)',
-        sheet: '0 -8px 40px rgb(0 0 0 / 0.55)',
+        raised: 'var(--shadow-raised)',
+        float: 'var(--shadow-float)',
+        sheet: '0 -8px 40px rgb(0 0 0 / 0.35)',
       },
       animation: {
         'fade-up': 'fadeUp 0.4s ease-out forwards',

@@ -81,7 +81,16 @@ export function CountUp({ value, className }) {
 
 // Progress as a ring that draws itself. The accessible value lives on the
 // wrapper; the drawing is decoration.
-export function ProgressRing({ value, total, size = 64, stroke = 6, label, children }) {
+export function ProgressRing({
+  value,
+  total,
+  size = 64,
+  stroke = 6,
+  label,
+  children,
+  trackClass = 'stroke-line',
+  barClass = 'stroke-tint',
+}) {
   const radius = (size - stroke) / 2
   const fraction = total > 0 ? Math.min(1, Math.max(0, value / total)) : 0
   return (
@@ -101,7 +110,7 @@ export function ProgressRing({ value, total, size = 64, stroke = 6, label, child
           r={radius}
           fill="none"
           strokeWidth={stroke}
-          className="stroke-line"
+          className={trackClass}
         />
         <motion.circle
           cx={size / 2}
@@ -110,7 +119,7 @@ export function ProgressRing({ value, total, size = 64, stroke = 6, label, child
           fill="none"
           strokeWidth={stroke}
           strokeLinecap="round"
-          className="stroke-tint"
+          className={barClass}
           initial={{ pathLength: 0 }}
           animate={{ pathLength: fraction }}
           transition={{ ...settle, delay: 0.25 }}

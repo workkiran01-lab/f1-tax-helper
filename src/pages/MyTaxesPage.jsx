@@ -15,11 +15,11 @@ import SeasonNotice from '../components/SeasonNotice'
 import { cn } from '../utils/cn'
 
 const DEADLINE_COLORS = {
-  blue: 'border-blue-500/30 bg-blue-500/10 text-blue-300',
-  violet: 'border-violet-500/30 bg-violet-500/10 text-violet-300',
-  red: 'border-red-500/30 bg-red-500/10 text-red-400',
-  amber: 'border-amber-500/30 bg-amber-500/10 text-amber-300',
-  green: 'border-green-500/30 bg-green-500/10 text-green-400',
+  blue: 'border-tint/30 bg-tint/10 text-tint-ink',
+  violet: 'border-violet/30 bg-violet/10 text-violet-ink',
+  red: 'border-bad/30 bg-bad/10 text-bad-ink',
+  amber: 'border-warn/30 bg-warn/10 text-warn-ink',
+  green: 'border-ok/30 bg-ok/10 text-ok-ink',
 }
 const INCOME_LABELS = {
   w2: 'wages (W-2)',
@@ -54,7 +54,7 @@ function summaryFor(profile) {
 function itemStyle(item) {
   const lowered = item.toLowerCase()
   if (lowered.includes('warning') || lowered.includes('risk') || lowered.includes('unauthorized'))
-    return { Icon: AlertTriangle, color: 'text-warn', label: 'Warning' }
+    return { Icon: AlertTriangle, color: 'text-warn-ink', label: 'Warning' }
   if (lowered.includes('must') || lowered.includes('required') || lowered.includes('crucial'))
     return { Icon: Sparkles, color: 'text-violet-ink', label: 'Important' }
   return { Icon: Check, color: 'text-tint-ink', label: null }
@@ -327,7 +327,7 @@ export default function MyTaxesPage() {
           </section>
         )}
 
-        <section id="checklist" aria-labelledby="checklist-title" className="scroll-mt-6 space-y-3">
+        <section id="checklist" aria-labelledby="checklist-title" className="scroll-mt-16 space-y-3">
           <div className="flex items-baseline justify-between gap-3">
             <h2 id="checklist-title" className={sectionTitle}>
               Checklist
@@ -338,7 +338,7 @@ export default function MyTaxesPage() {
           </div>
           <AnimatedProgress value={progress} label="Documents collected" />
           {completed === total && total > 0 && (
-            <p className="motion-message flex items-center gap-2 text-sm text-ok">
+            <p className="motion-message flex items-center gap-2 text-sm text-ok-ink">
               <AnimatedCheck />
               Documents collected. You can now review your filing options.
             </p>
@@ -377,7 +377,7 @@ export default function MyTaxesPage() {
           </button>
         </section>
 
-        <section aria-labelledby="deadlines-title" className="space-y-3">
+        <section aria-labelledby="deadlines-title" className="scroll-mt-16 space-y-3">
           <h2 id="deadlines-title" className={sectionTitle}>
             Filing deadlines
           </h2>
@@ -386,7 +386,7 @@ export default function MyTaxesPage() {
               <div key={`${d.date}-${d.label}`} className="flex items-start gap-3">
                 <span
                   className={cn(
-                    'mt-0.5 shrink-0 rounded-full border px-2 py-0.5 text-[11px] font-semibold',
+                    'mt-0.5 shrink-0 rounded-full border px-2 py-0.5 text-xs font-semibold',
                     DEADLINE_COLORS[d.color],
                   )}
                 >
@@ -399,7 +399,7 @@ export default function MyTaxesPage() {
           <p className="text-xs leading-relaxed text-ink-3">{DEADLINE_NOTE}</p>
         </section>
 
-        <section id="filing" aria-labelledby="filing-title" className="scroll-mt-6 space-y-3">
+        <section id="filing" aria-labelledby="filing-title" className="scroll-mt-16 space-y-3">
           <h2 id="filing-title" className={sectionTitle}>
             When you’re ready to file
           </h2>

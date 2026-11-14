@@ -1,19 +1,39 @@
-import { useState, useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { AnimatePresence, motion } from 'framer-motion'
 import { Menu, X } from 'lucide-react'
 import useAuth from '../hooks/useAuth'
+import { Brand } from './Brand'
+import { ThemeToggle } from './app/ThemeSwitch'
+import { settle } from './app/motion'
 
 const NAV_LINKS = [
-  { label: 'How It Works', href: '/#features' },
-  { label: 'Status Checker', to: '/status-checker' },
+  { label: 'How it works', href: '/#features' },
+  { label: 'Status check', to: '/status-checker' },
   { label: 'Form 8843', to: '/form-8843' },
 ]
+const linkClass = 'text-sm font-medium text-ink-3 transition-colors hover:text-ink'
+const pill =
+  'press inline-flex min-h-9 items-center justify-center rounded-full px-4 text-sm font-semibold'
+
+function NavLinks({ onNavigate, className }) {
+  return NAV_LINKS.map((link) =>
+    link.href ? (
+      <a key={link.label} href={link.href} className={className} onClick={onNavigate}>
+        {link.label}
+      </a>
+    ) : (
+      <Link key={link.label} to={link.to} className={className} onClick={onNavigate}>
+        {link.label}
+      </Link>
+    ),
+  )
+}
 
 export function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const { user, loading, signOut } = useAuth()
-  const accountLabel = user?.is_guest ? 'Guest' : user?.email
   // signOut rejects when the request fails; do not leave that unhandled, and do
   // not pass the click event through as its redirect path.
   const handleSignOut = () => signOut('/login').catch(() => {})
@@ -28,142 +48,121 @@ export function Navbar() {
 
   return (
     <header
-      className={`sticky top-0 z-50 w-full bg-bg/80 backdrop-blur-xl transition-colors duration-200 ${
-        scrolled ? 'border-b border-line' : 'border-b border-transparent'
+      className={`material sticky top-0 z-50 w-full border-b transition-colors duration-300 ${
+        scrolled || isMenuOpen ? 'border-line/70' : 'border-transparent'
       }`}
     >
-      <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4 sm:px-6">
+      <div className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-4 px-4 sm:px-6">
+        <Brand />
 
-        {/* Logo */}
-        <Link to="/" className="flex items-center gap-2.5">
-          <div className="font-mono text-xs font-bold border border-surface-3 px-2 py-1 text-tint-ink">F1</div>
-          <span className="text-sm font-normal text-ink">Tax Helper</span>
-        </Link>
-
-        {/* Center nav — desktop */}
-        <nav className="hidden items-center gap-8 md:flex">
-          {NAV_LINKS.map((link) =>
-            link.href ? (
-              <a
-                key={link.label}
-                href={link.href}
-                className="text-xs uppercase tracking-widest text-ink-4 transition-colors hover:text-ink"
-              >
-                {link.label}
-              </a>
-            ) : (
-              <Link
-                key={link.label}
-                to={link.to}
-                className="text-xs uppercase tracking-widest text-ink-4 transition-colors hover:text-ink"
-              >
-                {link.label}
-              </Link>
-            )
-          )}
+        <nav aria-label="Site" className="hidden items-center gap-8 md:flex">
+          <NavLinks className={linkClass} />
         </nav>
 
-        {/* Right — desktop */}
-        <div className="hidden items-center gap-3 md:flex">
-          {user ? (
-            <>
-              <span className="max-w-[160px] truncate text-xs text-ink-3">{accountLabel}</span>
-              <Link to="/home" className="btn-primary py-2 px-4 text-xs">
-                Open app
-              </Link>
-              <button type="button" onClick={handleSignOut} className="btn-ghost py-2 px-4 text-xs">
-                Sign Out
-              </button>
-            </>
-          ) : (
-            <>
-              <Link to="/login" className="btn-ghost py-2 px-4 text-xs">
-                {loading ? 'Loading…' : 'Sign In'}
-              </Link>
-              <Link to="/status-checker" className="btn-primary py-2 px-4 text-xs">
-                Get Started
-              </Link>
-            </>
-          )}
+        <div className="flex items-center gap-2">
+          <ThemeToggle />
+          <div className="hidden items-center gap-2 md:flex">
+            {user ? (
+              <>
+                <button
+                  type="button"
+                  onClick={handleSignOut}
+                  className={`${pill} text-ink-3 hover:text-ink`}
+                >
+                  Sign out
+                </button>
+                <Link to="/home" className={`${pill} bg-tint text-white hover:bg-tint-hover`}>
+                  Open app
+                </Link>
+              </>
+            ) : (
+              <>
+                <Link to="/login" className={`${pill} text-ink-2 hover:text-ink`}>
+                  {loading ? 'Loading…' : 'Sign in'}
+                </Link>
+                <Link
+                  to="/status-checker"
+                  className={`${pill} bg-tint text-white hover:bg-tint-hover`}
+                >
+                  Get started
+                </Link>
+              </>
+            )}
+          </div>
+          <button
+            type="button"
+            className="flex h-9 w-9 items-center justify-center rounded-full bg-surface-2 text-ink md:hidden"
+            onClick={() => setIsMenuOpen((v) => !v)}
+            aria-label="Toggle menu"
+            aria-expanded={isMenuOpen}
+          >
+            {isMenuOpen ? (
+              <X className="h-[18px] w-[18px]" />
+            ) : (
+              <Menu className="h-[18px] w-[18px]" />
+            )}
+          </button>
         </div>
-
-        {/* Hamburger — mobile */}
-        <button
-          type="button"
-          className="flex h-9 w-9 items-center justify-center rounded-md text-ink-4 transition-colors hover:text-ink md:hidden"
-          onClick={() => setIsMenuOpen((v) => !v)}
-          aria-label="Toggle menu"
-        >
-          {isMenuOpen
-            ? <X className="h-4 w-4" />
-            : <Menu className="h-4 w-4" />
-          }
-        </button>
       </div>
 
-      {/* Mobile drawer */}
-      {isMenuOpen && (
-        <div className="border-t border-line bg-bg px-4 py-4 md:hidden">
-          <nav className="flex flex-col gap-4">
-            {NAV_LINKS.map((link) =>
-              link.href ? (
-                <a
-                  key={link.label}
-                  href={link.href}
-                  className="text-xs uppercase tracking-widest text-ink-4 transition-colors hover:text-ink"
-                  onClick={closeMenu}
-                >
-                  {link.label}
-                </a>
-              ) : (
-                <Link
-                  key={link.label}
-                  to={link.to}
-                  className="text-xs uppercase tracking-widest text-ink-4 transition-colors hover:text-ink"
-                  onClick={closeMenu}
-                >
-                  {link.label}
-                </Link>
-              )
-            )}
-
-            <div className="mt-2 flex flex-col gap-2 border-t border-line pt-4">
-              {user ? (
-                <>
-                  <span className="text-xs text-ink-3">{accountLabel}</span>
-                  <Link to="/home" className="btn-primary justify-center text-sm" onClick={closeMenu}>
-                    Open app
-                  </Link>
-                  <button
-                    type="button"
-                    onClick={() => { closeMenu(); handleSignOut() }}
-                    className="btn-ghost w-full justify-center py-2 text-xs"
-                  >
-                    Sign Out
-                  </button>
-                </>
-              ) : (
-                <>
-                  <Link
-                    to="/login"
-                    className="w-full rounded-xl bg-tint px-4 py-2.5 text-sm font-semibold text-white text-center"
-                    onClick={closeMenu}
-                  >
-                    Sign In
-                  </Link>
-                  <Link
-                    to="/status-checker"
-                    className="btn-primary w-full justify-center py-2 text-xs"
-                    onClick={closeMenu}
-                  >
-                    Get Started
-                  </Link>
-                </>
-              )}
-            </div>
-          </nav>
-        </div>
-      )}
+      <AnimatePresence initial={false}>
+        {isMenuOpen && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={settle}
+            className="overflow-hidden md:hidden"
+          >
+            <nav aria-label="Site" className="flex flex-col px-4 pb-5 pt-1">
+              <NavLinks
+                onNavigate={closeMenu}
+                className="flex min-h-12 items-center border-b border-line/70 text-[17px] font-medium text-ink"
+              />
+              <div className="mt-4 flex flex-col gap-2">
+                {user ? (
+                  <>
+                    <Link
+                      to="/home"
+                      onClick={closeMenu}
+                      className={`${pill} min-h-12 bg-tint text-[17px] text-white`}
+                    >
+                      Open app
+                    </Link>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        closeMenu()
+                        handleSignOut()
+                      }}
+                      className={`${pill} min-h-12 bg-surface-2 text-[17px] text-ink`}
+                    >
+                      Sign out
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <Link
+                      to="/status-checker"
+                      onClick={closeMenu}
+                      className={`${pill} min-h-12 bg-tint text-[17px] text-white`}
+                    >
+                      Get started
+                    </Link>
+                    <Link
+                      to="/login"
+                      onClick={closeMenu}
+                      className={`${pill} min-h-12 bg-surface-2 text-[17px] text-ink`}
+                    >
+                      Sign in
+                    </Link>
+                  </>
+                )}
+              </div>
+            </nav>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </header>
   )
 }

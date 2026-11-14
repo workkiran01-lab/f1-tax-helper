@@ -8,7 +8,7 @@ export default function ContactPage() {
       <header className="sticky top-0 z-20 border-b border-line bg-bg/80 backdrop-blur">
         <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-4 sm:px-6">
           <Link to="/" className="flex items-center gap-3">
-            <div className="font-mono text-xs font-bold border border-line px-2 py-1 text-tint-ink">F1</div>
+            <div className="text-xs font-bold border border-line px-2 py-1 text-tint-ink">F1</div>
             <span className="text-base font-semibold tracking-wide text-ink sm:text-lg">F1 Tax Helper</span>
           </Link>
         </div>
@@ -16,7 +16,7 @@ export default function ContactPage() {
 
       <section className="relative z-10 mx-auto w-full max-w-4xl px-4 py-12 sm:px-6 sm:py-16">
         <div className="rounded-3xl border border-line bg-surface p-8 sm:p-12">
-          <p className="mb-6 font-mono text-[10px] uppercase tracking-widest text-ink-5">
+          <p className="mb-6 text-xs text-ink-5">
             SUPPORT
           </p>
           <h1 className="text-4xl font-extrabold tracking-tight text-ink sm:text-5xl">Get in Touch</h1>

@@ -253,7 +253,7 @@ export default function QuestionnairePage() {
 
   if (stopped) {
     return (
-      <div className="relative flex min-h-screen flex-col overflow-hidden bg-bg text-slate-100">
+      <div className="relative flex min-h-screen flex-col overflow-hidden bg-bg text-ink">
         <div className="absolute inset-0 bg-grid opacity-30 pointer-events-none" />
         <DisclaimerBanner />
         <FocusHeader title="Tax status check" />
@@ -263,7 +263,7 @@ export default function QuestionnairePage() {
         <main className="relative z-10 flex flex-1 items-center justify-center px-4 py-8 text-center sm:px-6">
           <div>
             <div className="w-full max-w-xl rounded-2xl border border-line bg-surface p-8">
-              <AlertTriangle className="mx-auto mb-4 h-12 w-12 text-warn" />
+              <AlertTriangle className="mx-auto mb-4 h-12 w-12 text-warn-ink" />
               <h2 className="mb-2 text-lg font-semibold text-ink">Important Notice</h2>
               <p className="text-sm text-ink-4">
                 This tool is designed specifically for students on an F-1 visa. For other visa
@@ -295,7 +295,7 @@ export default function QuestionnairePage() {
   }
 
   return (
-    <div className="relative flex min-h-screen flex-col overflow-hidden bg-bg text-slate-100">
+    <div className="relative flex min-h-screen flex-col overflow-hidden bg-bg text-ink">
       <div className="absolute inset-0 bg-grid opacity-30 pointer-events-none" />
       <DisclaimerBanner />
       <FocusHeader title="Tax status check" note="Saved automatically" />
@@ -351,7 +351,7 @@ export default function QuestionnairePage() {
                   <div className="py-8 text-center">
                     <p className="text-sm text-ink-5">Preparing your results…</p>
                     {saveWarning && (
-                      <p className="mt-3 rounded-xl border border-warn/20 bg-warn/10 px-4 py-3 text-sm text-warn">
+                      <p className="mt-3 rounded-xl border border-warn/20 bg-warn/10 px-4 py-3 text-sm text-warn-ink">
                         {saveWarning}
                       </p>
                     )}
@@ -382,7 +382,7 @@ export default function QuestionnairePage() {
 function Question1({ onAnswer }) {
   return (
     <div>
-      <p className="mb-3 font-mono text-[10px] uppercase tracking-widest text-ink-5">STEP 1</p>
+      <p className="mb-3 text-xs text-ink-5">STEP 1</p>
       <h2 className="text-base sm:text-lg font-semibold text-ink mb-2">
         Were you in the US under F-1 student status during 2026?
       </h2>
@@ -412,7 +412,7 @@ function Question1({ onAnswer }) {
 function Question2({ onAnswer }) {
   return (
     <div>
-      <p className="mb-3 font-mono text-[10px] uppercase tracking-widest text-ink-5">STEP 2</p>
+      <p className="mb-3 text-xs text-ink-5">STEP 2</p>
       <h2 className="text-base sm:text-lg font-semibold text-ink mb-2">
         Did you have any US-source income in tax year 2026?
       </h2>
@@ -456,7 +456,7 @@ function Question3({ selected, onToggle, onContinue }) {
   ]
   return (
     <div>
-      <p className="mb-3 font-mono text-[10px] uppercase tracking-widest text-ink-5">STEP 3</p>
+      <p className="mb-3 text-xs text-ink-5">STEP 3</p>
       <h2 className="text-base sm:text-lg font-semibold text-ink mb-2">
         What type of income did you receive?
       </h2>
@@ -477,7 +477,7 @@ function Question3({ selected, onToggle, onContinue }) {
                   ? 'border-tint bg-tint/10 text-ink'
                   : 'border-line bg-surface-2 text-ink-2 hover:bg-surface-2 hover:border-line-strong hover:text-ink',
                 type.id === '1099' && isSelected
-                  ? 'border-warn/40 bg-warn/10 text-warn'
+                  ? 'border-warn/40 bg-warn/10 text-warn-ink'
                   : '',
               )}
             >
@@ -499,8 +499,8 @@ function Question3({ selected, onToggle, onContinue }) {
         })}
         {selected.includes('1099') && (
           <div className="flex items-start gap-3 rounded-xl border border-warn/20 bg-warn/10 px-4 py-3">
-            <AlertTriangle className="h-5 w-5 flex-shrink-0 text-warn" />
-            <p className="text-xs text-warn">
+            <AlertTriangle className="h-5 w-5 flex-shrink-0 text-warn-ink" />
+            <p className="text-xs text-warn-ink">
               A 1099 does not automatically mean self-employment. If you performed services, check
               your specific work authorization with your DSO. Taxable income must still be reported.
             </p>
@@ -530,7 +530,7 @@ function Question4({ onAnswer }) {
   ]
   return (
     <div>
-      <p className="mb-3 font-mono text-[10px] uppercase tracking-widest text-ink-5">STEP 4</p>
+      <p className="mb-3 text-xs text-ink-5">STEP 4</p>
       <h2 className="text-base sm:text-lg font-semibold text-ink mb-2">
         Including 2026, how many exempt student, teacher or trainee calendar years have you had?
       </h2>
@@ -572,7 +572,7 @@ function Question5({ onSelect, selectedCountry, onContinue }) {
 
   return (
     <div>
-      <p className="mb-3 font-mono text-[10px] uppercase tracking-widest text-ink-5">STEP 5</p>
+      <p className="mb-3 text-xs text-ink-5">STEP 5</p>
       <h2 className="text-base sm:text-lg font-semibold text-ink mb-2">
         Where were you a tax resident just before coming to the US?
       </h2>
@@ -606,7 +606,7 @@ function Question5({ onSelect, selectedCountry, onContinue }) {
             type="text"
             placeholder="Search for your country..."
             className="flex-1 bg-surface-2 text-sm text-ink outline-none placeholder:text-ink-5"
-            style={{ backgroundColor: '#131c2e', colorScheme: 'dark' }}
+            style={{ backgroundColor: 'rgb(var(--surface-2))' }}
             value={search}
             aria-label="Search countries"
             onChange={(e) => {
@@ -655,8 +655,8 @@ function Question5({ onSelect, selectedCountry, onContinue }) {
       {selectedCountry && (
         <div className="mt-4 space-y-4">
           <div className="flex items-center gap-2 rounded-xl border border-ok/30 bg-ok/10 px-4 py-3">
-            <Check className="h-4 w-4 text-ok" />
-            <span className="text-sm text-ok">{selectedCountry}</span>
+            <Check className="h-4 w-4 text-ok-ink" />
+            <span className="text-sm text-ok-ink">{selectedCountry}</span>
           </div>
           <button
             type="button"

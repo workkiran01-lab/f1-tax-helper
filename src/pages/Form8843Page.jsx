@@ -78,7 +78,7 @@ function Field({ name, label, value, onChange, error, multiline = false, ...rest
         {...rest}
       />
       {error && (
-        <p id={`${name}-error`} className="mt-1 text-xs text-danger">
+        <p id={`${name}-error`} className="mt-1 text-xs text-bad-ink">
           {error}
         </p>
       )}
@@ -104,7 +104,7 @@ function YesNo({ name, label, data, set, error }) {
           </label>
         ))}
       </div>
-      {error && <p className="mt-2 text-xs text-danger">{error}</p>}
+      {error && <p className="mt-2 text-xs text-bad-ink">{error}</p>}
     </fieldset>
   )
 }
@@ -259,7 +259,7 @@ export default function Form8843Page() {
           <section className="min-w-0 rounded-2xl border border-border bg-surface p-5 sm:p-8">
             {success ? (
               <div className="animate-fade-up space-y-5">
-                <AnimatedCheck className="h-10 w-10 text-success" />
+                <AnimatedCheck className="h-10 w-10 text-ok-ink" />
                 <h2 className="text-xl font-semibold text-headline">
                   Your {year} form has downloaded.
                 </h2>
@@ -268,7 +268,7 @@ export default function Form8843Page() {
                   sign and date page 2. If filing a tax return, attach Form 8843 as instructed. This
                   app does not submit anything to the IRS.
                 </p>
-                <p className="text-sm text-warning">
+                <p className="text-sm text-warn-ink">
                   For {year}, the usual standalone no-return deadline was{' '}
                   {filingDeadline(false, year)}. If filing late, review the IRS instructions or seek
                   qualified help; generating a form does not establish eligibility.
@@ -277,7 +277,7 @@ export default function Form8843Page() {
                   href={SOURCES.form8843}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="block text-sm text-primary hover:underline"
+                  className="block text-sm text-tint-ink hover:underline"
                 >
                   Check the IRS filing and mailing instructions →
                 </a>
@@ -313,7 +313,7 @@ export default function Form8843Page() {
                   {notice && (
                     <p
                       role="alert"
-                      className="mb-5 rounded-xl border border-warning/30 bg-warning-soft p-3 text-sm text-warning"
+                      className="mb-5 rounded-xl border border-warning/30 bg-warning-soft p-3 text-sm text-warn-ink"
                     >
                       {notice}
                     </p>
@@ -330,7 +330,7 @@ export default function Form8843Page() {
                                 setStep(index)
                                 setReview(false)
                               }}
-                              className="text-xs text-primary"
+                              className="text-xs text-tint-ink"
                             >
                               Edit
                             </button>
@@ -380,7 +380,7 @@ export default function Form8843Page() {
                           ))}
                       </div>
                       {!ready && (
-                        <p className="rounded-xl border border-warning/30 bg-warning-soft p-4 text-sm text-warning">
+                        <p className="rounded-xl border border-warning/30 bg-warning-soft p-4 text-sm text-warn-ink">
                           Preparation only. The final {year} IRS form is not yet verified for
                           download. Your draft stays in this tab. Review your actual full-year
                           information before filing.
@@ -427,7 +427,7 @@ export default function Form8843Page() {
                               dsoZip: undefined,
                             }))
                           }}
-                          className="mb-5 text-sm text-primary hover:underline"
+                          className="mb-5 text-sm text-tint-ink hover:underline"
                         >
                           Use my school's address for the DSO office
                         </button>
@@ -517,7 +517,7 @@ export default function Form8843Page() {
                                     ))}
                                   </select>
                                   {errors[`visa-${y}`] && (
-                                    <p className="mt-1 text-xs text-danger">
+                                    <p className="mt-1 text-xs text-bad-ink">
                                       {errors[`visa-${y}`]}
                                     </p>
                                   )}
@@ -597,13 +597,13 @@ export default function Form8843Page() {
             )}
           </section>
           <aside className="min-w-0 lg:sticky lg:top-24">
-            <div className="mb-3 flex items-center justify-between text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
+            <div className="mb-3 flex items-center justify-between text-xs text-muted-foreground">
               <span>Live preview · {year}</span>
               <span>Preparation only</span>
             </div>
             <FormPreview formData={data} activeStep={step} showReview={review} />
             <p className="mt-4 flex items-start gap-2 text-xs leading-relaxed text-muted-foreground">
-              <ShieldCheck className="h-4 w-4 shrink-0 text-primary" />
+              <ShieldCheck className="h-4 w-4 shrink-0 text-tint-ink" />
               This preview is a guide, not an IRS form. Closing the tab or clearing data removes the
               saved draft. Downloaded PDFs stay on your device.
             </p>

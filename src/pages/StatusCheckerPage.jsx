@@ -111,7 +111,7 @@ export default function StatusCheckerPage() {
   }
 
   return (
-    <div className="relative flex min-h-screen flex-col overflow-hidden bg-bg text-slate-100">
+    <div className="relative flex min-h-screen flex-col overflow-hidden bg-bg text-ink">
       <div className="absolute inset-0 bg-grid opacity-30 pointer-events-none" />
 
       <FocusHeader title="Quick status check" note={`Question ${step + 1} of ${totalSteps}`} />
@@ -201,7 +201,7 @@ function ResultScreen({ result, navigate, signInAsGuest, user }) {
   }
 
   return (
-    <div className="relative flex min-h-screen flex-col overflow-hidden bg-bg text-slate-100">
+    <div className="relative flex min-h-screen flex-col overflow-hidden bg-bg text-ink">
       <div className="absolute inset-0 bg-grid opacity-30 pointer-events-none" />
 
       <FocusHeader title="Quick status check" note="Your result" />
@@ -213,10 +213,10 @@ function ResultScreen({ result, navigate, signInAsGuest, user }) {
         <div className="mb-8 text-center">
           <div className="mb-4 inline-flex items-center gap-2">
             <span
-              className={`rounded-full px-5 py-2 text-sm font-mono font-medium ${
+              className={`rounded-full px-5 py-2 text-sm font-medium ${
                 isNRA
-                  ? 'border border-ok/30 bg-ok/10 text-ok'
-                  : 'border border-warn/30 bg-warn/10 text-warn'
+                  ? 'border border-ok/30 bg-ok/10 text-ok-ink'
+                  : 'border border-warn/30 bg-warn/10 text-warn-ink'
               }`}
             >
               {result.status}
@@ -224,7 +224,7 @@ function ResultScreen({ result, navigate, signInAsGuest, user }) {
           </div>
           <h1 className="text-2xl font-bold text-ink">Your Tax Filing Results</h1>
           {result.message && (
-            <p className="mt-3 rounded-xl border border-warn/20 bg-warn/10 p-3 text-sm text-warn">
+            <p className="mt-3 rounded-xl border border-warn/20 bg-warn/10 p-3 text-sm text-warn-ink">
               {result.message}
             </p>
           )}
@@ -233,7 +233,7 @@ function ResultScreen({ result, navigate, signInAsGuest, user }) {
         {/* Filing requirements */}
         {result.forms.length === 0 && (
           <div className="mb-5 rounded-2xl border border-line bg-surface p-5 sm:p-6">
-            <h2 className="text-xs font-mono uppercase tracking-widest text-ink-5 mb-2">
+            <h2 className="text-xs text-ink-5 mb-2">
               Your Filing Requirements
             </h2>
             <p className="text-sm text-ink-2">
@@ -244,7 +244,7 @@ function ResultScreen({ result, navigate, signInAsGuest, user }) {
         )}
         {result.forms.length > 0 && (
           <Stagger className="mb-5 rounded-2xl border border-line bg-surface p-5 sm:p-6">
-            <h2 className="text-xs font-mono uppercase tracking-widest text-ink-5 mb-4">
+            <h2 className="text-xs text-ink-5 mb-4">
               Your Filing Requirements
             </h2>
             <div className="space-y-3">
@@ -290,10 +290,10 @@ function ResultScreen({ result, navigate, signInAsGuest, user }) {
 
         {/* Deadline card */}
         <div className="mb-5 rounded-2xl border border-line bg-surface p-5 sm:p-6">
-          <h2 className="text-xs font-mono uppercase tracking-widest text-ink-5 mb-2">
+          <h2 className="text-xs text-ink-5 mb-2">
             Expected Filing Deadline
           </h2>
-          <p className="text-sm font-medium text-tint-ink font-mono">{result.deadline}</p>
+          <p className="text-sm font-medium text-tint-ink ">{result.deadline}</p>
           <p className="text-xs text-ink-4 mt-1">{DEADLINE_NOTE}</p>
         </div>
 
@@ -307,7 +307,7 @@ function ResultScreen({ result, navigate, signInAsGuest, user }) {
             {user ? 'Open My Taxes →' : 'View My Document Checklist →'}
           </button>
           {showChecklistPrompt && (
-            <div className="rounded-2xl border border-warn/30 bg-warn/10 p-4 text-sm text-warn">
+            <div className="rounded-2xl border border-warn/30 bg-warn/10 p-4 text-sm text-warn-ink">
               <p className="leading-6">
                 Continue as a guest to use this checklist in this browser. Signing in keeps account
                 progress separate; you may need to repeat this short check.
@@ -316,14 +316,14 @@ function ResultScreen({ result, navigate, signInAsGuest, user }) {
                 <button
                   type="button"
                   onClick={() => navigate('/login')}
-                  className="rounded-xl bg-warn px-4 py-2 text-xs font-semibold text-slate-950 transition-colors hover:bg-warn-deep"
+                  className="rounded-xl bg-warn px-4 py-2 text-xs font-semibold text-black transition-colors hover:bg-warn-deep"
                 >
                   Sign in with Google
                 </button>
                 <button
                   type="button"
                   onClick={() => signInAsGuest('/taxes')}
-                  className="rounded-xl border border-warn/40 bg-transparent px-4 py-2 text-xs font-semibold text-warn transition-colors hover:border-warn/60"
+                  className="rounded-xl border border-warn/40 bg-transparent px-4 py-2 text-xs font-semibold text-warn-ink transition-colors hover:border-warn/60"
                 >
                   Continue as Guest
                 </button>

@@ -20,7 +20,7 @@ export default function DisclaimerBanner() {
   if (dismissed) return null
 
   return (
-    <div className="relative z-20 border-b border-amber-300/40 bg-amber-500/15 px-4 py-3 text-sm text-amber-100">
+    <div className="relative z-20 border-b border-warn/40 bg-warn/15 px-4 py-3 text-sm text-warn-ink">
       <div className="mx-auto flex max-w-6xl items-start justify-between gap-3">
         <p className="leading-6">
           ⚠️ For informational purposes only. This is not legal or tax advice. Always verify with a qualified tax professional or your DSO before filing.
@@ -28,7 +28,7 @@ export default function DisclaimerBanner() {
         <button
           type="button"
           onClick={handleDismiss}
-          className="mt-0.5 rounded-lg p-1 text-amber-100/80 transition-colors hover:bg-amber-400/10 hover:text-amber-50"
+          className="mt-0.5 rounded-lg p-1 text-warn-ink/80 transition-colors hover:bg-warn/10 hover:text-warn-ink"
           aria-label="Dismiss disclaimer"
         >
           <X className="h-4 w-4" />

@@ -52,7 +52,7 @@ export function ChatHistory({ conversations = [], activeId, onSelect, onNewChat,
         ) : (
           groupConversations(conversations).map(([label, items]) => (
             <div key={label}>
-              <h3 className="mb-1 px-3 text-[11px] font-semibold uppercase tracking-wider text-ink-3">
+              <h3 className="mb-1 px-3 text-xs font-semibold text-ink-3">
                 {label}
               </h3>
               {items.map((conv) => (

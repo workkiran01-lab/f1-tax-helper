@@ -55,7 +55,7 @@ export function FilingOptionsSection({ className = '' }) {
             className="flex flex-col gap-3 rounded-xl border border-border bg-background p-4 md:flex-row md:items-center md:justify-between"
           >
             <div className="flex items-start gap-3">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-tint-ink">
                 <Icon className="h-5 w-5" />
               </div>
               <div>
