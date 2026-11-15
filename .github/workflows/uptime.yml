@@ -1,0 +1,31 @@
+name: Uptime check
+
+# Twice a week: keeps the free Supabase project from being auto-paused (the health
+# endpoint makes a real Supabase REST request) and proves AI chat works end to end.
+# A failed run emails the person who last edited this workflow.
+on:
+  schedule:
+    - cron: '17 15 * * 1,4'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Site and Supabase are up
+        run: |
+          curl --fail --silent --show-error --retry 3 --retry-delay 10 --max-time 30 \
+            https://www.f1taxhelper.com/api/health
+      - name: AI chat answers
+        run: |
+          status=$(curl --silent --show-error --retry 2 --retry-delay 10 --max-time 60 \
+            --output /dev/null --write-out '%{http_code}' \
+            -H 'Content-Type: application/json' -H 'Origin: https://www.f1taxhelper.com' \
+            -d '{"messages":[{"role":"user","content":"In one word: what form do F-1 students with no income file?"}]}' \
+            https://www.f1taxhelper.com/api/chat)
+          echo "chat status: $status"
+          test "$status" = "200"

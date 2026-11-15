@@ -27,3 +27,7 @@ Thumbs.db
 .claude/
 f1-tax-helper/
 public/test_filled.pdf
+
+# Playwright
+test-results/
+playwright-report/
