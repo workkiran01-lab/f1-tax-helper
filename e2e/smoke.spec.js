@@ -152,12 +152,14 @@ test.describe('guest journey', () => {
         .locator('select:visible:not([aria-label="Income year"])')
         .all())
         if (!(await select.inputValue())) await select.selectOption('F-1')
+      // Click through the DOM: the step is still animating in, which makes Playwright's
+      // own check() flaky on the phone project.
       for (const radio of await page.locator('input[type=radio][value=no]:visible').all())
-        await radio.check({ force: true })
+        if (!(await radio.isChecked())) await radio.evaluate((el) => el.click())
       const generate = page.getByRole('button', { name: /Generate & download 2025 form/ })
       if (await generate.count()) break
       await page.getByRole('button', { name: /Continue|Review my information/ }).click()
-      await page.waitForTimeout(400)
+      await page.waitForTimeout(700)
     }
     const download = page.waitForEvent('download')
     await page.getByRole('button', { name: /Generate & download 2025 form/ }).click()
