@@ -7,6 +7,7 @@ export const FORM_8843_TEMPLATE_YEAR = 2025
 export const FORM_8843_TEMPLATE_SHA256 =
   'b685fcb296ae6a86ee47d82ceaa5a7b64f0a04e1749420e89d6ddde5ab5a63c8'
 export const SOURCES = Object.freeze({
+  whereToFile: 'https://www.irs.gov/filing/where-to-file-forms-beginning-with-the-number-8',
   form8843: 'https://www.irs.gov/forms-pubs/about-form-8843',
   form8843Pdf: 'https://www.irs.gov/pub/irs-pdf/f8843.pdf',
   form8843Draft: 'https://www.irs.gov/pub/irs-dft/f8843--dft.pdf',
@@ -56,3 +57,18 @@ export function daysInYear(year) {
 export function canGenerate8843(year) {
   return Number(year) === FORM_8843_TEMPLATE_YEAR
 }
+
+// Where to mail a Form 8843 that is filed on its own (no tax return required). Copied from
+// the IRS "Where to file" page for forms beginning with 8 and reviewed on the date below.
+// Addresses change: the guide always links the page and tells the student to confirm it.
+// If the student files a 1040-NR, the form is attached to that return instead.
+export const FORM_8843_MAILING = Object.freeze({
+  standalone: Object.freeze([
+    'Department of the Treasury',
+    'Internal Revenue Service',
+    'Austin, TX 73301',
+  ]),
+  source: SOURCES.whereToFile,
+  reviewed: '2026-11-15',
+})
+
