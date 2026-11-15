@@ -10,7 +10,8 @@ import {
   visaYears,
   presenceYears,
 } from '../utils/form8843Model.js'
-import { TAX_YEAR, canGenerate8843, SOURCES, filingDeadline } from '../data/taxSeason.js'
+import { TAX_YEAR, canGenerate8843 } from '../data/taxSeason.js'
+import MailingGuide from '../components/form8843/MailingGuide'
 import { readStored, writeStored, removeStored, seasonKey } from '../utils/storage.js'
 import { FormPreview } from '../components/form8843/FormPreview'
 import SeasonNotice from '../components/SeasonNotice'
@@ -262,23 +263,14 @@ export default function Form8843Page() {
                   Your {year} form has downloaded.
                 </h2>
                 <p className="text-sm leading-relaxed">
-                  Review every entry and any supporting statements. When filing standalone, print,
-                  sign and date page 2. If filing a tax return, attach Form 8843 as instructed. This
-                  app does not submit anything to the IRS.
+                  This app does not submit anything to the IRS. Here is what to do with the paper
+                  form.
                 </p>
+                <MailingGuide year={year} />
                 <p className="text-sm text-warn-ink">
-                  For {year}, the usual standalone no-return deadline was{' '}
-                  {filingDeadline(false, year)}. If filing late, review the IRS instructions or seek
+                  If you are past the {year} deadline, review the IRS instructions or seek
                   qualified help; generating a form does not establish eligibility.
                 </p>
-                <a
-                  href={SOURCES.form8843}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="block text-sm text-tint-ink hover:underline"
-                >
-                  Check the IRS filing and mailing instructions →
-                </a>
                 <button
                   className="btn-ghost"
                   onClick={() => {
