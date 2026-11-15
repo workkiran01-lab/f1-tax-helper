@@ -17,6 +17,7 @@ import NotFoundPage from './pages/NotFoundPage'
 import StatusCheckerPage from './pages/StatusCheckerPage'
 import useAuth, { AuthProvider } from './hooks/useAuth'
 import { MotionConfig } from 'framer-motion'
+import { PageSkeleton, SessionSplash } from './components/app/Skeleton'
 
 const ChatPage = lazy(() => import('./pages/ChatPage'))
 const Form8843Page = lazy(() => import('./pages/Form8843Page'))
@@ -26,8 +27,8 @@ function LazySuspense({ children }) {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-bg flex items-center justify-center">
-          <div className="h-8 w-8 animate-spin rounded-full border-2 border-ink/20 border-t-ink" />
+        <div className="min-h-dvh bg-bg">
+          <PageSkeleton />
         </div>
       }
     >
@@ -36,22 +37,11 @@ function LazySuspense({ children }) {
   )
 }
 
-function FullScreenSpinner() {
-  return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4">
-      <div className="flex flex-col items-center gap-4 rounded-2xl border border-border bg-card px-8 py-10 shadow-sm">
-        <div className="h-10 w-10 animate-spin rounded-full border-4 border-primary/20 border-t-primary" />
-        <p className="text-sm text-muted-foreground">Checking your secure session…</p>
-      </div>
-    </div>
-  )
-}
-
 function ProtectedRoute({ children }) {
   const { user, loading, exitPath } = useAuth()
 
   if (loading) {
-    return <FullScreenSpinner />
+    return <SessionSplash />
   }
 
   if (!user) {

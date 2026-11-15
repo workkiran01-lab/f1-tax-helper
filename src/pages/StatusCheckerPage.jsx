@@ -5,7 +5,6 @@ import SeasonNotice from '../components/SeasonNotice'
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { ChevronLeft } from 'lucide-react'
-import DisclaimerBanner from '../components/DisclaimerBanner'
 import useAuth from '../hooks/useAuth'
 import { FocusHeader } from '../components/app/PageHeader'
 import { AnimatedProgress, StepTransition, Stagger, StaggerItem } from '../components/Motion'
@@ -116,7 +115,6 @@ export default function StatusCheckerPage() {
 
       <FocusHeader title="Quick status check" note={`Question ${step + 1} of ${totalSteps}`} />
 
-      <DisclaimerBanner />
 
       <main className="relative z-10 mx-auto flex w-full max-w-xl flex-1 flex-col px-4 py-12 sm:px-6">
         <SeasonNotice compact />
@@ -206,7 +204,6 @@ function ResultScreen({ result, navigate, signInAsGuest, user }) {
 
       <FocusHeader title="Quick status check" note="Your result" />
 
-      <DisclaimerBanner />
 
       <main className="relative z-10 mx-auto w-full max-w-xl px-4 py-10 sm:px-6">
         {/* Status badge */}

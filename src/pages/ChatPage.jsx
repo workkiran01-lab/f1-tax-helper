@@ -8,7 +8,6 @@ import { chatContextFor, currentTaxProfile } from '../utils/taxProfile.js'
 import { displayNameFor, initialOf } from '../utils/displayName.js'
 import { ChatHistory } from '../components/chat/ChatHistory'
 import { ChatMain, StructuredMessage } from '../components/chat/ChatMain'
-import DisclaimerBanner from '../components/DisclaimerBanner'
 
 const loadConversations = (key) => {
   const stored = readStored(key, [])
@@ -107,7 +106,6 @@ export default function ChatPage() {
 
   return (
     <div className="relative flex h-[calc(100dvh-var(--tabbar))] flex-col overflow-hidden bg-bg text-ink-2 lg:h-dvh">
-      <DisclaimerBanner />
       <header className="material z-10 flex shrink-0 items-center justify-between gap-3 border-b border-line/70 px-5 py-2.5 lg:px-8">
         <div className="min-w-0">
           <h1 className="text-[22px] font-bold leading-tight text-ink">Ask AI</h1>

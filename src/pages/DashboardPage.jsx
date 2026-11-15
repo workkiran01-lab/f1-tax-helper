@@ -18,7 +18,6 @@ import IconTile from '../components/app/IconTile'
 import { displayNameFor, firstName, universityFor } from '../utils/displayName.js'
 import { TAX_YEAR, FILING_YEAR } from '../data/taxSeason.js'
 import { PageHeader } from '../components/app/PageHeader'
-import DisclaimerBanner from '../components/DisclaimerBanner'
 import { cn } from '../utils/cn'
 import { motion } from 'framer-motion'
 import { CountUp, ProgressRing, Sequence, SequenceItem, settle } from '../components/app/motion'
@@ -245,7 +244,6 @@ export default function DashboardPage() {
 
   return (
     <>
-      <DisclaimerBanner />
       <main className="mx-auto w-full max-w-5xl px-5 pb-8 lg:px-10 lg:pb-12">
         <PageHeader
           eyebrow={`Tax year ${TAX_YEAR}, filed in ${FILING_YEAR}`}

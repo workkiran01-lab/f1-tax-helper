@@ -10,7 +10,6 @@ import { currentTaxProfile } from '../utils/taxProfile.js'
 import { AnimatedCheck, AnimatedProgress } from '../components/Motion'
 import { FilingOptionsSection } from '../components/checklist/FilingOptionsSection'
 import { PageHeader } from '../components/app/PageHeader'
-import DisclaimerBanner from '../components/DisclaimerBanner'
 import SeasonNotice from '../components/SeasonNotice'
 import { cn } from '../utils/cn'
 
@@ -128,6 +127,14 @@ export default function MyTaxesPage() {
   useStoredRefresh()
   const profile = currentTaxProfile(user)
   const syncWarning = location.state?.syncWarning || null
+  // Set when the status check just finished: show a one-time confirmation, then drop the
+  // flag from history so a reload does not replay it.
+  const [justFinished] = useState(() => Boolean(location.state?.justFinished))
+  useEffect(() => {
+    if (location.state?.justFinished)
+      navigate(location.pathname, { replace: true, state: { syncWarning } })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const profileKey = profile
     ? [profile.needsReview, profile.hasIncome, profile.hasW2, profile.hasScholarship].join()
@@ -162,7 +169,6 @@ export default function MyTaxesPage() {
   if (!profile)
     return (
       <>
-        <DisclaimerBanner />
         <main className="mx-auto w-full max-w-3xl px-5 pb-8 lg:px-10 lg:pb-12">
           <PageHeader eyebrow={`Tax year ${TAX_YEAR}`} title="My Taxes" />
           <section className={cn(card, 'mt-6 p-6 text-center')}>
@@ -234,9 +240,22 @@ export default function MyTaxesPage() {
 
   return (
     <>
-      <DisclaimerBanner />
       <main className="mx-auto w-full max-w-3xl space-y-7 px-5 pb-8 lg:px-10 lg:pb-12">
         <PageHeader eyebrow={`Tax year ${TAX_YEAR}`} title="My Taxes" />
+
+        {justFinished && (
+          <div
+            role="status"
+            className="flex items-center gap-3 rounded-2xl border border-ok/25 bg-ok/10 px-4 py-3"
+          >
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-ok/20 text-ok-ink">
+              <AnimatedCheck className="h-5 w-5" />
+            </span>
+            <p className="text-[15px] font-medium text-ink">
+              Status check complete. Here is what applies to you.
+            </p>
+          </div>
+        )}
 
         {syncWarning && (
           <p

@@ -2,7 +2,6 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { ArrowRight, Check, ChevronDown, Search, AlertTriangle } from 'lucide-react'
 import { cn } from '../utils/cn'
-import DisclaimerBanner from '../components/DisclaimerBanner'
 import supabase from '../utils/supabase'
 import useAuth from '../hooks/useAuth'
 import { FocusHeader } from '../components/app/PageHeader'
@@ -242,7 +241,7 @@ export default function QuestionnairePage() {
       if (cancelled) return
       removeStored(STORAGE_KEY, 'sessionStorage')
       // My Taxes reads the saved result; only the sync warning travels with the navigation.
-      navigate('/taxes', { replace: true, state: { syncWarning } })
+      navigate('/taxes', { replace: true, state: { syncWarning, justFinished: true } })
     }
 
     persistAndContinue()
@@ -255,7 +254,6 @@ export default function QuestionnairePage() {
     return (
       <div className="relative flex min-h-screen flex-col overflow-hidden bg-bg text-ink">
         <div className="absolute inset-0 bg-grid opacity-30 pointer-events-none" />
-        <DisclaimerBanner />
         <FocusHeader title="Tax status check" />
         <div className="mx-auto w-full max-w-3xl px-4 pt-4">
           <SeasonNotice compact />
@@ -297,7 +295,6 @@ export default function QuestionnairePage() {
   return (
     <div className="relative flex min-h-screen flex-col overflow-hidden bg-bg text-ink">
       <div className="absolute inset-0 bg-grid opacity-30 pointer-events-none" />
-      <DisclaimerBanner />
       <FocusHeader title="Tax status check" note="Saved automatically" />
       <div className="mx-auto w-full max-w-3xl px-4 pt-4">
         <SeasonNotice compact />

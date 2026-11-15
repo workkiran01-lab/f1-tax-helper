@@ -41,8 +41,10 @@ const statusCheck = (overrides = {}) => ({
   message: 'Eligible F-1 student days are excluded during the first five calendar years.',
   ...overrides,
 })
-const signInAsGuest = ({ named = true } = {}) => {
+const ACK = 'f1_disclaimer_ack_v1'
+const signInAsGuest = ({ named = true, acknowledged = true } = {}) => {
   localStorage.setItem('f1_guest_session', 'true')
+  if (acknowledged) localStorage.setItem(ACK, 'true')
   if (named) {
     store('display_name_guest', 'Ana Silva')
     store('university_guest', 'Example University')
@@ -299,3 +301,69 @@ describe('My Taxes, Ask AI and Account', () => {
     expect(localStorage.getItem('f1_guest_session')).toBeNull()
   })
 })
+
+describe('the disclaimer', () => {
+  it('asks once before the app is used, and cannot be dismissed by accident', async () => {
+    signInAsGuest({ acknowledged: false })
+    const view = open('/home')
+    const dialog = await screen.findByRole('dialog', { name: 'Before you start' })
+    expect(within(dialog).getByText(/not legal or tax advice/i)).toBeTruthy()
+
+    fireEvent.keyDown(window, { key: 'Escape' })
+    expect(screen.getByRole('dialog', { name: 'Before you start' })).toBeTruthy()
+
+    fireEvent.click(within(dialog).getByRole('button', { name: 'I understand' }))
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+    expect(localStorage.getItem(ACK)).toBe('true')
+
+    view.unmount()
+    open('/home')
+    await screen.findByRole('heading', { level: 1 })
+    expect(screen.queryByRole('dialog')).toBeNull()
+  })
+
+  it('leaves a quiet note on app screens, except Ask AI which has its own caution', async () => {
+    signInAsGuest()
+    const view = open('/taxes')
+    await screen.findByRole('heading', { name: 'My Taxes' })
+    expect(screen.getByText(/not tax or legal advice/i)).toBeTruthy()
+    expect(screen.queryByRole('button', { name: 'Dismiss disclaimer' })).toBeNull()
+    view.unmount()
+
+    open('/chat')
+    await screen.findByLabelText('Your tax question')
+    expect(screen.queryByText(/not tax or legal advice/i)).toBeNull()
+    expect(screen.getByText(/AI answers can be wrong/i)).toBeTruthy()
+  })
+
+  it('still shows the note to a signed-out visitor on the public status check', async () => {
+    open('/status-checker')
+    expect(await screen.findByText(/not tax or legal advice/i)).toBeTruthy()
+    expect(screen.queryByRole('dialog', { name: 'Before you start' })).toBeNull()
+  })
+})
+
+describe('moments of completion and loading', () => {
+  it('confirms a finished status check once, then forgets it on reload', async () => {
+    signInAsGuest()
+    store(seasonKey('status'), statusCheck())
+    window.history.replaceState({ usr: { justFinished: true }, key: 'k', idx: 0 }, '', '/taxes')
+    const view = render(<App />)
+    expect(await screen.findByText('Status check complete. Here is what applies to you.')).toBeTruthy()
+    await waitFor(() => expect(window.history.state?.usr?.justFinished).toBeUndefined())
+    view.unmount()
+    render(<App />)
+    await screen.findByRole('heading', { name: 'My Taxes' })
+    expect(screen.queryByText(/Status check complete/)).toBeNull()
+  })
+
+  it('shows a labelled splash instead of a bare spinner while the session is checked', async () => {
+    const { SessionSplash, PageSkeleton } = await import('../src/components/app/Skeleton.jsx')
+    render(<SessionSplash />)
+    expect(screen.getByRole('status').textContent).toContain('Checking your secure session')
+    cleanup()
+    render(<PageSkeleton />)
+    expect(screen.getByRole('status', { name: 'Loading' })).toBeTruthy()
+  })
+})
+

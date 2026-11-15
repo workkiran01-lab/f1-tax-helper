@@ -28,8 +28,26 @@ test.describe('public pages', () => {
   })
 })
 
+test.describe('first visit', () => {
+  test('asks for the disclaimer once, then stays out of the way', async ({ page }) => {
+    await page.goto('/login')
+    await page.getByRole('button', { name: /continue as guest/i }).click()
+    const gate = page.getByRole('dialog', { name: 'Before you start' })
+    await expect(gate).toBeVisible()
+    await page.keyboard.press('Escape')
+    await expect(gate).toBeVisible()
+    await gate.getByRole('button', { name: 'I understand' }).click()
+    await expect(gate).toBeHidden()
+    await page.reload()
+    await expect(page.getByRole('heading', { level: 1 })).toContainText(/hi/i)
+    await expect(gate).toBeHidden()
+    await expect(page.getByText(/not tax or legal advice/i)).toBeVisible()
+  })
+})
+
 test.describe('guest journey', () => {
   test.beforeEach(async ({ page }) => {
+    await page.addInitScript(() => localStorage.setItem('f1_disclaimer_ack_v1', 'true'))
     await page.goto('/login')
     await page.getByRole('button', { name: /continue as guest/i }).click()
     await expect(page).toHaveURL(/\/home$/)

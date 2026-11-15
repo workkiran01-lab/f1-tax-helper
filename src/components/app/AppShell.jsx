@@ -7,6 +7,8 @@ import { displayNameFor, initialOf } from '../../utils/displayName.js'
 import { ScreenTransition, snappy } from './motion'
 import { ThemeToggle } from './ThemeSwitch'
 import { BrandMark } from '../Brand'
+import DisclaimerGate from './DisclaimerGate'
+import DisclaimerNote from '../DisclaimerNote'
 
 // The four places in the app. Every signed-in screen shows the same list, so a
 // student always knows where they are and how to get anywhere else.
@@ -134,7 +136,14 @@ function TabBar() {
 export default function AppShell({ children, focus = false }) {
   const { user } = useAuth()
   const { pathname } = useLocation()
-  if (!user) return children
+  // Signed-out visitors (public status check and Form 8843) still see the disclaimer.
+  if (!user)
+    return (
+      <>
+        {children}
+        <DisclaimerNote />
+      </>
+    )
   return (
     <div className="min-h-dvh bg-bg lg:pl-60">
       <a
@@ -148,7 +157,10 @@ export default function AppShell({ children, focus = false }) {
         <ScreenTransition screenKey={pathname} push={focus}>
           {children}
         </ScreenTransition>
+        {/* Chat already carries its own caution under the input and needs the height. */}
+        {pathname !== '/chat' && <DisclaimerNote />}
       </div>
+      <DisclaimerGate />
       {!focus && <TabBar />}
     </div>
   )
