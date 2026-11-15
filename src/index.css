@@ -676,3 +676,20 @@ button:active:not(:disabled),
     transform: none;
   }
 }
+
+/* Blinking cursor shown at the end of an answer while it streams in. */
+.stream-caret {
+  display: inline-block;
+  width: 2px;
+  height: 1em;
+  margin-left: 2px;
+  vertical-align: text-bottom;
+  border-radius: 1px;
+  background: rgb(var(--tint-ink));
+  animation: caret-blink 1s steps(2, start) infinite;
+}
+@keyframes caret-blink {
+  to {
+    visibility: hidden;
+  }
+}

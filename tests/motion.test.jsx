@@ -132,7 +132,9 @@ it('focuses a suggested chat question and prevents replacing it during a request
   expect(input.value).toBe('What is Form 8843?')
   expect(document.activeElement).toBe(input)
   fireEvent.click(screen.getByRole('button', { name: 'Send message' }))
-  expect(suggestion.disabled).toBe(true)
+  // An asked question is not offered again, and the other suggestions wait for the answer.
+  expect(screen.queryByRole('button', { name: 'What is Form 8843?' })).toBeNull()
+  expect(screen.getByRole('button', { name: 'Where do I mail it?' }).disabled).toBe(true)
   expect(screen.getByRole('status').textContent).toContain('Preparing an answer')
   expect(fetch).toHaveBeenCalledTimes(1)
 })

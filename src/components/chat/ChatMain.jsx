@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom'
 import { ArrowUp, ChevronDown, Copy, LoaderCircle } from 'lucide-react'
 import { AnimatedCheck } from '../Motion'
 import { IRSDisclaimer } from './IRSDisclaimer'
+import { suggestionsFor } from '../../utils/chatSuggestions.js'
 
 const MAX_INPUT = 2000
 
@@ -37,13 +38,6 @@ function formatTime(createdAt) {
   if (!Number.isFinite(createdAt)) return ''
   return new Date(createdAt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })
 }
-
-const suggestedQuestions = [
-  'Do I need to file taxes?',
-  'What is Form 8843?',
-  'Do I qualify for a tax treaty?',
-  'What is the filing deadline?',
-]
 
 // ── Sectioned-answer parsing & rendering ────────────────────────────────────
 
@@ -84,23 +78,77 @@ function parseSections(content) {
   return { sections }
 }
 
-function MarkdownLines({ text }) {
+// Inline formatting: **bold** and [label](url). Only https://irs.gov links become links;
+// any other URL keeps just its label. Everything else is plain text (React escapes it).
+const INLINE = /(\*\*[^*]+\*\*|\[[^\]]+\]\((?:[^()\s]|\([^()]*\))+\))/g
+function Inline({ text }) {
+  return text.split(INLINE).map((part, i) => {
+    if (part.startsWith('**') && part.endsWith('**') && part.length > 4)
+      return (
+        <strong key={i} className="font-semibold">
+          {part.slice(2, -2)}
+        </strong>
+      )
+    const link = part.match(/^\[([^\]]+)\]\(((?:[^()\s]|\([^()]*\))+)\)$/)
+    if (link) {
+      const href = safeIRSUrl(link[2])
+      return href ? (
+        <a
+          key={i}
+          href={href}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-tint-ink underline-offset-2 hover:underline"
+        >
+          {link[1]}
+        </a>
+      ) : (
+        link[1]
+      )
+    }
+    return part
+  })
+}
+
+// Groups lines into paragraphs, bullet lists and numbered lists.
+function toBlocks(text) {
+  const blocks = []
+  for (const line of text.split('\n')) {
+    const bullet = line.match(/^\s*[-*•]\s+(.*)$/)
+    const numbered = line.match(/^\s*\d+[.)]\s+(.*)$/)
+    const kind = bullet ? 'ul' : numbered ? 'ol' : 'p'
+    const content = bullet ? bullet[1] : numbered ? numbered[1] : line
+    const last = blocks[blocks.length - 1]
+    if (kind !== 'p' && last?.kind === kind) last.items.push(content)
+    else if (kind === 'p') blocks.push({ kind, items: [content] })
+    else blocks.push({ kind, items: [content] })
+  }
+  return blocks
+}
+
+export function MarkdownLines({ text }) {
   return (
-    <div className="whitespace-pre-wrap text-sm leading-relaxed">
-      {text.split('\n').map((line, i) => {
-        const parts = line.split(/(\*\*[^*]+\*\*)/g)
+    <div className="text-sm leading-relaxed">
+      {toBlocks(text).map((block, i) => {
+        const gap = i > 0 ? 'mt-2' : ''
+        if (block.kind === 'ul' || block.kind === 'ol') {
+          const List = block.kind
+          return (
+            <List
+              key={i}
+              className={`${gap} ml-5 space-y-1 ${block.kind === 'ul' ? 'list-disc' : 'list-decimal'} marker:text-ink-4`}
+            >
+              {block.items.map((item, j) => (
+                <li key={j} className="pl-1">
+                  <Inline text={item} />
+                </li>
+              ))}
+            </List>
+          )
+        }
         return (
-          <p key={i} className={i > 0 ? 'mt-2' : ''}>
-            {parts.map((part, j) => {
-              if (part.startsWith('**') && part.endsWith('**')) {
-                return (
-                  <strong key={j} className="font-semibold">
-                    {part.slice(2, -2)}
-                  </strong>
-                )
-              }
-              return part
-            })}
+          <p key={i} className={gap}>
+            <Inline text={block.items[0]} />
           </p>
         )
       })}
@@ -351,6 +399,10 @@ export function ChatMain({ initialContext, navigationKey, onMessagesChange }) {
   const awaitingFirstToken =
     isLoading && !(lastMessage?.role === 'assistant' && lastMessage.content)
   const visibleMessages = messages.filter((m) => m.role !== 'assistant' || m.content)
+  const suggestions = suggestionsFor(
+    initialContext,
+    messages.filter((m) => m.role === 'user').map((m) => m.content),
+  )
 
   return (
     <div className="flex h-full min-h-0 flex-col bg-transparent">
@@ -388,10 +440,15 @@ export function ChatMain({ initialContext, navigationKey, onMessagesChange }) {
                 ) : (
                   <MarkdownLines text={message.content} />
                 )}
+                {message.role === 'assistant' &&
+                  isLoading &&
+                  message.id === messages[messages.length - 1].id && (
+                    <span aria-hidden="true" className="stream-caret" />
+                  )}
                 {message.role === 'assistant' && message.content && (
                   <button
                     onClick={() => copyMessage(message.id, message.content)}
-                    className="absolute right-2 top-2 rounded-md p-1 text-ink-4 opacity-0 transition-opacity group-hover/bubble:opacity-100 focus:opacity-100 hover:bg-ink/10 hover:text-ink-2"
+                    className="absolute right-2 top-2 rounded-md p-1 text-ink-4 opacity-60 transition-opacity group-hover/bubble:opacity-100 focus:opacity-100 hover:bg-ink/10 hover:text-ink-2"
                     aria-label="Copy message"
                   >
                     {copiedId === message.id ? (
@@ -429,7 +486,7 @@ export function ChatMain({ initialContext, navigationKey, onMessagesChange }) {
         style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}
       >
         <div className="mb-3 flex gap-2 overflow-x-auto [scrollbar-width:none] sm:flex-wrap">
-          {suggestedQuestions.map((question) => (
+          {suggestions.map((question) => (
             <button
               key={question}
               type="button"
