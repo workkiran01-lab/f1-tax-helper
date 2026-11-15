@@ -168,7 +168,7 @@ describe('health endpoint', () => {
   }
   const get = () => new Request('https://f1taxhelper.com/api/health')
   it('reports ok after one authenticated Supabase REST request, without leaking config', async () => {
-    const fetchImpl = vi.fn(async () => new Response('{}', { status: 200 }))
+    const fetchImpl = vi.fn(async () => new Response('true', { status: 200 }))
     const res = await createHealthHandler({
       env: healthEnv,
       fetchImpl,
@@ -179,11 +179,13 @@ describe('health endpoint', () => {
     expect(JSON.parse(text)).toEqual({ ok: true, supabase: 'ok' })
     expect(text).not.toContain('example.test')
     expect(text).not.toContain('synthetic-anon-key')
-    expect(fetchImpl.mock.calls[0][0]).toBe('https://project.example.test/rest/v1/')
+    expect(fetchImpl.mock.calls[0][0]).toBe('https://project.example.test/rest/v1/rpc/ping')
+    expect(fetchImpl.mock.calls[0][1].method).toBe('POST')
     expect(fetchImpl.mock.calls[0][1].headers.apikey).toBe('synthetic-anon-key')
   })
   it.each([
     ['upstream error status', async () => new Response('x', { status: 503 })],
+    ['unexpected payload', async () => new Response('false', { status: 200 })],
     [
       'network failure',
       async () => {

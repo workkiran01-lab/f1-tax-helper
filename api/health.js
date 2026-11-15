@@ -1,9 +1,10 @@
 export const config = { runtime: 'edge' }
 import { jsonError, rateLimit } from '../lib/apiSafety.js'
 
-// Public liveness check used by the scheduled uptime workflow. It makes one cheap
-// authenticated Supabase REST request (which also counts as database activity, so a
-// free project is not auto-paused) and reports only ok/down: never URLs, keys or errors.
+// Public liveness check used by the scheduled uptime workflow. It calls the read-only
+// public.ping() function through Supabase REST (supabase/migrations/202611150001_ping.sql),
+// a real database query that also keeps a free project from being auto-paused. It reports
+// only ok/down: never URLs, keys or errors.
 export function createHealthHandler({
   fetchImpl = (...args) => fetch(...args),
   limiter = rateLimit,
@@ -22,12 +23,13 @@ export function createHealthHandler({
     let supabase = 'down'
     if (url && key) {
       try {
-        const res = await fetchImpl(`${url.replace(/\/$/, '')}/rest/v1/`, {
+        const res = await fetchImpl(`${url.replace(/\/$/, '')}/rest/v1/rpc/ping`, {
+          method: 'POST',
           signal: AbortSignal.timeout(8000),
-          headers: { apikey: key, Authorization: `Bearer ${key}` },
+          headers: { apikey: key, Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
+          body: '{}',
         })
-        if (res.ok) supabase = 'ok'
-        await res.body?.cancel()
+        if (res.ok && (await res.json()) === true) supabase = 'ok'
       } catch {
         // reported as down below
       }
