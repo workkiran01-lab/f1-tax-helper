@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from 'vitest'
 import { createChatHandler } from '../api/chat.js'
 import { createWaitlistHandler } from '../api/waitlist.js'
+import { createHealthHandler } from '../api/health.js'
 import { allowedOrigin, normalizeMessages } from '../lib/apiSafety.js'
 const env = {
   NODE_ENV: 'production',
@@ -160,3 +161,69 @@ describe('public endpoint safety', () => {
     ).toBe('POST')
   })
 })
+describe('health endpoint', () => {
+  const healthEnv = {
+    VITE_SUPABASE_URL: 'https://project.example.test/',
+    VITE_SUPABASE_ANON_KEY: 'synthetic-anon-key',
+  }
+  const get = () => new Request('https://f1taxhelper.com/api/health')
+  it('reports ok after one authenticated Supabase REST request, without leaking config', async () => {
+    const fetchImpl = vi.fn(async () => new Response('{}', { status: 200 }))
+    const res = await createHealthHandler({
+      env: healthEnv,
+      fetchImpl,
+      limiter: async () => false,
+    })(get())
+    expect(res.status).toBe(200)
+    const text = await res.text()
+    expect(JSON.parse(text)).toEqual({ ok: true, supabase: 'ok' })
+    expect(text).not.toContain('example.test')
+    expect(text).not.toContain('synthetic-anon-key')
+    expect(fetchImpl.mock.calls[0][0]).toBe('https://project.example.test/rest/v1/')
+    expect(fetchImpl.mock.calls[0][1].headers.apikey).toBe('synthetic-anon-key')
+  })
+  it.each([
+    ['upstream error status', async () => new Response('x', { status: 503 })],
+    [
+      'network failure',
+      async () => {
+        throw new Error('paused')
+      },
+    ],
+  ])('reports down with 503 on %s', async (_name, fetchImpl) => {
+    const res = await createHealthHandler({
+      env: healthEnv,
+      fetchImpl: vi.fn(fetchImpl),
+      limiter: async () => false,
+    })(get())
+    expect(res.status).toBe(503)
+    expect(await res.json()).toEqual({ ok: false, supabase: 'down' })
+  })
+  it('reports down when Supabase is not configured and never calls out', async () => {
+    const fetchImpl = vi.fn()
+    const res = await createHealthHandler({ env: {}, fetchImpl, limiter: async () => false })(get())
+    expect(res.status).toBe(503)
+    expect(fetchImpl).not.toHaveBeenCalled()
+  })
+  it('rate limits, fails closed on limiter errors, and only allows GET', async () => {
+    const fetchImpl = vi.fn()
+    const base = { env: healthEnv, fetchImpl }
+    expect((await createHealthHandler({ ...base, limiter: async () => true })(get())).status).toBe(
+      429,
+    )
+    const broken = createHealthHandler({
+      ...base,
+      limiter: async () => {
+        throw new Error('x')
+      },
+    })
+    expect((await broken(get())).status).toBe(503)
+    const post = await createHealthHandler({ ...base, limiter: async () => false })(
+      new Request('https://f1taxhelper.com/api/health', { method: 'POST' }),
+    )
+    expect(post.status).toBe(405)
+    expect(post.headers.get('allow')).toBe('GET')
+    expect(fetchImpl).not.toHaveBeenCalled()
+  })
+})
+

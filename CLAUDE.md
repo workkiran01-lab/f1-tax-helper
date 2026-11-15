@@ -22,4 +22,4 @@ Current architecture and setup are in [README.md](README.md). Review [docs/AUDIT
 
 ## Verification
 
-Run `npm ci`, `npm test`, `npm run build`, and `npm audit --audit-level=high`. Add regression coverage for substantive tax, storage, chat, API, or PDF fixes. Verify PDF native field values and rendered output after changes to mappings or appearances. Tests use synthetic data and mocked external services; distinguish these results from live deployment checks.
+Run `npm ci`, `npm test`, `npm run build`, `npm audit --audit-level=high`, and `npm run test:e2e` (Playwright smoke tests in `e2e/`, desktop and phone, against the built app with Supabase and chat mocked; run `npx playwright install chromium` once). `.github/workflows/uptime.yml` calls `/api/health` and `/api/chat` twice a week to keep Supabase awake and catch outages. The plan for upcoming work is `docs/ROADMAP.md`. Add regression coverage for substantive tax, storage, chat, API, or PDF fixes. Verify PDF native field values and rendered output after changes to mappings or appearances. Tests use synthetic data and mocked external services; distinguish these results from live deployment checks.
