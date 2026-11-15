@@ -13,7 +13,6 @@ import {
 import { TAX_YEAR, canGenerate8843, SOURCES, filingDeadline } from '../data/taxSeason.js'
 import { readStored, writeStored, removeStored, seasonKey } from '../utils/storage.js'
 import { FormPreview } from '../components/form8843/FormPreview'
-import DisclaimerBanner from '../components/DisclaimerBanner'
 import SeasonNotice from '../components/SeasonNotice'
 import useAuth from '../hooks/useAuth'
 import { FocusHeader } from '../components/app/PageHeader'
@@ -223,7 +222,6 @@ export default function Form8843Page() {
           Clear data
         </button>
       </FocusHeader>
-      <DisclaimerBanner />
       <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
         <div className="mb-6">
           <SeasonNotice />

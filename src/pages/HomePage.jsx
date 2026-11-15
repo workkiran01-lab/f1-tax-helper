@@ -27,7 +27,6 @@ import IconTile from '../components/app/IconTile'
 import { BrandMark } from '../components/Brand'
 import { TAX_YEAR, FILING_YEAR } from '../data/taxSeason.js'
 import useAuth from '../hooks/useAuth'
-import DisclaimerBanner from '../components/DisclaimerBanner'
 import { Navbar } from '../components/Navbar'
 
 // ── Animated checkup card data ──────────────────────────────────────────────
@@ -370,7 +369,6 @@ export default function HomePage() {
   return (
     <div className="min-h-screen bg-bg text-ink-2">
       <Navbar />
-      <DisclaimerBanner />
 
       <main>
         {/* Hero: one statement, one action, then the product itself. */}
