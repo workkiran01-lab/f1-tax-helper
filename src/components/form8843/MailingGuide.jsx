@@ -7,14 +7,14 @@ export default function MailingGuide({ year }) {
   const deadline = filingDeadline(false, year)
   const steps = [
     ['Review every entry', 'Check your name, dates and days in the US against your records.'],
-    ['Print, then sign and date page 2', 'The form is not valid for filing unsigned.'],
+    ['Print the form', 'Use the downloaded PDF and print every page.'],
     [
       'Choose how it goes in',
-      'If you are also filing Form 1040-NR, attach Form 8843 to that return and mail them together as the return instructions say. If you are not filing a return, mail it on its own.',
+      'If you are also filing Form 1040-NR, attach Form 8843 to that return and mail them together to the address in the return instructions. Do not sign the form or fill in its addresses for this case; the IRS says to do that only when filing it by itself.',
     ],
     [
-      'Mail it by the deadline',
-      `Standalone, the usual deadline for ${year} is ${deadline}. Consider a mail service with tracking, and keep a copy for your records.`,
+      'Filing it by itself? Sign and mail',
+      `Sign and date the declaration, then mail it by the due date for Form 1040-NR, usually ${deadline} for ${year}. Consider a mail service with tracking and keep a copy.`,
     ],
   ]
   return (
@@ -48,8 +48,8 @@ export default function MailingGuide({ year }) {
           ))}
         </address>
         <p className="mt-3 text-xs leading-relaxed text-ink-4">
-          Copied from the IRS on {FORM_8843_MAILING.reviewed}. Addresses change, so confirm it on
-          the IRS page before you mail.
+          Copied from the IRS on {FORM_8843_MAILING.reviewed}. Addresses change, so confirm it
+          against the form's own instructions and the IRS page before you mail.
         </p>
         <a
           href={FORM_8843_MAILING.source}

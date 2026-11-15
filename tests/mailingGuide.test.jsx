@@ -12,6 +12,10 @@ it('lists the steps, the reviewed IRS address and the source link', () => {
   expect(screen.getByRole('heading', { name: 'Print, sign and mail' })).toBeTruthy()
   expect(screen.getAllByRole('listitem')).toHaveLength(4)
   expect(screen.getByText(/June 15, 2026/)).toBeTruthy()
+  // Signing applies only to a standalone filing (IRS: "Sign here only if you are filing this form by itself").
+  expect(screen.getByText(/Filing it by itself\? Sign and mail/)).toBeTruthy()
+  expect(screen.getByText(/Do not sign the form/)).toBeTruthy()
+  expect(screen.queryByText(/not valid for filing/)).toBeNull()
   expect(screen.getByText('Austin, TX 73301')).toBeTruthy()
   const link = screen.getByRole('link', { name: /Check the IRS address/ })
   expect(link.getAttribute('href')).toBe(SOURCES.whereToFile)
