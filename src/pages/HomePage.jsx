@@ -360,6 +360,29 @@ const FEATURES = [
   },
 ]
 
+// Only statements the code backs up: the PDF is filled in the browser, chat requests carry
+// only typed questions, and answers link to IRS pages. No counts, ratings or testimonials.
+const TRUST = [
+  {
+    icon: ShieldCheck,
+    tone: 'blue',
+    title: 'Your form stays on your device',
+    body: 'Form 8843 is filled in your browser. Your answers live in this tab until you close it, and are never sent to the AI chat.',
+  },
+  {
+    icon: FileText,
+    tone: 'violet',
+    title: 'Pointed at the IRS, not guesses',
+    body: 'Guidance links to IRS pages for the filing season shown in the app. When a case is unclear, it says to check rather than guessing.',
+  },
+  {
+    icon: Check,
+    tone: 'teal',
+    title: 'Clear about its limits',
+    body: 'It is general information, not tax advice, and you can read the full disclaimer any time before you start.',
+  },
+]
+
 const cta =
   'press inline-flex min-h-[52px] items-center justify-center rounded-full px-7 text-[17px] font-semibold'
 
@@ -453,6 +476,33 @@ export default function HomePage() {
               <TaxCheckupCard />
             </div>
           </div>
+        </Reveal>
+
+        {/* Trust */}
+        <Reveal id="trust" className="mx-auto max-w-5xl scroll-mt-20 px-5 pb-24">
+          <h2 className="max-w-xl text-[32px] font-bold leading-tight text-ink sm:text-[40px]">
+            Careful with your information.
+          </h2>
+          <ul className="mt-8 grid gap-4 sm:grid-cols-3">
+            {TRUST.map(({ icon, tone, title, body }) => (
+              <li key={title} className="rounded-4xl border border-line bg-surface p-6">
+                <IconTile icon={icon} tone={tone} />
+                <h3 className="mt-4 text-[19px] font-bold text-ink">{title}</h3>
+                <p className="mt-2 text-[15px] leading-relaxed text-ink-3">{body}</p>
+              </li>
+            ))}
+          </ul>
+          <p className="mt-5 text-[14px] text-ink-4">
+            Read the{' '}
+            <Link to="/privacy" className="text-tint-ink hover:underline">
+              privacy policy
+            </Link>{' '}
+            and the{' '}
+            <Link to="/disclaimer" className="text-tint-ink hover:underline">
+              disclaimer
+            </Link>
+            .
+          </p>
         </Reveal>
 
         {/* Closing action */}
