@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { ArrowRight, Check, ChevronDown, Search, AlertTriangle } from 'lucide-react'
+import { ArrowRight, Check, ChevronDown, ChevronRight, Search, AlertTriangle } from 'lucide-react'
 import { cn } from '../utils/cn'
 import supabase from '../utils/supabase'
 import useAuth from '../hooks/useAuth'
@@ -11,6 +11,10 @@ import { buildActionItems, questionnaireResidency } from '../utils/taxRules.js'
 import { seasonKey, readStored, writeStored, removeStored } from '../utils/storage.js'
 import SeasonNotice from '../components/SeasonNotice'
 import { AnimatedProgress, StepTransition } from '../components/Motion'
+
+// One answer per card, tall enough to tap, with a chevron that says "this moves you on".
+const choiceClass =
+  'press flex min-h-[64px] w-full items-center justify-between gap-3 rounded-3xl border border-line bg-surface px-5 text-left text-[17px] font-medium text-ink hover:border-line-strong hover:bg-surface-2'
 
 export default function QuestionnairePage() {
   const navigate = useNavigate()
@@ -300,10 +304,10 @@ export default function QuestionnairePage() {
         <SeasonNotice compact />
       </div>
 
-      <main className="relative z-10 flex flex-1 items-center justify-center px-4 py-8 sm:px-6">
-        <div className="w-full max-w-2xl">
-          <div className="rounded-2xl border border-line bg-surface">
-            <div className="p-4 sm:p-6">
+      <main className="relative z-10 flex flex-1 items-start justify-center px-5 py-8 sm:items-center sm:px-6">
+        <div className="w-full max-w-xl">
+          <div>
+            <div>
               {currentStep <= totalSteps && (
                 <div className="mb-8">
                   <div className="mb-3 flex items-center justify-between">
@@ -357,11 +361,11 @@ export default function QuestionnairePage() {
               </StepTransition>
 
               {currentStep <= totalSteps && (
-                <div className="mt-8 flex items-center justify-between border-t border-line pt-6">
+                <div className="mt-8 flex items-center justify-between">
                   <button
                     type="button"
                     onClick={handleBack}
-                    className="rounded-xl border border-line bg-transparent px-5 py-2.5 text-sm font-medium text-ink-4 transition-colors hover:border-line-strong hover:text-ink"
+                    className="min-h-11 rounded-xl pr-3 text-[15px] font-medium text-tint-ink hover:underline"
                   >
                     ← Back
                   </button>
@@ -379,27 +383,28 @@ export default function QuestionnairePage() {
 function Question1({ onAnswer }) {
   return (
     <div>
-      <p className="mb-3 text-xs text-ink-5">STEP 1</p>
-      <h2 className="text-base sm:text-lg font-semibold text-ink mb-2">
-        Were you in the US under F-1 student status during 2026?
+      <h2 className="text-[28px] font-bold leading-tight tracking-tight text-ink mb-2 sm:text-[32px]">
+        Were you in the US under <span className="whitespace-nowrap">F-1</span> student status during 2026?
       </h2>
-      <p className="text-sm text-ink-4 mb-6">
+      <p className="text-[15px] leading-relaxed text-ink-3 mb-7">
         This helps us determine which tax forms and rules apply to you.
       </p>
       <div className="space-y-3">
         <button
           type="button"
           onClick={() => onAnswer(true)}
-          className="w-full rounded-xl border border-line bg-surface-2 px-4 py-3 text-left text-sm text-ink-2 transition-all duration-150 hover:bg-surface-2 hover:border-line-strong hover:text-ink active:scale-[0.99]"
+          className={choiceClass}
         >
-          Yes, I am
+          <span>Yes, I am</span>
+          <ChevronRight aria-hidden="true" className="h-5 w-5 shrink-0 text-ink-4" />
         </button>
         <button
           type="button"
           onClick={() => onAnswer(false)}
-          className="w-full rounded-xl border border-line bg-surface-2 px-4 py-3 text-left text-sm text-ink-2 transition-all duration-150 hover:bg-surface-2 hover:border-line-strong hover:text-ink active:scale-[0.99]"
+          className={choiceClass}
         >
-          No, I'm not
+          <span>No, I'm not</span>
+          <ChevronRight aria-hidden="true" className="h-5 w-5 shrink-0 text-ink-4" />
         </button>
       </div>
     </div>
@@ -409,27 +414,28 @@ function Question1({ onAnswer }) {
 function Question2({ onAnswer }) {
   return (
     <div>
-      <p className="mb-3 text-xs text-ink-5">STEP 2</p>
-      <h2 className="text-base sm:text-lg font-semibold text-ink mb-2">
+      <h2 className="text-[28px] font-bold leading-tight tracking-tight text-ink mb-2 sm:text-[32px]">
         Did you have any US-source income in tax year 2026?
       </h2>
-      <p className="text-sm text-ink-4 mb-6">
+      <p className="text-[15px] leading-relaxed text-ink-3 mb-7">
         This includes wages, scholarships, freelance work, investments, etc.
       </p>
       <div className="space-y-3">
         <button
           type="button"
           onClick={() => onAnswer(true)}
-          className="w-full rounded-xl border border-line bg-surface-2 px-4 py-3 text-left text-sm text-ink-2 transition-all duration-150 hover:bg-surface-2 hover:border-line-strong hover:text-ink active:scale-[0.99]"
+          className={choiceClass}
         >
-          Yes, I had income
+          <span>Yes, I had income</span>
+          <ChevronRight aria-hidden="true" className="h-5 w-5 shrink-0 text-ink-4" />
         </button>
         <button
           type="button"
           onClick={() => onAnswer(false)}
-          className="w-full rounded-xl border border-line bg-surface-2 px-4 py-3 text-left text-sm text-ink-2 transition-all duration-150 hover:bg-surface-2 hover:border-line-strong hover:text-ink active:scale-[0.99]"
+          className={choiceClass}
         >
-          No, I had no income
+          <span>No, I had no income</span>
+          <ChevronRight aria-hidden="true" className="h-5 w-5 shrink-0 text-ink-4" />
         </button>
       </div>
     </div>
@@ -453,11 +459,10 @@ function Question3({ selected, onToggle, onContinue }) {
   ]
   return (
     <div>
-      <p className="mb-3 text-xs text-ink-5">STEP 3</p>
-      <h2 className="text-base sm:text-lg font-semibold text-ink mb-2">
+      <h2 className="text-[28px] font-bold leading-tight tracking-tight text-ink mb-2 sm:text-[32px]">
         What type of income did you receive?
       </h2>
-      <p className="text-sm text-ink-4 mb-6">
+      <p className="text-[15px] leading-relaxed text-ink-3 mb-7">
         Select all that apply. This determines the forms you'll need.
       </p>
 
@@ -469,10 +474,10 @@ function Question3({ selected, onToggle, onContinue }) {
               key={type.id}
               onClick={() => onToggle(type.id)}
               className={cn(
-                'flex w-full items-center justify-between rounded-xl border bg-transparent px-4 py-3 text-left text-sm transition-all duration-150 active:scale-[0.99]',
+                'press flex min-h-[64px] w-full items-center justify-between gap-3 rounded-3xl border px-5 py-3 text-left text-[17px] transition-colors',
                 isSelected
                   ? 'border-tint bg-tint/10 text-ink'
-                  : 'border-line bg-surface-2 text-ink-2 hover:bg-surface-2 hover:border-line-strong hover:text-ink',
+                  : 'border-line bg-surface text-ink hover:border-line-strong hover:bg-surface-2',
                 type.id === '1099' && isSelected
                   ? 'border-warn/40 bg-warn/10 text-warn-ink'
                   : '',
@@ -480,7 +485,7 @@ function Question3({ selected, onToggle, onContinue }) {
             >
               <div>
                 <div className="font-medium">{type.title}</div>
-                <div className="mt-1 text-xs opacity-70">{type.description}</div>
+                <div className="mt-1 text-[13px] font-normal opacity-70">{type.description}</div>
               </div>
               <div
                 className={cn(
@@ -509,7 +514,7 @@ function Question3({ selected, onToggle, onContinue }) {
         type="button"
         onClick={onContinue}
         disabled={selected.length === 0}
-        className="w-full rounded-xl bg-tint px-6 py-3 text-sm font-semibold text-white transition-all duration-150 hover:bg-tint active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+        className="w-full press min-h-[52px] rounded-2xl bg-tint px-6 text-[17px] font-semibold text-white hover:bg-tint-hover disabled:opacity-50 disabled:cursor-not-allowed"
       >
         Next
       </button>
@@ -527,11 +532,10 @@ function Question4({ onAnswer }) {
   ]
   return (
     <div>
-      <p className="mb-3 text-xs text-ink-5">STEP 4</p>
-      <h2 className="text-base sm:text-lg font-semibold text-ink mb-2">
+      <h2 className="text-[28px] font-bold leading-tight tracking-tight text-ink mb-2 sm:text-[32px]">
         Including 2026, how many exempt student, teacher or trainee calendar years have you had?
       </h2>
-      <p className="text-sm text-ink-4 mb-6">
+      <p className="text-[15px] leading-relaxed text-ink-3 mb-7">
         Count any part of a calendar year, including earlier F/J/M/Q visits. Years need not be
         consecutive. Status changes or a green card require a separate review.
       </p>
@@ -541,16 +545,18 @@ function Question4({ onAnswer }) {
           <button
             key={option.id}
             onClick={() => onAnswer(option.id)}
-            className="w-full rounded-xl border border-line bg-surface-2 px-4 py-3 text-left text-sm text-ink-2 transition-all duration-150 hover:bg-surface-2 hover:border-line-strong hover:text-ink active:scale-[0.99]"
+            className={choiceClass}
           >
-            {option.text}
+            <span>{option.text}</span>
+            <ChevronRight aria-hidden="true" className="h-5 w-5 shrink-0 text-ink-4" />
           </button>
         ))}
         <button
           onClick={() => onAnswer(0)}
-          className="w-full rounded-xl border border-line bg-surface-2 px-4 py-3 text-left text-sm text-ink-2 transition-all duration-150 hover:bg-surface-2 hover:border-line-strong hover:text-ink active:scale-[0.99]"
+          className={choiceClass}
         >
-          I'm not sure / It's complicated
+          <span>I'm not sure / It's complicated</span>
+          <ChevronRight aria-hidden="true" className="h-5 w-5 shrink-0 text-ink-4" />
         </button>
       </div>
     </div>
@@ -569,11 +575,10 @@ function Question5({ onSelect, selectedCountry, onContinue }) {
 
   return (
     <div>
-      <p className="mb-3 text-xs text-ink-5">STEP 5</p>
-      <h2 className="text-base sm:text-lg font-semibold text-ink mb-2">
+      <h2 className="text-[28px] font-bold leading-tight tracking-tight text-ink mb-2 sm:text-[32px]">
         Where were you a tax resident just before coming to the US?
       </h2>
-      <p className="text-sm text-ink-4 mb-6">
+      <p className="text-[15px] leading-relaxed text-ink-3 mb-7">
         Treaty eligibility usually depends on prior tax residence, which can differ from
         citizenship. Choose the country to review; additional treaty conditions may apply.
       </p>
@@ -658,7 +663,7 @@ function Question5({ onSelect, selectedCountry, onContinue }) {
           <button
             type="button"
             onClick={onContinue}
-            className="w-full rounded-xl bg-tint px-6 py-3 text-sm font-semibold text-white transition-all duration-150 hover:bg-tint active:scale-[0.98]"
+            className="w-full press min-h-[52px] rounded-2xl bg-tint px-6 text-[17px] font-semibold text-white hover:bg-tint-hover"
           >
             Continue →
           </button>
