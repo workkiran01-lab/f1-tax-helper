@@ -9,6 +9,7 @@ import { COUNTRIES, getTreatyByCountryName, treatyGuidance } from '../data/treat
 import { TAX_YEAR } from '../data/taxSeason.js'
 import { buildActionItems, questionnaireResidency } from '../utils/taxRules.js'
 import { seasonKey, readStored, writeStored, removeStored } from '../utils/storage.js'
+import { trackEvent } from '../utils/usage.js'
 import SeasonNotice from '../components/SeasonNotice'
 import { AnimatedProgress, StepTransition } from '../components/Motion'
 
@@ -203,6 +204,7 @@ export default function QuestionnairePage() {
         completedAt: new Date().toISOString(),
       }
       const savedLocally = writeStored(seasonKey('questionnaire', user?.id), completed)
+      trackEvent('status_check_done')
       writeStored(seasonKey('treaty-reviewed', user?.id), true)
       let syncWarning = savedLocally
         ? ''

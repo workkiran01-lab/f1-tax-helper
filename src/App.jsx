@@ -1,4 +1,4 @@
-import { lazy, Suspense } from 'react'
+import { lazy, Suspense, useEffect } from 'react'
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import HomePage from './pages/HomePage'
 import QuestionnairePage from './pages/QuestionnairePage'
@@ -18,6 +18,7 @@ import StatusCheckerPage from './pages/StatusCheckerPage'
 import useAuth, { AuthProvider } from './hooks/useAuth'
 import { MotionConfig } from 'framer-motion'
 import { PageSkeleton, SessionSplash } from './components/app/Skeleton'
+import { trackEvent } from './utils/usage.js'
 
 const ChatPage = lazy(() => import('./pages/ChatPage'))
 const Form8843Page = lazy(() => import('./pages/Form8843Page'))
@@ -156,6 +157,9 @@ function AppRoutes() {
 }
 
 function App() {
+  useEffect(() => {
+    trackEvent('visit', { once: true }) // one anonymous count per browser tab session
+  }, [])
   return (
     <BrowserRouter>
       <AuthProvider>

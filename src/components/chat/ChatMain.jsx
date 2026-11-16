@@ -6,6 +6,7 @@ import { ArrowUp, ChevronDown, Copy, LoaderCircle } from 'lucide-react'
 import { AnimatedCheck } from '../Motion'
 import { IRSDisclaimer } from './IRSDisclaimer'
 import { suggestionsFor } from '../../utils/chatSuggestions.js'
+import { trackEvent } from '../../utils/usage.js'
 
 const MAX_INPUT = 2000
 
@@ -339,6 +340,7 @@ export function ChatMain({ initialContext, navigationKey, onMessagesChange }) {
     setIsLoading(true)
     setRequestError('')
     nearBottom.current = true
+    trackEvent('chat_message')
     try {
       // Trim to the server's limits. Sending the raw history made every request
       // fail once an answer passed 4,000 characters or the total passed 24,000.

@@ -1,6 +1,7 @@
 import { computeStatusResult } from '../utils/taxRules.js'
 import { TAX_YEAR, DEADLINE_NOTE } from '../data/taxSeason.js'
 import { seasonKey, writeStored, removeStored } from '../utils/storage.js'
+import { trackEvent } from '../utils/usage.js'
 import SeasonNotice from '../components/SeasonNotice'
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
@@ -94,6 +95,7 @@ export default function StatusCheckerPage() {
     } else {
       const res = computeStatusResult(next)
       writeStored(seasonKey('status', user?.id), res)
+      trackEvent('status_check_done')
       setResult(res)
     }
   }
