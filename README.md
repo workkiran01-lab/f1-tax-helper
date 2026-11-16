@@ -35,6 +35,10 @@ Configure Supabase's site URL and redirect allowlist for `/auth/callback` on eac
 
 The account deletion UI calls the authenticated `public.delete_user()` RPC. Its migration is in `supabase/migrations/202609070001_self_delete.sql`. Review and apply it to the intended Supabase project before releasing account deletion. The frontend must never receive a service-role key. Review any project-specific dependent records or storage separately; this repository does not contain the live database schema.
 
+## Chat answer quality
+
+`qa/chat-eval/` holds 37 student questions with the facts each answer must contain and the mistakes it must not make (wrong deadline, "no treaty" for an unreviewed country, asking for an SSN, non-IRS links, guarantees). Run it after any change to `lib/taxPrompt.js`, the season or treaty data, or the chat model, then read a few answers yourself. It calls the real API and spends free-tier model tokens, so it is not part of CI. See [qa/chat-eval/README.md](qa/chat-eval/README.md).
+
 ## Tax season and Form 8843
 
 `src/data/taxSeason.js` holds the explicit tax year, filing year, reviewed dates, source URLs, expected deadlines, and verified PDF fingerprint. The season never advances automatically with the calendar.

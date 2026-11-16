@@ -83,7 +83,7 @@ export function createChatHandler({
         },
         body: JSON.stringify(
           groqRequestBody(env.GROQ_MODEL?.trim() || DEFAULT_GROQ_MODEL, [
-            { role: 'system', content: systemPrompt() },
+            { role: 'system', content: systemPrompt(new Date(), messages) },
             ...messages,
           ]),
         ),
