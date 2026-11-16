@@ -102,11 +102,12 @@ describe('reviewed season and treaty sources', () => {
     expect(prompt).toMatch(/does not prepare, file or e-file Form 1040-NR/)
     expect(prompt).toContain(FORM_8843_MAILING.standalone.join(', '))
     expect(prompt).toContain(`checked ${FORM_8843_MAILING.reviewed}`)
-    expect(prompt).toMatch(/For every other country you have no reviewed treaty text/)
+    expect(prompt).toMatch(/Without that text you have no reviewed treaty text for the country/)
+    expect(prompt).toMatch(/If the student has not named a country, ask which one/)
     expect(prompt).toMatch(/Never state article numbers, dollar limits/)
     expect(prompt).toMatch(/June 15 is the regular due date in these cases, not an extension/)
     // Format example: the model follows a concrete shape more reliably than a description.
-    expect(prompt).toMatch(/Example of the shape only[\s\S]*### Answer[\s\S]*### Next Step/)
+    expect(prompt).toMatch(/exactly this shape[\s\S]*### Answer\n\[[\s\S]*### Next Step\n\[/)
     // A pasted SSN is answered with "do not share it here", not just a refusal to use it.
     expect(prompt).toMatch(/do not repeat it: tell them plainly not to share it in chat/)
   })
@@ -123,6 +124,26 @@ describe('reviewed season and treaty sources', () => {
     // The rule's source is a page the app already lists, so the model has a real link to give.
     expect(prompt).toContain(`nonresidentTaxation: ${SOURCES.nonresidentTaxation}`)
     expect(prompt).toContain(`pub519: ${SOURCES.pub519}`)
+  })
+  it('keeps the prompt short, because its length decides how many answers the free Groq tier serves', () => {
+    // About 12,000 characters before the November 2026 trim. Every 1,000 characters is roughly
+    // 250 of the 8,000 tokens a minute each model allows; see "Chat capacity" in README.md.
+    const prompt = systemPrompt(new Date('2026-11-15T12:00:00Z'))
+    expect(prompt.length).toBeLessThanOrEqual(10000)
+    // Treaty text is sent only for a country the student names, not for six countries every time.
+    for (const name of ['India', 'China', 'South Korea', 'Nepal', 'Russia', 'Hungary'])
+      expect(prompt).not.toContain(treatyGuidance(name))
+    const asked = systemPrompt(new Date('2026-11-15T12:00:00Z'), [{ role: 'user', content: 'I am from India' }])
+    expect(asked).toContain(treatyGuidance('India'))
+    expect(asked).not.toContain(treatyGuidance('China'))
+    // Trimmed sources are the ones no rule points to; every page a rule needs is still listed.
+    for (const kept of ['form8843', 'whereToFile', 'nonresidentReturn', 'nonresidentTaxation', 'student', 'presence', 'treaties', 'treatyTables', 'treatyDisclosure', 'form8833', 'pub519', 'pub901', 'residencyStatus', 'scholarshipWithholding', 'fica', 'form843', 'form1042s', 'stateLinks'])
+      expect(prompt).toContain(`${kept}: ${SOURCES[kept]}`)
+    for (const left of ['form8843Pdf', 'inflation', 'closerConnectionStudents', 'foreignStudents'])
+      expect(prompt).not.toContain(SOURCES[left])
+    // The shape is stated once, as an example with bracketed instructions.
+    expect(prompt.match(/### Answer/g)).toHaveLength(1)
+    expect(prompt).toMatch(/do not print the brackets/)
   })
   it('adds the reviewed treaty text for a country the student names, and nothing for other text', () => {
     const asked = (content) => [{ role: 'user', content }]
