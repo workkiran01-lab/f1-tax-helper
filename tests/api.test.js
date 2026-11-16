@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest'
-import { createChatHandler } from '../api/chat.js'
+import { chatModels, createChatHandler, groqRequestBody, waitSeconds } from '../api/chat.js'
 import { createWaitlistHandler } from '../api/waitlist.js'
 import { createHealthHandler } from '../api/health.js'
 import { allowedOrigin, normalizeMessages } from '../lib/apiSafety.js'
@@ -144,12 +144,116 @@ describe('public endpoint safety', () => {
     expect(body.model).toBe('qwen/qwen3.8-27b')
     expect(body.include_reasoning).toBeUndefined()
   })
-  it('reports a rejected model or key as a 502 and logs only the status', async () => {
-    const log = vi.spyOn(console, 'error').mockImplementation(() => {})
-    const fetchImpl = vi.fn(async () => new Response('{"error":{}}', { status: 404 }))
-    const res = await createChatHandler({ env, fetchImpl, limiter: async () => false })(request())
-    expect(res.status).toBe(502)
-    expect(log).toHaveBeenCalledWith('Groq request failed: HTTP 404')
+  describe('when Groq refuses a question', () => {
+    const sse = () =>
+      new Response('data: [DONE]\n\n', { headers: { 'Content-Type': 'text/event-stream' } })
+    const rateLimited = (retryAfter = '27') =>
+      new Response(
+        JSON.stringify({
+          error: {
+            message:
+              'Rate limit reached for model `openai/gpt-oss-120b` on tokens per minute (TPM): Limit 8000, Used 6100, Requested 3300.',
+          },
+        }),
+        { status: 429, headers: retryAfter ? { 'retry-after': retryAfter } : {} },
+      )
+    const run = (fetchImpl, extraEnv = {}) =>
+      createChatHandler({ env: { ...env, ...extraEnv }, fetchImpl, limiter: async () => false })(
+        request(),
+      )
+    const modelOf = (fetchImpl, call) => JSON.parse(fetchImpl.mock.calls[call][1].body).model
+
+    it('answers from the second model when the first is over its limit, and says which', async () => {
+      const log = vi.spyOn(console, 'error').mockImplementation(() => {})
+      const fetchImpl = vi.fn().mockResolvedValueOnce(rateLimited()).mockResolvedValueOnce(sse())
+      const res = await run(fetchImpl)
+      expect(res.status).toBe(200)
+      expect(fetchImpl).toHaveBeenCalledTimes(2)
+      expect(modelOf(fetchImpl, 0)).toBe('openai/gpt-oss-120b')
+      expect(modelOf(fetchImpl, 1)).toBe('openai/gpt-oss-20b')
+      expect(res.headers.get('x-chat-model')).toBe('openai/gpt-oss-20b')
+      // The second model gets the same instructions and the same question.
+      const [first, second] = [0, 1].map((i) => JSON.parse(fetchImpl.mock.calls[i][1].body))
+      expect(second.messages).toEqual(first.messages)
+      expect(second.reasoning_effort).toBe('low')
+      // The log shows which limit was hit, and nothing the student wrote.
+      const logged = log.mock.calls.map((c) => c.join(' ')).join('\n')
+      expect(logged).toContain('HTTP 429 on openai/gpt-oss-120b')
+      expect(logged).toContain('tokens per minute')
+      expect(logged).not.toContain('Which form?')
+    })
+    it('uses the first model when it is available and never calls the second', async () => {
+      const fetchImpl = vi.fn(async () => sse())
+      const res = await run(fetchImpl)
+      expect(res.headers.get('x-chat-model')).toBe('openai/gpt-oss-120b')
+      expect(fetchImpl).toHaveBeenCalledTimes(1)
+    })
+    it('falls back after an outage or a model that has been retired', async () => {
+      vi.spyOn(console, 'error').mockImplementation(() => {})
+      for (const status of [500, 503, 404]) {
+        const fetchImpl = vi
+          .fn()
+          .mockResolvedValueOnce(new Response('{"error":{}}', { status }))
+          .mockResolvedValueOnce(sse())
+        expect((await run(fetchImpl)).status, String(status)).toBe(200)
+      }
+    })
+    it('falls back when the first model does not answer', async () => {
+      vi.spyOn(console, 'error').mockImplementation(() => {})
+      const fetchImpl = vi.fn().mockRejectedValueOnce(new Error('network')).mockResolvedValueOnce(sse())
+      expect((await run(fetchImpl)).status).toBe(200)
+    })
+    it('asks the student to wait, for as long as Groq says, when every model is over its limit', async () => {
+      vi.spyOn(console, 'error').mockImplementation(() => {})
+      const fetchImpl = vi.fn(async () => rateLimited('27'))
+      const res = await run(fetchImpl)
+      expect(res.status).toBe(503)
+      expect(res.headers.get('retry-after')).toBe('27')
+      expect((await res.json()).error).toMatch(/try again in about 27 seconds/)
+      expect(fetchImpl).toHaveBeenCalledTimes(2)
+    })
+    it('keeps the wait between 5 and 60 seconds and defaults to 30', () => {
+      expect([waitSeconds('0.2'), waitSeconds('27'), waitSeconds('500'), waitSeconds(null), waitSeconds('soon')]).toEqual([5, 27, 60, 30, 30])
+    })
+    it('does not retry on another model when the key is rejected', async () => {
+      const log = vi.spyOn(console, 'error').mockImplementation(() => {})
+      const fetchImpl = vi.fn(async () => new Response('{"error":{}}', { status: 401 }))
+      const res = await run(fetchImpl)
+      expect(res.status).toBe(502)
+      expect(fetchImpl).toHaveBeenCalledTimes(1)
+      expect(log).toHaveBeenCalledWith('Groq request failed: HTTP 401 on openai/gpt-oss-120b')
+    })
+    it('reports a 502 when every model is unavailable for another reason', async () => {
+      vi.spyOn(console, 'error').mockImplementation(() => {})
+      const fetchImpl = vi.fn(async () => new Response('{"error":{}}', { status: 404 }))
+      const res = await run(fetchImpl)
+      expect(res.status).toBe(502)
+      expect(fetchImpl).toHaveBeenCalledTimes(2)
+    })
+    it('stops when the student has closed the page', async () => {
+      vi.spyOn(console, 'error').mockImplementation(() => {})
+      const controller = new AbortController()
+      controller.abort()
+      const fetchImpl = vi.fn().mockRejectedValue(new Error('aborted'))
+      const closed = new Request('https://f1taxhelper.com/api/chat', {
+        method: 'POST',
+        signal: controller.signal,
+        headers: { Origin: 'https://f1taxhelper.com', 'Content-Type': 'application/json' },
+        body: JSON.stringify({ messages: [{ role: 'user', content: 'Which form?' }] }),
+      })
+      const res = await createChatHandler({ env, fetchImpl, limiter: async () => false })(closed)
+      expect(res.status).toBe(502)
+      expect(fetchImpl).toHaveBeenCalledTimes(1)
+    })
+    it('chooses models from GROQ_MODEL and GROQ_FALLBACK_MODELS', () => {
+      expect(chatModels({})).toEqual(['openai/gpt-oss-120b', 'openai/gpt-oss-20b'])
+      expect(chatModels({ GROQ_FALLBACK_MODELS: ' ' })).toEqual(['openai/gpt-oss-120b', 'openai/gpt-oss-20b'])
+      expect(chatModels({ GROQ_FALLBACK_MODELS: 'none' })).toEqual(['openai/gpt-oss-120b'])
+      expect(chatModels({ GROQ_MODEL: 'x/a', GROQ_FALLBACK_MODELS: 'x/a, x/b ,x/c,x/d' })).toEqual(['x/a', 'x/b', 'x/c'])
+    })
+    it('caps how many tokens an answer may use so the request does not claim more of the minute than it needs', () => {
+      expect(groqRequestBody('openai/gpt-oss-120b', []).max_completion_tokens).toBeLessThanOrEqual(1500)
+    })
   })
   it('does not report signup success or send email on invalid address or limiter failure', async () => {
     const fetchImpl = vi.fn()

@@ -31,6 +31,7 @@ Copy `.env.example` to `.env.local` and replace placeholders for the services yo
 | `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`        | Browser           | Public project URL and anon key for authentication; never use a service-role key here                 |
 | `VITE_SENTRY_DSN`                                    | Browser, optional | Error monitoring; user, request, breadcrumb, and extra data are removed before events are sent        |
 | `GROQ_API_KEY`, optional `GROQ_MODEL`                | Server only       | Chat inference; default model is `openai/gpt-oss-120b` (Groq retired `llama-3.3-70b-versatile`)      |
+| `GROQ_FALLBACK_MODELS`                              | Server, optional  | Models tried, in order, when the first is over its Groq limit or down. Default `openai/gpt-oss-20b`; `none` turns it off |
 | `CHAT_DAILY_CAP`                                    | Server only       | Optional. Global ceiling on AI chat requests per day (default 3000), counted in Supabase              |
 | `RESEND_API_KEY`                                     | Server only       | Waitlist confirmation email                                                                           |
 | `ALLOWED_ORIGINS`                                    | Server, optional  | Comma-separated exact additional origins; Vercel deployment and branch URLs are allowed automatically |
@@ -48,6 +49,10 @@ The account deletion UI calls the authenticated `public.delete_user()` RPC. Its 
 ## IRS links
 
 Every `irs.gov` address the app, the chat prompt and the chat test set use is listed by `node scripts/check-irs-links.mjs`; add `--online` to check that each one still opens (the IRS reorganises its site, and in 2026 the treaty directory moved, which broke the app's link and the one the chat gave students). Shared sources are in `SOURCES` in `src/data/taxSeason.js`. Run the online check before each filing season. Tests guard against the addresses already known to be dead.
+
+## Chat capacity
+
+Groq's free tier limits each model separately: 8,000 tokens a minute, 200,000 a day, 30 requests a minute and 1,000 a day (checked 2026-11-15 on Groq's rate-limits page). One answer costs about 3,000 tokens, so one model serves roughly two or three answers a minute and about 60 a day for the whole site. `api/chat.js` therefore tries the next model in `GROQ_MODEL` then `GROQ_FALLBACK_MODELS` (default `openai/gpt-oss-20b`) when Groq answers 429, 404 or 5xx, which doubles both numbers. A bad key (401/403) is not retried. When every model is over its limit, the student gets "try again in about N seconds" (503 with `Retry-After`, from Groq's own header, kept to 5-60 seconds) instead of a generic error. The response header `X-Chat-Model` says which model answered, and the Vercel log line `Groq request failed: HTTP 429 on <model>: ...` carries Groq's own limit message, never the student's text. The answers from the fallback model are noticeably less careful: after changing the fallback list, run `qa/chat-eval` against a preview with the requests sent back to back so that most land on the fallback. For real headroom (beyond a few students at once) the only free lever left is to shrink the prompt; more than that needs Groq's paid tier.
 
 ## Chat answer quality
 
