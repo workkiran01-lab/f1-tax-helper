@@ -12,13 +12,20 @@ describe('one public host', () => {
     const host = new URL(SITE_ORIGIN).host
     expect(host).toBe('www.f1taxhelper.com')
     const html = read('index.html')
-    for (const re of [/rel="canonical" href="([^"]+)"/, /property="og:url" content="([^"]+)"/, /property="og:image" content="([^"]+)"/, /name="twitter:image" content="([^"]+)"/])
+    for (const re of [/property="og:image" content="([^"]+)"/, /name="twitter:image" content="([^"]+)"/])
       expect(new URL(html.match(re)[1]).host, String(re)).toBe(host)
     const locs = [...read('public/sitemap.xml').matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1])
     expect(locs.length).toBeGreaterThan(8)
     for (const loc of locs) expect(new URL(loc).host, loc).toBe(host)
     expect(read('public/robots.txt')).toContain(`Sitemap: ${SITE_ORIGIN}/sitemap.xml`)
     expect(USAGE_HOSTS).toContain(host)
+  })
+  // index.html serves every route. A fixed canonical there would tell a crawler that reads the
+  // raw HTML that /tax-guide is a copy of the home page, so useRouteMeta sets it per route.
+  it('leaves the canonical address and og:url to the route, not the shared page shell', () => {
+    const html = read('index.html')
+    expect(html).not.toMatch(/rel="canonical"/)
+    expect(html).not.toMatch(/property="og:url"/)
   })
   it('lists every public information page in the sitemap, and nothing from the signed-in app', () => {
     const locs = [...read('public/sitemap.xml').matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => new URL(m[1]).pathname)
