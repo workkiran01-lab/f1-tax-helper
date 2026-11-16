@@ -119,6 +119,17 @@ describe('public endpoint safety', () => {
     expect(body.include_reasoning).toBe(false)
     expect(body.reasoning_effort).toBe('low')
   })
+  it('tells the model which treaty countries the student named, from the reviewed list', async () => {
+    const fetchImpl = vi.fn(
+      async () =>
+        new Response('data: [DONE]\n\n', { headers: { 'Content-Type': 'text/event-stream' } }),
+    )
+    await createChatHandler({ env, fetchImpl, limiter: async () => false })(
+      request({ messages: [{ role: 'user', content: 'Does Canada have a student treaty?' }] }),
+    )
+    const body = JSON.parse(fetchImpl.mock.calls[0][1].body)
+    expect(body.messages[0].content).toContain('Treaty coverage for Canada has not been reviewed')
+  })
   it('uses an overriding GROQ_MODEL without GPT-OSS-only parameters', async () => {
     const fetchImpl = vi.fn(
       async () =>
