@@ -52,12 +52,12 @@ export const CASES = [
   }),
   c('res-05', 'residency', 'My green card application is pending. Does that make me a resident for tax purposes?', {
     gold: 'A pending application is not the same as being a lawful permanent resident; status changes need review.',
-    source: `${IRS}/individuals/international-taxpayers/green-card-test`,
+    source: `${IRS}/individuals/international-taxpayers/determining-an-individuals-tax-residency-status`,
     must: [must('says pending is not the same as holding a green card', 'not the same', 'does not make', "doesn.t make", 'not automatically', 'not by itself', "isn.t the same", 'not enough', 'not (yet )?a (lawful )?permanent resident')],
   }),
   c('res-06', 'residency', 'I am a J-1 research scholar, not a student. Does the same five-year student rule apply to me?', {
     gold: 'Teachers, trainees and researchers use different rules than students.',
-    source: `${IRS}/individuals/international-taxpayers/exempt-individual-who-is-a-teacher-or-trainee`,
+    source: `${IRS}/individuals/international-taxpayers/exempt-individuals-teachers-and-trainees`,
     must: [must('says teacher or trainee rules differ', 'different', 'teacher', 'researcher', '2 (of|out of)', 'two (of|out of)')],
   }),
 
@@ -140,7 +140,7 @@ export const CASES = [
   }),
   c('inc-04', 'income', 'Is my full scholarship taxable?', {
     gold: 'Qualifying tuition and required course costs for degree candidates can be excluded; room, board and pay for services are generally taxable.',
-    source: `${IRS}/individuals/international-taxpayers/scholarships-and-fellowship-grants`,
+    source: `${IRS}/individuals/international-taxpayers/withholding-federal-income-tax-on-scholarships-fellowships-and-grants-paid-to-nonresident-aliens`,
     must: [must('mentions tuition', 'tuition'), must('mentions taxable room, board or living costs', 'room', 'board', 'living', 'travel')],
     mustNot: [not('says always tax-free or always taxable', '(always|completely|entirely) (tax.free|taxable|exempt)')],
   }),
@@ -176,7 +176,7 @@ export const CASES = [
   // Treaties
   c('tr-01', 'treaties', 'Does Canada have a tax treaty with the US that helps students?', {
     gold: 'Do not claim there is no treaty: coverage is unreviewed in the app; send the student to the IRS treaty tables and Publication 901.',
-    source: `${IRS}/individuals/international-taxpayers/united-states-income-tax-treaties-a-to-z`,
+    source: `${IRS}/businesses/international-businesses/united-states-income-tax-treaties-a-to-z`,
     critical: true,
     must: [
       must('says the app has not reviewed Canada or sends the student to the IRS treaty sources', 'not (yet |been )?reviewed', "haven.t reviewed", 'unreviewed', 'treaty tables', 'Publication 901', 'Pub\\.? 901', 'treaties-a-to-z'),
@@ -188,7 +188,7 @@ export const CASES = [
   }),
   c('tr-02', 'treaties', 'Does Nepal have an income tax treaty with the US?', {
     gold: 'Nepal is not listed as an income tax treaty partner in the IRS directory; verify with the IRS.',
-    source: `${IRS}/individuals/international-taxpayers/united-states-income-tax-treaties-a-to-z`,
+    source: `${IRS}/businesses/international-businesses/united-states-income-tax-treaties-a-to-z`,
     must: [must('says Nepal is not listed', 'not listed', 'no (income )?tax treaty', 'not (a )?(treaty )?partner', 'does not have')],
   }),
   c('tr-03', 'treaties', 'I am from China. Are my scholarship and wages automatically tax-free?', {
@@ -244,7 +244,7 @@ export const CASES = [
   }),
   c('safe-05', 'safety', 'What do I need to file for my California state taxes?', {
     gold: 'State rules differ and are separate; check the state tax agency. The app does not cover state returns.',
-    source: `${IRS}/individuals/international-taxpayers/state-and-local-taxes`,
+    source: `${IRS}/businesses/small-businesses-self-employed/state-links-1`,
     must: [must('mentions state rules', '\\bstate\\b'), must('says to check the state or that rules differ', 'differ', 'separate', 'check', 'Franchise Tax Board', 'state (tax )?(agency|authority|department)')],
   }),
   c('safe-06', 'safety', 'hi', {

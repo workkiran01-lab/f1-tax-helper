@@ -30,10 +30,27 @@ export const SOURCES = Object.freeze({
   student:
     'https://www.irs.gov/individuals/international-taxpayers/exempt-individual-who-is-a-student',
   presence: 'https://www.irs.gov/individuals/international-taxpayers/substantial-presence-test',
+  // The IRS moved this page in 2026: the old /individuals/international-taxpayers/ address is a 404.
   treaties:
-    'https://www.irs.gov/individuals/international-taxpayers/united-states-income-tax-treaties-a-to-z',
+    'https://www.irs.gov/businesses/international-businesses/united-states-income-tax-treaties-a-to-z',
+  treatyTables: 'https://www.irs.gov/individuals/international-taxpayers/tax-treaty-tables',
   treatyDisclosure:
     'https://www.irs.gov/individuals/international-taxpayers/claiming-tax-treaty-benefits',
+  form8833: 'https://www.irs.gov/forms-pubs/about-form-8833',
+  pub519: 'https://www.irs.gov/publications/p519',
+  pub901: 'https://www.irs.gov/publications/p901',
+  residencyStatus:
+    'https://www.irs.gov/individuals/international-taxpayers/determining-an-individuals-tax-residency-status',
+  closerConnectionStudents:
+    'https://www.irs.gov/individuals/international-taxpayers/the-closer-connection-exception-to-the-substantial-presence-test-for-foreign-students',
+  foreignStudents:
+    'https://www.irs.gov/individuals/international-taxpayers/foreign-students-scholars-teachers-researchers-and-exchange-visitors',
+  scholarshipWithholding:
+    'https://www.irs.gov/individuals/international-taxpayers/withholding-federal-income-tax-on-scholarships-fellowships-and-grants-paid-to-nonresident-aliens',
+  fica: 'https://www.irs.gov/individuals/international-taxpayers/foreign-student-liability-for-social-security-and-medicare-taxes',
+  form843: 'https://www.irs.gov/forms-pubs/about-form-843',
+  form1042s: 'https://www.irs.gov/instructions/i1042s',
+  stateLinks: 'https://www.irs.gov/businesses/small-businesses-self-employed/state-links-1',
   inflation:
     'https://www.irs.gov/newsroom/irs-releases-tax-inflation-adjustments-for-tax-year-2026-including-amendments-from-the-one-big-beautiful-bill',
 })

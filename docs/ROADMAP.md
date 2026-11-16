@@ -38,6 +38,7 @@ Order matters. Each phase ships as its own PR with tests; colours stay as tokens
 
 - Done 2026-11-16: anonymous daily usage totals (`docs/USAGE-COUNTS.md`). Still to add: a download-event assertion in the signed-in e2e test.
 - Test account deletion end to end with a throwaway Google account (owner).
+- Run `node scripts/check-irs-links.mjs --online` before each season (28 addresses; all opened on 2026-11-16).
 - Chat failure alerting (Sentry on `/api/chat` 5xx).
 - Chat answer-quality check (`qa/chat-eval/`) done: run it after any prompt, model or season change and read five answers. It spends Groq free-tier tokens (a full run is about half of one model's daily allowance). The free tier (about 200,000 tokens a day, 8,000 a minute per model) is also the real capacity limit for students: roughly 60 answers a day.
 - In-app preview of the actual generated PDF. The wizard has a live HTML replica ("Preparation preview, not for filing"); showing the real PDF needs a pdf.js worker and a CSP change, so it is deferred.
