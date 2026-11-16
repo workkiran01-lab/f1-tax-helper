@@ -14,6 +14,7 @@ import {
   FORM_8843_MAILING,
   STANDARD_DEDUCTION_SINGLE,
   DEADLINES,
+  SOURCES,
 } from '../src/data/taxSeason.js'
 const baseline = {
   visa: 'f1',
@@ -108,6 +109,20 @@ describe('reviewed season and treaty sources', () => {
     expect(prompt).toMatch(/Example of the shape only[\s\S]*### Answer[\s\S]*### Next Step/)
     // A pasted SSN is answered with "do not share it here", not just a refusal to use it.
     expect(prompt).toMatch(/do not repeat it: tell them plainly not to share it in chat/)
+  })
+  it('states the two rules the second chat model got wrong: signing when attached, and US-source income', () => {
+    const prompt = systemPrompt(new Date('2026-11-15T12:00:00Z'))
+    // The signing rule sits with the form rules, where the model looks for it, not only in the mailing note.
+    const forms = prompt.slice(prompt.indexOf('FORMS AND DEADLINES'), prompt.indexOf('DEDUCTIONS'))
+    expect(forms).toMatch(/Sign Form 8843 only when filing it by itself/)
+    expect(forms).toMatch(/attached to a Form 1040-NR, do not sign it/)
+    // Nonresidents are taxed on US-source and effectively connected income; residents on worldwide income.
+    const income = prompt.slice(prompt.indexOf('INCOME:'), prompt.indexOf('RESPONSE FORMAT'))
+    expect(income).toMatch(/generally taxed in the US only on income effectively connected[^.]*US-source income/)
+    expect(income).toMatch(/resident alien is taxed on worldwide income/)
+    // The rule's source is a page the app already lists, so the model has a real link to give.
+    expect(prompt).toContain(`nonresidentTaxation: ${SOURCES.nonresidentTaxation}`)
+    expect(prompt).toContain(`pub519: ${SOURCES.pub519}`)
   })
   it('adds the reviewed treaty text for a country the student names, and nothing for other text', () => {
     const asked = (content) => [{ role: 'user', content }]
