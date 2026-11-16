@@ -1,5 +1,7 @@
 // Consume complete SSE events, including a final event without a trailing newline.
-export async function* readChatStream(body) {
+// `state` is an optional object the caller keeps: `state.finishReason` is set to the model's
+// reason for stopping ("stop", or "length" when it hit the answer cap and the text is cut off).
+export async function* readChatStream(body, state = {}) {
   if (!body) throw new Error('The AI returned an empty response.')
   const reader = body.getReader()
   const decoder = new TextDecoder()
@@ -21,6 +23,8 @@ export async function* readChatStream(body) {
       throw new Error('The AI response was interrupted. Please try again.')
     }
     if (event?.error) throw new Error('The AI response was interrupted. Please try again.')
+    const reason = event?.choices?.[0]?.finish_reason
+    if (typeof reason === 'string' && reason) state.finishReason = reason
     return event?.choices?.[0]?.delta?.content || null
   }
   try {
@@ -49,6 +53,10 @@ export async function* readChatStream(body) {
     await reader.cancel().catch(() => {})
     reader.releaseLock()
   }
+}
+// True when the model stopped because it reached its answer cap, so the text ends mid-thought.
+export function wasCutShort(state) {
+  return state?.finishReason === 'length'
 }
 export function safeIRSUrl(value) {
   try {

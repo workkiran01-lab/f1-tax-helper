@@ -5,7 +5,7 @@
 // run it after a prompt, model or season change, not on every commit. See README.md.
 import { mkdirSync, writeFileSync } from 'node:fs'
 import { dirname } from 'node:path'
-import { readChatStream } from '../../src/utils/chatStream.js'
+import { readChatStream, wasCutShort } from '../../src/utils/chatStream.js'
 import { runCases } from './runner.js'
 
 const args = Object.fromEntries(
@@ -30,8 +30,9 @@ async function ask(question) {
     throw error
   }
   let text = ''
-  for await (const delta of readChatStream(response.body)) text += delta
-  return { text, model: response.headers.get('x-chat-model') }
+  const stream = {}
+  for await (const delta of readChatStream(response.body, stream)) text += delta
+  return { text, model: response.headers.get('x-chat-model'), truncated: wasCutShort(stream) }
 }
 
 const { summary, results } = await runCases({

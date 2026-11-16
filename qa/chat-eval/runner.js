@@ -24,6 +24,7 @@ export async function runCases({
   for (const [index, testCase] of selected.entries()) {
     let answer = ''
     let model
+    let truncated = false
     let error = ''
     for (let attempt = 0; attempt <= retries; attempt += 1) {
       try {
@@ -32,6 +33,7 @@ export async function runCases({
         const reply = await ask(testCase.question)
         answer = typeof reply === 'string' ? reply : String(reply?.text ?? '')
         model = typeof reply === 'string' ? undefined : reply?.model || undefined
+        truncated = typeof reply === 'string' ? false : Boolean(reply?.truncated)
         // The app shows an empty answer as an error, so a blank one is a dropped response,
         // not a quality result: ask again instead of grading nothing.
         if (!String(answer).trim()) throw new Error('The model returned an empty answer.')
@@ -54,6 +56,16 @@ export async function runCases({
       : grade(answer, testCase)
     result.answer = answer
     if (model) result.model = model
+    // An answer cut off at the model's cap can read as complete, so it fails whatever else
+    // it got right.
+    if (truncated && !error) {
+      result.truncated = true
+      result.pass = false
+      result.failures.push({
+        check: 'truncated',
+        detail: 'the model stopped at its answer cap, so the answer ends early',
+      })
+    }
     results.push(result)
     onResult(result, index + 1, selected.length)
     if (error && /daily|limit for today/i.test(error)) break

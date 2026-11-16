@@ -46,7 +46,7 @@ Delete `public/assets/__chat-eval.js` before merging; it is a throwaway for prev
 | `gold` | One sentence stating the expected answer, for the human reviewer |
 | `source`, `reviewed` | The IRS page the expectation comes from and the date a person last checked it |
 
-Every answer is also checked for: all four sections and a named IRS source, links only to `irs.gov`, no request for an SSN, ITIN or passport number, and no guarantee of an outcome.
+Every answer is also checked for: all four sections and a named IRS source, links only to `irs.gov`, no request for an SSN, ITIN or passport number, and no guarantee of an outcome. An answer the model stopped at its token cap (`finish_reason` `length`) fails with the check `truncated`, because it can read as finished; the summary counts them in `truncated`, and `byModel` counts how many answers each model wrote.
 
 ## Keeping it honest
 
