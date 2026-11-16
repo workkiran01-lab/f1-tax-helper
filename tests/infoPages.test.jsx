@@ -61,6 +61,26 @@ describe('tax guide', () => {
     expect(screen.getByRole('heading', { level: 2, name: 'Review log' })).toBeTruthy()
     for (const url of external(container)) expect(url, url).toMatch(/^https:\/\/www\.irs\.gov\//)
   })
+  it('explains scholarships from Publication 519, with the 1040-NR limit and the 1042-S date', () => {
+    const section = GUIDE_SECTIONS.find((x) => x.id === 'scholarships')
+    const text = JSON.stringify(section.blocks)
+    expect(text).toMatch(/candidate for a degree/)
+    expect(text).toMatch(/room and board, travel/)
+    expect(text).toMatch(/teaching, research or other services is taxable/)
+    expect(text).toMatch(/residence of the payer/)
+    expect(text).toMatch(/14%, or a lower treaty rate/)
+    expect(text).toMatch(/This app does not prepare Form 1040-NR/)
+    expect(section.blocks).toContainEqual({ type: 'dates', ids: ['form1042s'] })
+    expect(section.sources.map((x) => x.url)).toEqual(
+      expect.arrayContaining([SOURCES.pub519, SOURCES.scholarshipWithholding]),
+    )
+    // Never a promise that a scholarship is wholly tax-free.
+    expect(text).not.toMatch(/scholarships? (is|are) (always )?(fully )?tax-free/i)
+    expect(FAQ_ITEMS.find((x) => x.id === 'scholarship').a).toMatch(/\/tax-guide#scholarships/)
+    // The Form 1042-S instructions: amounts exempt under section 117 are not reported.
+    expect(text).toMatch(/tax-free as a qualified scholarship[^.]*is not reported/)
+    expect(FAQ_ITEMS.find((x) => x.id === 'scholarship').a).toMatch(/US payer reports a US-source scholarship on Form 1042-S, leaving out the tax-free part/)
+  })
   it('states that the app does not prepare Form 1040-NR, in the scope note and in the return step', () => {
     const { container } = at('/tax-guide', <TaxGuidePage />)
     const text = container.textContent

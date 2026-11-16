@@ -53,7 +53,7 @@ export default function TaxGuidePage() {
           </p>
           <ul className="mt-4 space-y-3">
             {REVIEW_LOG.map((entry) => (
-              <li key={entry.date} className="text-[15px] leading-relaxed text-ink-3">
+              <li key={`${entry.date}-${entry.text.slice(0, 24)}`} className="text-[15px] leading-relaxed text-ink-3">
                 <time dateTime={entry.date} className="font-semibold text-ink">
                   {formatReviewed(entry.date)}
                 </time>

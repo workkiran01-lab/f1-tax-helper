@@ -28,7 +28,7 @@ export const PAGE_META = Object.freeze({
   '/tax-guide': {
     title: 'Tax guide for F-1 students — F1 Tax Helper',
     description:
-      'A plain-language guide for F-1 and J-1 students: nonresident status, Form 8843, Form 1040-NR, Social Security and Medicare tax, treaties and state taxes, with IRS sources.',
+      'A plain-language guide for F-1 and J-1 students: nonresident status, Form 8843, Form 1040-NR, scholarships, Social Security and Medicare tax, treaties and state taxes, with IRS sources.',
   },
   '/faq': {
     title: 'FAQ — F1 Tax Helper',
