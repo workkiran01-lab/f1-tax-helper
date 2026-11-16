@@ -32,9 +32,11 @@ export function buildFilingItems({ hasIncome, hasW2, hasScholarship, needsReview
       id: 'form-1040nr',
       name: 'Form 1040-NR',
       description:
-        'Review filing requirements for taxable US income; exempt income and withholding can affect whether a return is required',
+        'Review filing requirements for taxable US income; exempt income and withholding can affect whether a return is required. F1 Tax Helper does not prepare or file this form.',
       required: true,
-      link: null,
+      link: SOURCES.nonresidentReturn,
+      external: true,
+      linkLabel: 'IRS instructions',
     })
   if (hasW2)
     items.push({

@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { Link } from 'react-router-dom'
+import { RichText } from '../info/RichText.jsx'
 
 export function LegalLayout({ title, lastUpdated, intro, sections }) {
   useEffect(() => {
@@ -56,7 +57,7 @@ export function LegalLayout({ title, lastUpdated, intro, sections }) {
                   {section.title}
                 </h2>
                 <div className="text-sm text-ink-3 leading-relaxed whitespace-pre-line">
-                  {section.content}
+                  <RichText text={section.content} />
                 </div>
               </section>
             ))}

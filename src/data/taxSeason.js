@@ -27,6 +27,7 @@ export const SOURCES = Object.freeze({
   form8843: 'https://www.irs.gov/forms-pubs/about-form-8843',
   form8843Pdf: 'https://www.irs.gov/pub/irs-pdf/f8843.pdf',
   nonresidentReturn: 'https://www.irs.gov/instructions/i1040nr',
+  nonresidentTaxation: 'https://www.irs.gov/individuals/international-taxpayers/taxation-of-nonresident-aliens',
   student:
     'https://www.irs.gov/individuals/international-taxpayers/exempt-individual-who-is-a-student',
   presence: 'https://www.irs.gov/individuals/international-taxpayers/substantial-presence-test',
@@ -59,27 +60,42 @@ export const DEADLINE_NOTE =
   'Expected 2027 dates under current IRS rules; check final instructions, state deadlines and any disaster relief before filing. An extension to file does not extend time to pay.'
 export const DEADLINES = [
   {
+    id: 'w2',
     date: 'Feb 1, 2027',
     label: 'W-2 furnished by employer (Jan 31 falls on Sunday)',
     color: 'blue',
   },
-  { date: 'Mar 15, 2027', label: 'Form 1042-S generally furnished by payer', color: 'violet' },
   {
+    id: 'form1042s',
+    date: 'Mar 15, 2027',
+    label: 'Form 1042-S generally furnished by payer',
+    color: 'violet',
+  },
+  {
+    id: 'return-wages',
     date: 'Apr 15, 2027',
     label: '1040-NR: employee wages subject to US income tax withholding',
     color: 'red',
   },
   {
+    id: 'return-no-wages',
     date: 'Jun 15, 2027',
     label: '1040-NR: no employee wages subject to US income tax withholding',
     color: 'amber',
   },
   {
+    id: 'form8843-alone',
     date: 'Jun 15, 2027',
     label: 'Standalone Form 8843, when no income tax return is required',
     color: 'green',
   },
 ]
+// The date for one entry above, e.g. deadlineDate('form8843-alone') is 'Jun 15, 2027'.
+export function deadlineDate(id) {
+  const entry = DEADLINES.find((d) => d.id === id)
+  if (!entry) throw new Error(`Unknown deadline ${id}`)
+  return entry.date
+}
 export function filingDeadline(hasWithholdingWages, year = TAX_YEAR) {
   return `${hasWithholdingWages ? 'April' : 'June'} 15, ${Number(year) + 1}`
 }
