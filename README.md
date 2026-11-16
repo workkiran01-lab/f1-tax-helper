@@ -35,6 +35,10 @@ Configure Supabase's site URL and redirect allowlist for `/auth/callback` on eac
 
 The account deletion UI calls the authenticated `public.delete_user()` RPC. Its migration is in `supabase/migrations/202609070001_self_delete.sql`. Review and apply it to the intended Supabase project before releasing account deletion. The frontend must never receive a service-role key. Review any project-specific dependent records or storage separately; this repository does not contain the live database schema.
 
+## IRS links
+
+Every `irs.gov` address the app, the chat prompt and the chat test set use is listed by `node scripts/check-irs-links.mjs`; add `--online` to check that each one still opens (the IRS reorganises its site, and in 2026 the treaty directory moved, which broke the app's link and the one the chat gave students). Shared sources are in `SOURCES` in `src/data/taxSeason.js`. Run the online check before each filing season. Tests guard against the addresses already known to be dead.
+
 ## Chat answer quality
 
 `qa/chat-eval/` holds 37 student questions with the facts each answer must contain and the mistakes it must not make (wrong deadline, "no treaty" for an unreviewed country, asking for an SSN, non-IRS links, guarantees). Run it after any change to `lib/taxPrompt.js`, the season or treaty data, or the chat model, then read a few answers yourself. It calls the real API and spends free-tier model tokens, so it is not part of CI. See [qa/chat-eval/README.md](qa/chat-eval/README.md).
