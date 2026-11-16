@@ -53,10 +53,9 @@ Your messages are transmitted to Groq when you use AI chat. The form generator d
         `F1 Tax Helper uses the following third-party services, each with their own privacy policies:
 
 • Google OAuth (authentication) — accounts.google.com
-• Supabase (database and storage) — supabase.com
+• Supabase (accounts, and short-lived request counters keyed by a hash of your network address, used for rate limiting) — supabase.com
 • Groq (AI chat completions) — groq.com
 • Vercel (hosting) — vercel.com
-• Upstash (short-lived request counters for rate limiting) — upstash.com
 • Resend (waitlist signup delivery) — resend.com
 • Sentry (error reporting, when configured) — sentry.io
 

@@ -5,6 +5,7 @@ import {
   readJsonLimited,
   normalizeMessages,
   rateLimit,
+  dailyBudget,
 } from '../lib/apiSafety.js'
 import { SYSTEM_PROMPT } from '../lib/taxPrompt.js'
 
@@ -27,6 +28,7 @@ export function groqRequestBody(model, messages) {
 export function createChatHandler({
   fetchImpl = (...args) => fetch(...args),
   limiter = rateLimit,
+  budget = dailyBudget,
   env = process.env,
 } = {}) {
   return async function handler(req) {
@@ -61,6 +63,14 @@ export function createChatHandler({
         'Retry-After': '60',
       })
     }
+    // Free-tier safety net: stop calling the paid model once today's shared cap is used.
+    const cap = Number(env.CHAT_DAILY_CAP) > 0 ? Number(env.CHAT_DAILY_CAP) : 3000
+    if (await budget('chat', cap, env))
+      return jsonError(
+        'AI chat has reached its limit for today. Your checklist and form preparation still work; please try again tomorrow.',
+        503,
+        { 'Retry-After': '3600' },
+      )
     try {
       const timeout = AbortSignal.timeout(30000)
       const signal = AbortSignal.any ? AbortSignal.any([req.signal, timeout]) : timeout
