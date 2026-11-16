@@ -1,9 +1,15 @@
 import { useEffect } from 'react'
 import { Link } from 'react-router-dom'
+import { RichText } from '../info/RichText.jsx'
+import { PAGE_META } from '../../data/site.js'
 
 export function LegalLayout({ title, lastUpdated, intro, sections }) {
   useEffect(() => {
     document.title = `${title} — F1 Tax Helper`
+    // Leaving the page must not leave its title on whatever opens next.
+    return () => {
+      document.title = PAGE_META['/'].title
+    }
   }, [title])
 
   return (
@@ -56,7 +62,7 @@ export function LegalLayout({ title, lastUpdated, intro, sections }) {
                   {section.title}
                 </h2>
                 <div className="text-sm text-ink-3 leading-relaxed whitespace-pre-line">
-                  {section.content}
+                  <RichText text={section.content} />
                 </div>
               </section>
             ))}

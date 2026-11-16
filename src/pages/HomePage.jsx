@@ -458,6 +458,14 @@ export default function HomePage() {
               </div>
             ))}
           </div>
+          <p className="mt-5 max-w-2xl text-[15px] leading-relaxed text-ink-3">
+            Form 8843 is the one form this app prepares. It does not prepare or file Form 1040-NR
+            or state returns. The{' '}
+            <Link to="/tax-guide" className="text-tint-ink hover:underline">
+              tax guide
+            </Link>{' '}
+            explains when you need a return and where to start.
+          </p>
         </Reveal>
 
         {/* Worked examples */}
@@ -529,6 +537,24 @@ export default function HomePage() {
       <footer className="border-t border-line px-5 py-10">
         <div className="mx-auto flex max-w-5xl flex-col items-center gap-5 text-center">
           <BrandMark />
+          <nav
+            aria-label="Learn"
+            className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2"
+          >
+            {[
+              ['/tax-guide', 'Tax guide'],
+              ['/faq', 'FAQ'],
+              ['/tax-treaties', 'Treaties'],
+            ].map(([to, label]) => (
+              <Link
+                key={to}
+                to={to}
+                className="text-[13px] font-medium text-ink-2 transition-colors hover:text-ink"
+              >
+                {label}
+              </Link>
+            ))}
+          </nav>
           <nav
             aria-label="Legal"
             className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2"

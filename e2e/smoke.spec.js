@@ -12,6 +12,9 @@ test.describe('public pages', () => {
     ['/privacy', /privacy/i],
     ['/terms', /terms/i],
     ['/disclaimer', /disclaimer|not tax advice|information/i],
+    ['/tax-guide', /tax guide for f-1 students/i],
+    ['/faq', /frequently asked questions/i],
+    ['/tax-treaties', /tax treaty lookup/i],
   ]) {
     test(`${path} renders`, async ({ page }) => {
       const errors = []
@@ -25,6 +28,70 @@ test.describe('public pages', () => {
   test('unknown routes show the not-found page, not a blank screen', async ({ page }) => {
     await page.goto('/definitely-not-a-page')
     await expect(page.getByRole('heading').first()).toBeVisible()
+  })
+
+  test('there is no blog: that address is the not-found page, not a waitlist form', async ({
+    page,
+  }) => {
+    await page.goto('/blog')
+    await expect(page.getByRole('heading').first()).toBeVisible()
+    await expect(page.getByText(/join waitlist|coming soon/i)).toHaveCount(0)
+  })
+
+  test('the guide says the app does not prepare Form 1040-NR and sets the page canonical', async ({
+    page,
+  }) => {
+    await page.goto('/tax-guide')
+    await expect(page.getByText(/does not prepare, file or e-file Form 1040-NR/).first()).toBeVisible()
+    await expect(page.locator('link[rel="canonical"]')).toHaveAttribute(
+      'href',
+      'https://www.f1taxhelper.com/tax-guide',
+    )
+    await expect(page).toHaveTitle(/Tax guide for F-1 students/)
+    // Every outside link on the page is an official IRS page.
+    const hrefs = await page.locator('a[href^="http"]').evaluateAll((els) => els.map((e) => e.href))
+    expect(hrefs.length).toBeGreaterThan(10)
+    for (const href of hrefs) expect(href).toMatch(/^https:\/\/www\.irs\.gov\//)
+  })
+
+  test('the FAQ opens a question and the treaty lookup shows Canada as not reviewed', async ({
+    page,
+  }) => {
+    await page.goto('/faq')
+    await page.getByText('Can F1 Tax Helper prepare or file my Form 1040-NR?').click()
+    await expect(page.getByText(/This app prepares Form 8843 only/)).toBeVisible()
+    await page.goto('/tax-treaties')
+    await page.getByLabel('Find your country').fill('cana')
+    await page.getByRole('button', { name: 'Canada' }).click()
+    await expect(page.getByText('Not reviewed in this app')).toBeVisible()
+    await expect(page.getByText(/does not mean no treaty exists/)).toBeVisible()
+  })
+
+  test('moving between pages keeps the title, description and canonical in step', async ({
+    page,
+  }) => {
+    const description = () => page.locator('meta[name="description"]').getAttribute('content')
+    await page.goto('/faq')
+    await expect(page).toHaveTitle(/^FAQ/)
+    await page.getByText('Is F1 Tax Helper free, and is this tax advice?').click()
+    await page.getByRole('link', { name: 'disclaimer', exact: true }).click()
+    await expect(page).toHaveURL(/\/disclaimer$/)
+    await expect(page).toHaveTitle(/Disclaimer/)
+    await expect(page.locator('link[rel="canonical"]')).toHaveAttribute(
+      'href',
+      'https://www.f1taxhelper.com/disclaimer',
+    )
+    expect(await description()).toMatch(/^Free Form 8843 generator/)
+    await page.goto('/blog')
+    await expect(page).toHaveTitle(/^F1 Tax Helper/)
+  })
+
+  test('the home page links to the guide, FAQ and treaties', async ({ page }) => {
+    await page.goto('/')
+    const learn = page.getByRole('navigation', { name: 'Learn' })
+    for (const name of ['Tax guide', 'FAQ', 'Treaties']) await expect(learn.getByRole('link', { name })).toBeVisible()
+    await learn.getByRole('link', { name: 'Tax guide' }).click()
+    await expect(page).toHaveURL(/\/tax-guide$/)
   })
 })
 

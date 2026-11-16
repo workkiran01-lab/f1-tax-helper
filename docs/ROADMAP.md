@@ -36,6 +36,8 @@ Order matters. Each phase ships as its own PR with tests; colours stay as tokens
 
 ## Open
 
+- Done 2026-11-16: tax guide, FAQ and treaty lookup replace the "coming soon" pages; `/blog` removed; canonical, sitemap and robots moved to the www host. Owner decision: the waitlist endpoint (`/api/waitlist`, Resend, and the waitlist lines in the privacy policy) has no page in the app any more. Delete it, or put a waitlist for a future Form 1040-NR tool on a real page.
+- Not built: Form 1040-NR preparation (decision 2026-11-15, too complex for now).
 - Done 2026-11-16: anonymous daily usage totals (`docs/USAGE-COUNTS.md`). Still to add: a download-event assertion in the signed-in e2e test.
 - Test account deletion end to end with a throwaway Google account (owner).
 - Run `node scripts/check-irs-links.mjs --online` before each season (28 addresses; all opened on 2026-11-16).

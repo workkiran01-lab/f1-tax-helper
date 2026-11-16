@@ -35,6 +35,12 @@ Configure Supabase's site URL and redirect allowlist for `/auth/callback` on eac
 
 The account deletion UI calls the authenticated `public.delete_user()` RPC. Its migration is in `supabase/migrations/202609070001_self_delete.sql`. Review and apply it to the intended Supabase project before releasing account deletion. The frontend must never receive a service-role key. Review any project-specific dependent records or storage separately; this repository does not contain the live database schema.
 
+## Public information pages
+
+`/tax-guide`, `/faq` and `/tax-treaties` are public, outside the signed-in shell. Their text is data in `src/data/guide.js`; every date, amount and the mailing address come from `src/data/taxSeason.js` and each section lists the IRS pages it rests on. The treaty lookup renders only `src/data/treaties.js`: countries the app has not reviewed are shown as "not reviewed", never as having no treaty. The pages say plainly that the app does not prepare or file Form 1040-NR or state returns. When a rule changes, update the season data, the sentence in `guide.js` and the review log together. `/blog` does not exist (it is the not-found page); `/privacy-policy` and `/terms-of-service` redirect to `/privacy` and `/terms`.
+
+`src/data/site.js` holds the public host. `f1taxhelper.com` redirects to `www.f1taxhelper.com`, so the canonical link, sitemap and robots.txt name `www`; `useRouteMeta` sets the canonical address and og:url for every route, and the title and description of these pages, in the browser; `index.html` deliberately has no fixed canonical because it serves every route.
+
 ## IRS links
 
 Every `irs.gov` address the app, the chat prompt and the chat test set use is listed by `node scripts/check-irs-links.mjs`; add `--online` to check that each one still opens (the IRS reorganises its site, and in 2026 the treaty directory moved, which broke the app's link and the one the chat gave students). Shared sources are in `SOURCES` in `src/data/taxSeason.js`. Run the online check before each filing season. Tests guard against the addresses already known to be dead.

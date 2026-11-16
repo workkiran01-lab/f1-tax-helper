@@ -7,7 +7,6 @@ import MyTaxesPage from './pages/MyTaxesPage'
 import AccountPage from './pages/AccountPage'
 import AppShell from './components/app/AppShell'
 import Disclaimer from './pages/Disclaimer'
-import ComingSoon from './pages/ComingSoon'
 import LoginPage from './pages/LoginPage'
 import AuthCallbackPage from './pages/AuthCallbackPage'
 import PrivacyPage from './pages/PrivacyPage'
@@ -16,6 +15,7 @@ import ContactPage from './pages/ContactPage'
 import NotFoundPage from './pages/NotFoundPage'
 import StatusCheckerPage from './pages/StatusCheckerPage'
 import useAuth, { AuthProvider } from './hooks/useAuth'
+import { useRouteMeta } from './hooks/useRouteMeta.js'
 import { MotionConfig } from 'framer-motion'
 import { PageSkeleton, SessionSplash } from './components/app/Skeleton'
 import { trackEvent } from './utils/usage.js'
@@ -23,6 +23,9 @@ import { trackEvent } from './utils/usage.js'
 const ChatPage = lazy(() => import('./pages/ChatPage'))
 const Form8843Page = lazy(() => import('./pages/Form8843Page'))
 const AboutPage = lazy(() => import('./pages/AboutPage'))
+const TaxGuidePage = lazy(() => import('./pages/TaxGuidePage'))
+const FaqPage = lazy(() => import('./pages/FaqPage'))
+const TaxTreatiesPage = lazy(() => import('./pages/TaxTreatiesPage'))
 
 function LazySuspense({ children }) {
   return (
@@ -61,6 +64,7 @@ function InApp({ children, focus = false }) {
 }
 
 function AppRoutes() {
+  useRouteMeta()
   return (
     <Routes>
       <Route path="/" element={<HomePage />} />
@@ -140,10 +144,31 @@ function AppRoutes() {
       <Route path="/privacy" element={<PrivacyPage />} />
       <Route path="/terms" element={<TermsPage />} />
       <Route path="/contact" element={<ContactPage />} />
-      <Route path="/tax-guide" element={<ComingSoon title="Tax Guide" />} />
-      <Route path="/faq" element={<ComingSoon title="FAQ" />} />
-      <Route path="/blog" element={<ComingSoon title="Blog" />} />
-      <Route path="/tax-treaties" element={<ComingSoon title="Tax Treaties" />} />
+      {/* Public information pages. There is no blog: that address is the not-found page. */}
+      <Route
+        path="/tax-guide"
+        element={
+          <LazySuspense>
+            <TaxGuidePage />
+          </LazySuspense>
+        }
+      />
+      <Route
+        path="/faq"
+        element={
+          <LazySuspense>
+            <FaqPage />
+          </LazySuspense>
+        }
+      />
+      <Route
+        path="/tax-treaties"
+        element={
+          <LazySuspense>
+            <TaxTreatiesPage />
+          </LazySuspense>
+        }
+      />
       <Route path="/privacy-policy" element={<Navigate to="/privacy" replace />} />
       <Route path="/terms-of-service" element={<Navigate to="/terms" replace />} />
       {/* Addresses from before the app shell keep working. */}
