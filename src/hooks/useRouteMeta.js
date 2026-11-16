@@ -11,26 +11,36 @@ function setMeta(selector, create, attr, value) {
   el.setAttribute(attr, value)
 }
 
-// Keeps the canonical address (and, for pages in PAGE_META, the title and description) in step
-// with the route. index.html alone would tell search engines every page is the home page.
+const metaTag = (key, name) => () => {
+  const el = document.createElement('meta')
+  el.setAttribute(key, name)
+  return el
+}
+
+// The last title this hook wrote. A page that sets its own title (the legal pages) replaces it,
+// and the hook then leaves that title alone instead of overwriting it.
+let titleSetByHook = null
+
+// Keeps the canonical address, description and social tags in step with the route, and the title
+// for pages in PAGE_META. index.html serves every route, so without this every page would carry
+// the home page's details. Routes with no entry fall back to the home page's description.
 export function useRouteMeta() {
   const { pathname } = useLocation()
   useEffect(() => {
     const url = canonicalUrl(pathname)
     setMeta('link[rel="canonical"]', () => Object.assign(document.createElement('link'), { rel: 'canonical' }), 'href', url)
-    setMeta('meta[property="og:url"]', () => {
-      const el = document.createElement('meta')
-      el.setAttribute('property', 'og:url')
-      return el
-    }, 'content', url)
-    const meta = PAGE_META[pathname.replace(/\/+$/, '') || '/']
-    if (!meta) return
-    document.title = meta.title
-    for (const [selector, attr, value] of [
-      ['meta[name="description"]', 'content', meta.description],
-      ['meta[property="og:title"]', 'content', meta.title],
-      ['meta[property="og:description"]', 'content', meta.description],
-    ])
-      document.head.querySelector(selector)?.setAttribute(attr, value)
+    setMeta('meta[property="og:url"]', metaTag('property', 'og:url'), 'content', url)
+    const own = PAGE_META[pathname.replace(/\/+$/, '') || '/']
+    const meta = own ?? PAGE_META['/']
+    if (own) {
+      document.title = own.title
+      titleSetByHook = own.title
+    } else if (titleSetByHook !== null && document.title === titleSetByHook) {
+      document.title = meta.title
+      titleSetByHook = meta.title
+    }
+    setMeta('meta[name="description"]', metaTag('name', 'description'), 'content', meta.description)
+    setMeta('meta[property="og:description"]', metaTag('property', 'og:description'), 'content', meta.description)
+    setMeta('meta[property="og:title"]', metaTag('property', 'og:title'), 'content', meta.title)
   }, [pathname])
 }

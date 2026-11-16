@@ -2,10 +2,10 @@
 // The public guide, FAQ and treaty lookup: content comes from the reviewed season and treaty
 // data, links only go to the app or official IRS pages, and unreviewed countries never read as
 // "no treaty".
-import React from 'react'
+import React, { useEffect } from 'react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
-import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom'
+import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react'
+import { MemoryRouter, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
 import App from '../src/App.jsx'
 import TaxGuidePage from '../src/pages/TaxGuidePage.jsx'
 import FaqPage from '../src/pages/FaqPage.jsx'
@@ -171,6 +171,57 @@ describe('routes and page details', () => {
       </MemoryRouter>,
     )
     expect(canonical()).toBe(`${SITE_ORIGIN}/`)
+  })
+  it('resets the description and title when you leave one of these pages', () => {
+    let go
+    function Nav() {
+      go = useNavigate()
+      return null
+    }
+    const description = () => document.head.querySelector('meta[name="description"]')?.getAttribute('content')
+    const ogTitle = () => document.head.querySelector('meta[property="og:title"]')?.getAttribute('content')
+    render(
+      <MemoryRouter initialEntries={['/tax-treaties']}>
+        <Probe />
+        <Nav />
+      </MemoryRouter>,
+    )
+    expect(description()).toBe(PAGE_META['/tax-treaties'].description)
+    expect(ogTitle()).toBe(PAGE_META['/tax-treaties'].title)
+    act(() => go('/faq'))
+    expect(document.title).toBe(PAGE_META['/faq'].title)
+    expect(description()).toBe(PAGE_META['/faq'].description)
+    act(() => go('/taxes'))
+    expect(document.title).toBe(PAGE_META['/'].title)
+    expect(description()).toBe(PAGE_META['/'].description)
+    expect(ogTitle()).toBe(PAGE_META['/'].title)
+    expect(canonical()).toBe(`${SITE_ORIGIN}/taxes`)
+  })
+  it('does not overwrite a title that a page sets for itself', () => {
+    let go
+    function Nav() {
+      go = useNavigate()
+      return null
+    }
+    function Legal() {
+      useEffect(() => {
+        document.title = 'Privacy — F1 Tax Helper'
+      }, [])
+      return null
+    }
+    render(
+      <MemoryRouter initialEntries={['/tax-guide']}>
+        <Routes>
+          <Route path="/privacy" element={<Legal />} />
+          <Route path="*" element={null} />
+        </Routes>
+        <Probe />
+        <Nav />
+      </MemoryRouter>,
+    )
+    act(() => go('/privacy'))
+    expect(document.title).toBe('Privacy — F1 Tax Helper')
+    expect(document.head.querySelector('meta[name="description"]')?.getAttribute('content')).toBe(PAGE_META['/'].description)
   })
   it('opens the new pages from the app, and /blog is the not-found page', async () => {
     window.history.pushState({}, '', '/blog')

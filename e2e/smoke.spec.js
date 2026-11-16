@@ -67,6 +67,25 @@ test.describe('public pages', () => {
     await expect(page.getByText(/does not mean no treaty exists/)).toBeVisible()
   })
 
+  test('moving between pages keeps the title, description and canonical in step', async ({
+    page,
+  }) => {
+    const description = () => page.locator('meta[name="description"]').getAttribute('content')
+    await page.goto('/faq')
+    await expect(page).toHaveTitle(/^FAQ/)
+    await page.getByText('Is F1 Tax Helper free, and is this tax advice?').click()
+    await page.getByRole('link', { name: 'disclaimer', exact: true }).click()
+    await expect(page).toHaveURL(/\/disclaimer$/)
+    await expect(page).toHaveTitle(/Disclaimer/)
+    await expect(page.locator('link[rel="canonical"]')).toHaveAttribute(
+      'href',
+      'https://www.f1taxhelper.com/disclaimer',
+    )
+    expect(await description()).toMatch(/^Free Form 8843 generator/)
+    await page.goto('/blog')
+    await expect(page).toHaveTitle(/^F1 Tax Helper/)
+  })
+
   test('the home page links to the guide, FAQ and treaties', async ({ page }) => {
     await page.goto('/')
     const learn = page.getByRole('navigation', { name: 'Learn' })

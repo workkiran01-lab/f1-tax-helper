@@ -1,10 +1,15 @@
 import { useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { RichText } from '../info/RichText.jsx'
+import { PAGE_META } from '../../data/site.js'
 
 export function LegalLayout({ title, lastUpdated, intro, sections }) {
   useEffect(() => {
     document.title = `${title} — F1 Tax Helper`
+    // Leaving the page must not leave its title on whatever opens next.
+    return () => {
+      document.title = PAGE_META['/'].title
+    }
   }, [title])
 
   return (
