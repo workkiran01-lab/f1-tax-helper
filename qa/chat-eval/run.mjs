@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Usage: node qa/chat-eval/run.mjs [--url https://www.f1taxhelper.com/api/chat] [--only id,category]
-//        [--delay 4000] [--min 0.9] [--out qa/chat-eval/results/latest.json]
+//        [--delay 30000] [--min 0.9] [--out qa/chat-eval/results/latest.json]
 // Calls the real chat API, so it spends free-tier model quota and the shared daily chat budget:
 // run it after a prompt, model or season change, not on every commit. See README.md.
 import { mkdirSync, writeFileSync } from 'node:fs'
@@ -37,7 +37,7 @@ async function ask(question) {
 const { summary, results } = await runCases({
   ask,
   only: args.only?.split(','),
-  delayMs: Number(args.delay) || 4000,
+  delayMs: Number(args.delay) || 30000,
   minPassRate: Number(args.min) || 0.9,
   onResult: (r, i, n) =>
     console.log(

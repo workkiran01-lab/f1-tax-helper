@@ -26,8 +26,18 @@ export function sectionText(answer, heading) {
   return (next < 0 ? rest : rest.slice(0, next)).trim()
 }
 
+// The model writes typographic characters (can’t, a non-breaking hyphen in 1040‑NR, narrow
+// spaces). Plain-ASCII patterns would miss them and mark a correct answer wrong.
+export function normalizeText(value) {
+  return String(value ?? '')
+    .replace(/[\u2018\u2019\u201B]/g, "'")
+    .replace(/[\u201C\u201D]/g, '"')
+    .replace(/[\u2010-\u2013]/g, '-')
+    .replace(/[\u00A0\u202F\u2009]/g, ' ')
+}
+
 export function grade(answer, testCase) {
-  const text = String(answer ?? '')
+  const text = normalizeText(answer)
   const failures = []
   const fail = (check, detail) => failures.push({ check, detail })
 

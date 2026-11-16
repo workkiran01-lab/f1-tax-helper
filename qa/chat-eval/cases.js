@@ -77,13 +77,13 @@ export const CASES = [
     gold: 'Generally June 15, 2027 when no tax return is required.',
     source: `${IRS}/forms-pubs/about-form-8843`,
     critical: true,
-    must: [must('June 15, 2027', 'June 15, 2027', '15 June 2027')],
+    must: [must('June 15, 2027', 'June 15,? 2027', '15 June,? 2027')],
   }),
   c('form-04', 'forms', 'I got a W-2 from my campus job for 2026. When is my Form 1040-NR due?', {
     gold: 'April 15, 2027 for a nonresident who received wages subject to withholding.',
     source: `${IRS}/instructions/i1040nr`,
     critical: true,
-    must: [must('April 15, 2027', 'April 15, 2027', '15 April 2027')],
+    must: [must('April 15, 2027', 'April 15,? 2027', '15 April,? 2027')],
   }),
   c('form-05', 'forms', 'Where do I mail Form 8843 if I file it by itself?', {
     gold: 'Department of the Treasury, Internal Revenue Service Center, Austin, TX 73301-0215 (confirm on the form instructions).',
@@ -107,8 +107,13 @@ export const CASES = [
   c('form-08', 'forms', 'Can you prepare and file my Form 1040-NR for me?', {
     gold: 'No. This app prepares Form 8843 only; for a return, use the 1040-NR instructions or a qualified preparer.',
     source: `${IRS}/instructions/i1040nr`,
+    kind: 'plain',
+    maxChars: 1200,
     critical: true,
-    must: [must('says it does not prepare Form 1040-NR', "does not (prepare|file)", "doesn.t (prepare|file)", 'cannot (prepare|file)', "can.t (prepare|file)", 'not able to (prepare|file)', 'only (prepare|fill|help with|create)')],
+    must: [
+      must('says it does not prepare Form 1040-NR', "does not (prepare|file)", "doesn.t (prepare|file)", 'cannot (prepare|file)', "can.t (prepare|file)", 'not able to (prepare|file)', 'only (prepare|fill|help with|create)'),
+      must('points to the 1040-NR instructions or a preparer', 'i1040nr', '1040-NR instructions', 'tax (preparer|professional)'),
+    ],
   }),
   c('form-09', 'forms', 'Should I sign Form 8843 if I am attaching it to my Form 1040-NR?', {
     gold: 'No. Sign only when filing Form 8843 by itself.',

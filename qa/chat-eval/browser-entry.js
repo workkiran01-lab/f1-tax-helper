@@ -1,5 +1,5 @@
-// Bundled into one script (see README.md) and pasted into a tab on the live site, because
-// the production API only accepts requests from the site's own origin.
+// Bundled into one script (see README.md) and loaded by a page of a deployed preview of the
+// site, because the production API only accepts requests from the site's own origin.
 import { readChatStream } from '../../src/utils/chatStream.js'
 import { runCases } from './runner.js'
 

@@ -9,7 +9,7 @@ It does not prove an answer is right. It is a tripwire. After every prompt, mode
 - After editing `lib/taxPrompt.js` or the season and treaty data (`src/data`) that feed the prompt.
 - After changing `GROQ_MODEL` or when Groq retires a model.
 - When the filing season rolls forward (re-review every case, see below).
-- Not on every commit: it calls the real chat API, which spends free-tier model quota and the shared daily chat budget (`CHAT_DAILY_CAP`, default 3000). A full run is 37 requests.
+- Not on every commit: it calls the real chat API, which spends free-tier model quota and the shared daily chat budget (`CHAT_DAILY_CAP`, default 3000). A full run is 37 requests, about 110,000 model tokens and roughly 20 minutes. Groq's free tier allows 200,000 tokens a day per model, so a full run uses about half of what students can use that day. Run a subset (`--only`) while iterating and the full set once before a release, ideally late in the evening US time.
 
 ## How to run it
 
@@ -21,14 +21,15 @@ node qa/chat-eval/run.mjs --url http://localhost:3000/api/chat   # `vercel dev`
 node qa/chat-eval/run.mjs --only forms,safe-01              # a category or case ids
 ```
 
-It prints one line per case, writes `qa/chat-eval/results/latest.json` (ignored by git, includes every answer) and exits non-zero when any critical case fails or fewer than 90% pass (`--min 0.95` to tighten). The API allows 20 requests a minute per address, so the default pace is one case every 4 seconds (`--delay`).
+It prints one line per case, writes `qa/chat-eval/results/latest.json` (ignored by git, includes every answer) and exits non-zero when any critical case fails or fewer than 90% pass (`--min 0.95` to tighten). The default pace is one case every 30 seconds (`--delay`): the model's free tier allows 8,000 tokens a minute and an answer costs about 3,000, so faster runs get rate-limited answers that look like quality failures.
 
 The production API only accepts requests from the site's own origin. From a browser instead, load the bundled runner on a page of the deployed site and call it:
 
 ```
 npx esbuild qa/chat-eval/browser-entry.js --bundle --format=iife --minify --outfile=public/assets/__chat-eval.js
-# deploy a preview, open <preview>/robots.txt, add <script src="/assets/__chat-eval.js">, then:
-await window.runChatEval({ delayMs: 4000 })
+# push a branch with that file, wait for its Vercel preview, open <preview>/robots.txt, then:
+document.head.append(Object.assign(document.createElement('script'), { src: '/assets/__chat-eval.js' }))
+const run = await window.runChatEval({ only: ['forms'], delayMs: 30000 })   // run.summary, run.results
 ```
 
 Delete `public/assets/__chat-eval.js` before merging; it is a throwaway for preview runs.

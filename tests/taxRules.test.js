@@ -101,6 +101,10 @@ describe('reviewed season and treaty sources', () => {
     expect(prompt).toMatch(/does not prepare, file or e-file Form 1040-NR/)
     expect(prompt).toContain(FORM_8843_MAILING.standalone.join(', '))
     expect(prompt).toContain(`checked ${FORM_8843_MAILING.reviewed}`)
+    // Format example: the model follows a concrete shape more reliably than a description.
+    expect(prompt).toMatch(/Example of the shape only[\s\S]*### Answer[\s\S]*### Next Step/)
+    // A pasted SSN is answered with "do not share it here", not just a refusal to use it.
+    expect(prompt).toMatch(/do not repeat it: tell them plainly not to share it in chat/)
   })
   it('never treats unreviewed treaty coverage as an absence', () => {
     for (const name of ['Canada', 'Mexico', 'United Kingdom']) {
