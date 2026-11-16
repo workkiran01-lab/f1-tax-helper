@@ -1,7 +1,8 @@
 // Anonymous usage totals. Each call adds 1 to a daily counter for one allowlisted event name
 // in Supabase (public.count_event). Nothing else is sent: no account, address, device or
 // session identifier, no form content, no message text. Skipped when the browser sends Do Not
-// Track or Global Privacy Control, and when Supabase is not configured.
+// Track or Global Privacy Control, when Supabase is not configured, and anywhere except the
+// production hostnames, so previews, CI and local builds never add to the real totals.
 // The Supabase key is public, so anyone can also call the counter: report these totals as
 // approximate and never use them for anything that matters beyond trends.
 export const USAGE_EVENTS = Object.freeze([
@@ -12,12 +13,15 @@ export const USAGE_EVENTS = Object.freeze([
   'chat_message',
 ])
 
+export const USAGE_HOSTS = Object.freeze(['f1taxhelper.com', 'www.f1taxhelper.com'])
+
 export function createTracker({
   url,
   key,
   fetchImpl = globalThis.fetch,
   nav = globalThis.navigator,
   storage,
+  host = globalThis.location?.hostname,
 } = {}) {
   const seen = new Set()
   function optedOut() {
@@ -38,6 +42,7 @@ export function createTracker({
   // `once` sends the event at most once per browser tab session.
   return function track(name, { once = false } = {}) {
     if (!url || !key || typeof fetchImpl !== 'function') return false
+    if (!USAGE_HOSTS.includes(host)) return false
     if (!USAGE_EVENTS.includes(name) || optedOut()) return false
     if (once && alreadySent(name)) return false
     try {

@@ -1,9 +1,10 @@
 import { describe, it, expect, vi } from 'vitest'
 import { readFileSync } from 'node:fs'
-import { createTracker, USAGE_EVENTS } from '../src/utils/usage.js'
+import { createTracker, USAGE_EVENTS, USAGE_HOSTS } from '../src/utils/usage.js'
 
 const URL = 'https://example.supabase.co'
 const KEY = 'public-anon-key'
+const HOST = 'f1taxhelper.com'
 const okFetch = () => vi.fn(async () => ({ ok: true }))
 function memoryStorage() {
   const map = new Map()
@@ -13,7 +14,7 @@ function memoryStorage() {
 describe('usage totals', () => {
   it('sends only the allowlisted event name, with no identifiers or content', async () => {
     const fetchImpl = okFetch()
-    const track = createTracker({ url: URL, key: KEY, fetchImpl, nav: {} })
+    const track = createTracker({ url: URL, key: KEY, fetchImpl, nav: {}, host: HOST })
     expect(track('form8843_downloaded')).toBe(true)
     const [endpoint, init] = fetchImpl.mock.calls[0]
     expect(endpoint).toBe(`${URL}/rest/v1/rpc/count_event`)
@@ -23,9 +24,26 @@ describe('usage totals', () => {
     expect(Object.keys(init.headers).sort()).toEqual(['Authorization', 'Content-Type', 'apikey'])
   })
 
+  it('counts only on the production hostnames, never on previews, CI or local builds', () => {
+    const fetchImpl = okFetch()
+    for (const host of [
+      'localhost',
+      '127.0.0.1',
+      undefined,
+      'f1-tax-helper-pjtlga8g8-workkiran01-3120s-projects.vercel.app',
+      'f1taxhelper.com.evil.example',
+      'evilf1taxhelper.com',
+    ])
+      expect(createTracker({ url: URL, key: KEY, fetchImpl, nav: {}, host })('visit')).toBe(false)
+    expect(fetchImpl).not.toHaveBeenCalled()
+    for (const host of USAGE_HOSTS)
+      expect(createTracker({ url: URL, key: KEY, fetchImpl, nav: {}, host })('visit')).toBe(true)
+    expect(USAGE_HOSTS).toEqual(['f1taxhelper.com', 'www.f1taxhelper.com'])
+  })
+
   it('ignores unknown event names', () => {
     const fetchImpl = okFetch()
-    const track = createTracker({ url: URL, key: KEY, fetchImpl, nav: {} })
+    const track = createTracker({ url: URL, key: KEY, fetchImpl, nav: {}, host: HOST })
     expect(track('typed_something')).toBe(false)
     expect(track('')).toBe(false)
     expect(fetchImpl).not.toHaveBeenCalled()
@@ -33,18 +51,18 @@ describe('usage totals', () => {
 
   it('does nothing without Supabase configured', () => {
     const fetchImpl = okFetch()
-    expect(createTracker({ fetchImpl, nav: {} })('visit')).toBe(false)
-    expect(createTracker({ url: URL, fetchImpl, nav: {} })('visit')).toBe(false)
+    expect(createTracker({ fetchImpl, nav: {}, host: HOST })('visit')).toBe(false)
+    expect(createTracker({ url: URL, fetchImpl, nav: {}, host: HOST })('visit')).toBe(false)
     expect(fetchImpl).not.toHaveBeenCalled()
   })
 
   it('respects Do Not Track and Global Privacy Control', () => {
     const fetchImpl = okFetch()
-    expect(createTracker({ url: URL, key: KEY, fetchImpl, nav: { doNotTrack: '1' } })('visit')).toBe(
+    expect(createTracker({ url: URL, key: KEY, fetchImpl, nav: { doNotTrack: '1' }, host: HOST })('visit')).toBe(
       false,
     )
     expect(
-      createTracker({ url: URL, key: KEY, fetchImpl, nav: { globalPrivacyControl: true } })('visit'),
+      createTracker({ url: URL, key: KEY, fetchImpl, nav: { globalPrivacyControl: true }, host: HOST })('visit'),
     ).toBe(false)
     expect(fetchImpl).not.toHaveBeenCalled()
   })
@@ -52,10 +70,10 @@ describe('usage totals', () => {
   it('sends a once-per-session event once, even across page loads in the same tab', () => {
     const fetchImpl = okFetch()
     const storage = memoryStorage()
-    const first = createTracker({ url: URL, key: KEY, fetchImpl, nav: {}, storage })
+    const first = createTracker({ url: URL, key: KEY, fetchImpl, nav: {}, storage, host: HOST })
     expect(first('visit', { once: true })).toBe(true)
     expect(first('visit', { once: true })).toBe(false)
-    const reloaded = createTracker({ url: URL, key: KEY, fetchImpl, nav: {}, storage })
+    const reloaded = createTracker({ url: URL, key: KEY, fetchImpl, nav: {}, storage, host: HOST })
     expect(reloaded('visit', { once: true })).toBe(false)
     expect(fetchImpl).toHaveBeenCalledTimes(1)
     // Events without `once` are counted every time.
@@ -74,7 +92,7 @@ describe('usage totals', () => {
         throw new Error('blocked')
       },
     }
-    const track = createTracker({ url: URL, key: KEY, fetchImpl, nav: {}, storage: blocked })
+    const track = createTracker({ url: URL, key: KEY, fetchImpl, nav: {}, storage: blocked, host: HOST })
     expect(track('form8843_started', { once: true })).toBe(true)
     expect(track('form8843_started', { once: true })).toBe(false)
   })
@@ -84,8 +102,8 @@ describe('usage totals', () => {
     const throwing = vi.fn(() => {
       throw new Error('boom')
     })
-    expect(() => createTracker({ url: URL, key: KEY, fetchImpl: failing, nav: {} })('visit')).not.toThrow()
-    expect(createTracker({ url: URL, key: KEY, fetchImpl: throwing, nav: {} })('visit')).toBe(false)
+    expect(() => createTracker({ url: URL, key: KEY, fetchImpl: failing, nav: {}, host: HOST })('visit')).not.toThrow()
+    expect(createTracker({ url: URL, key: KEY, fetchImpl: throwing, nav: {}, host: HOST })('visit')).toBe(false)
     await Promise.resolve()
   })
 })

@@ -12,7 +12,7 @@ What is counted, where it lives and how to read it. No cost: it uses the existin
 | `form8843_downloaded` | A Form 8843 PDF is generated and downloaded |
 | `chat_message` | A message is sent to the AI chat (the text is never counted or stored) |
 
-Each event adds 1 to a row in `public.usage_counts` (`day`, `event`, `n`). The browser sends only the event name. There is no account, address, device or session identifier, and no form content or message text. Browsers that send Do Not Track or Global Privacy Control are skipped.
+Each event adds 1 to a row in `public.usage_counts` (`day`, `event`, `n`). The browser sends only the event name. There is no account, address, device or session identifier, and no form content or message text. Browsers that send Do Not Track or Global Privacy Control are skipped, and so is every address except `f1taxhelper.com` and `www.f1taxhelper.com`, so Vercel previews, CI and local builds never add to the totals (`USAGE_HOSTS` in `src/utils/usage.js`). Supabase's own API logs can briefly record a network address like any web request; the table does not.
 
 ## How to read it
 
@@ -32,9 +32,13 @@ order by total desc;
 ## How far to trust it
 
 - The Supabase key is public, so anyone can also call `count_event` directly. Treat the numbers as approximate and good for trends, not as audited figures. Do not quote them to a school or investor as exact.
-- `visit` counts tab sessions, not people. A student who opens the app on two devices counts twice, and there is no way to count unique people without an identifier, by design.
+- `visit` counts tab sessions, not people, and includes bots that run JavaScript. A student who opens the app on two devices counts twice, and there is no way to count unique people without an identifier, by design.
 - Each event stops counting at 1,000,000 a day so a flood cannot grow the numbers without bound.
 - Counts are skipped when the browser blocks the request or Do Not Track is on, so they undercount.
+
+## Not covered by a test yet
+
+`form8843_started` and `form8843_downloaded` are wired in `Form8843Page.jsx` but only the visit, status check and chat events have tests that watch them fire. The signed-in end-to-end test (Fix 6, with Supabase mocked) should assert the download event and route-mock `count_event`; never point it at the real project.
 
 ## Adding an event
 
