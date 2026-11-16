@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest'
+import { beforeEach, describe, it, expect, vi } from 'vitest'
 import { chatModels, createChatHandler, groqRequestBody, waitSeconds } from '../api/chat.js'
 import { createWaitlistHandler } from '../api/waitlist.js'
 import { createHealthHandler } from '../api/health.js'
@@ -157,10 +157,18 @@ describe('public endpoint safety', () => {
         }),
         { status: 429, headers: retryAfter ? { 'retry-after': retryAfter } : {} },
       )
+    const sleeps = []
+    beforeEach(() => {
+      sleeps.length = 0
+    })
     const run = (fetchImpl, extraEnv = {}) =>
-      createChatHandler({ env: { ...env, ...extraEnv }, fetchImpl, limiter: async () => false })(
-        request(),
-      )
+      createChatHandler({
+        env: { ...env, ...extraEnv },
+        fetchImpl,
+        limiter: async () => false,
+        sleep: async (ms) => sleeps.push(ms),
+        random: () => 0.5,
+      })(request())
     const modelOf = (fetchImpl, call) => JSON.parse(fetchImpl.mock.calls[call][1].body).model
 
     it('answers from the second model when the first is over its limit, and says which', async () => {
@@ -203,14 +211,39 @@ describe('public endpoint safety', () => {
       const fetchImpl = vi.fn().mockRejectedValueOnce(new Error('network')).mockResolvedValueOnce(sse())
       expect((await run(fetchImpl)).status).toBe(200)
     })
-    it('asks the student to wait, for as long as Groq says, when every model is over its limit', async () => {
+    it('asks the student to wait, for as long as Groq says, when every model stays over its limit for long', async () => {
       vi.spyOn(console, 'error').mockImplementation(() => {})
       const fetchImpl = vi.fn(async () => rateLimited('27'))
       const res = await run(fetchImpl)
       expect(res.status).toBe(503)
       expect(res.headers.get('retry-after')).toBe('27')
       expect((await res.json()).error).toMatch(/try again in about 27 seconds/)
+      // 27 seconds is too long to hold the question, so each model was asked once.
       expect(fetchImpl).toHaveBeenCalledTimes(2)
+      expect(sleeps).toEqual([])
+    })
+    it('waits a few seconds once and asks again when Groq says the limit frees up soon', async () => {
+      vi.spyOn(console, 'error').mockImplementation(() => {})
+      const fetchImpl = vi
+        .fn()
+        .mockResolvedValueOnce(rateLimited('9'))
+        .mockResolvedValueOnce(rateLimited('10'))
+        .mockResolvedValueOnce(sse())
+      const res = await run(fetchImpl)
+      expect(res.status).toBe(200)
+      expect(res.headers.get('x-chat-model')).toBe('openai/gpt-oss-120b')
+      expect(fetchImpl).toHaveBeenCalledTimes(3)
+      // The shorter wait, plus spread (0.5 of 2 seconds).
+      expect(sleeps).toEqual([10000])
+    })
+    it('waits only once, then tells the student how long to wait', async () => {
+      vi.spyOn(console, 'error').mockImplementation(() => {})
+      const fetchImpl = vi.fn(async () => rateLimited('9'))
+      const res = await run(fetchImpl)
+      expect(res.status).toBe(503)
+      expect(res.headers.get('retry-after')).toBe('9')
+      expect(fetchImpl).toHaveBeenCalledTimes(4)
+      expect(sleeps).toHaveLength(1)
     })
     it('keeps the wait between 5 and 60 seconds and defaults to 30', () => {
       expect([waitSeconds('0.2'), waitSeconds('27'), waitSeconds('500'), waitSeconds(null), waitSeconds('soon')]).toEqual([5, 27, 60, 30, 30])

@@ -20,6 +20,9 @@ export const DEFAULT_GROQ_MODEL = 'openai/gpt-oss-120b'
 // (comma-separated, or "none"); a model that does not take GPT-OSS parameters is fine too.
 export const DEFAULT_FALLBACK_MODELS = Object.freeze(['openai/gpt-oss-20b'])
 const MAX_MODELS = 3
+// The longest the server holds a question while Groq's limit frees up (it answers in a few
+// seconds when it can).
+const MAX_SERVER_WAIT_SECONDS = 12
 
 export function chatModels(env = {}) {
   const primary = env.GROQ_MODEL?.trim() || DEFAULT_GROQ_MODEL
@@ -70,6 +73,8 @@ export function createChatHandler({
   limiter = rateLimit,
   budget = dailyBudget,
   env = process.env,
+  sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms)),
+  random = Math.random,
 } = {}) {
   return async function handler(req) {
     if (req.method !== 'POST') return jsonError('Method not allowed.', 405, { Allow: 'POST' })
@@ -112,58 +117,80 @@ export function createChatHandler({
         { 'Retry-After': '3600' },
       )
     const prompt = [{ role: 'system', content: systemPrompt(new Date(), messages) }, ...messages]
-    let busy = false
-    let retryAfter
-    for (const model of chatModels(env)) {
-      let upstream
-      try {
-        const timeout = AbortSignal.timeout(30000)
-        const signal = AbortSignal.any ? AbortSignal.any([req.signal, timeout]) : timeout
-        upstream = await fetchImpl('https://api.groq.com/openai/v1/chat/completions', {
-          method: 'POST',
-          signal,
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${env.GROQ_API_KEY}`,
-          },
-          body: JSON.stringify(groqRequestBody(model, prompt)),
-        })
-      } catch {
-        // The student closed the page, or Groq did not answer in time. Try the next model.
-        if (req.signal?.aborted) return jsonError('The AI response was interrupted. Please try again.', 502)
-        console.error(`Groq request failed: no response from ${model}`)
-        continue
+    // One pass over the models. Returns the answer, or why nobody could give one.
+    async function askModels() {
+      const waits = []
+      let busy = false
+      for (const model of chatModels(env)) {
+        let upstream
+        try {
+          const timeout = AbortSignal.timeout(30000)
+          const signal = AbortSignal.any ? AbortSignal.any([req.signal, timeout]) : timeout
+          upstream = await fetchImpl('https://api.groq.com/openai/v1/chat/completions', {
+            method: 'POST',
+            signal,
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${env.GROQ_API_KEY}`,
+            },
+            body: JSON.stringify(groqRequestBody(model, prompt)),
+          })
+        } catch {
+          // The student closed the page, or Groq did not answer in time. Try the next model.
+          if (req.signal?.aborted) return { closed: true }
+          console.error(`Groq request failed: no response from ${model}`)
+          continue
+        }
+        if (
+          upstream.ok &&
+          upstream.body &&
+          upstream.headers.get('content-type')?.includes('text/event-stream')
+        ) {
+          return {
+            response: new Response(upstream.body, {
+              headers: {
+                'Content-Type': 'text/event-stream',
+                'Cache-Control': 'no-store',
+                'X-Content-Type-Options': 'nosniff',
+                'X-Chat-Model': model,
+              },
+            }),
+          }
+        }
+        // Log the status (401 = bad key, 404/400 = retired model, 429 = Groq quota) and, for a
+        // rate limit, Groq's explanation. Never log user messages.
+        const status = upstream.status
+        const detail = status === 429 ? await rateLimitDetail(upstream) : ''
+        if (!detail) await upstream.body?.cancel().catch(() => {})
+        console.error(
+          `Groq request failed: HTTP ${status} on ${model}${detail ? `: ${detail}` : ''}`,
+        )
+        if (status === 429) {
+          busy = true
+          waits.push(waitSeconds(upstream.headers.get('retry-after')))
+        }
+        // A bad key fails the same way on every model. A refusal for load, a retired model or
+        // an outage on one model does not.
+        if (!(status === 429 || status === 404 || status >= 500)) break
       }
-      if (
-        upstream.ok &&
-        upstream.body &&
-        upstream.headers.get('content-type')?.includes('text/event-stream')
-      ) {
-        return new Response(upstream.body, {
-          headers: {
-            'Content-Type': 'text/event-stream',
-            'Cache-Control': 'no-store',
-            'X-Content-Type-Options': 'nosniff',
-            'X-Chat-Model': model,
-          },
-        })
-      }
-      // Log the status (401 = bad key, 404/400 = retired model, 429 = Groq quota) and, for a
-      // rate limit, Groq's explanation. Never log user messages.
-      const status = upstream.status
-      const detail = status === 429 ? await rateLimitDetail(upstream) : ''
-      if (!detail) await upstream.body?.cancel().catch(() => {})
-      console.error(`Groq request failed: HTTP ${status} on ${model}${detail ? `: ${detail}` : ''}`)
-      if (status === 429) {
-        busy = true
-        retryAfter ??= upstream.headers.get('retry-after')
-      }
-      // A bad key fails the same way on every model. A refusal for load, a retired model or
-      // an outage on one model does not.
-      if (!(status === 429 || status === 404 || status >= 500)) break
+      return { busy, waits }
     }
-    if (busy) {
-      const seconds = waitSeconds(retryAfter)
+
+    let result = await askModels()
+    // A minute's allowance frees up a little at a time, so when every model is full Groq
+    // usually says to wait a few seconds. Wait once, with a little spread so students who
+    // were turned away together do not all come back at the same instant, and ask again.
+    if (!result.response && !result.closed && result.busy) {
+      const wait = Math.min(...result.waits)
+      if (wait <= MAX_SERVER_WAIT_SECONDS) {
+        await sleep(wait * 1000 + Math.floor(random() * 2000))
+        result = await askModels()
+      }
+    }
+    if (result.response) return result.response
+    if (result.closed) return jsonError('The AI response was interrupted. Please try again.', 502)
+    if (result.busy) {
+      const seconds = Math.min(...result.waits)
       return jsonError(
         `Lots of students are asking questions right now. Please try again in about ${seconds} seconds.`,
         503,
