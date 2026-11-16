@@ -1,12 +1,10 @@
 import { beforeEach, describe, it, expect, vi } from 'vitest'
 import { chatModels, createChatHandler, groqRequestBody, waitSeconds } from '../api/chat.js'
-import { createWaitlistHandler } from '../api/waitlist.js'
 import { createHealthHandler } from '../api/health.js'
 import { allowedOrigin, normalizeMessages } from '../lib/apiSafety.js'
 const env = {
   NODE_ENV: 'production',
   GROQ_API_KEY: 'synthetic-test-key',
-  RESEND_API_KEY: 'synthetic-test-key',
 }
 const request = (
   body = { messages: [{ role: 'user', content: 'Which form?' }] },
@@ -298,19 +296,6 @@ describe('public endpoint safety', () => {
     it('caps how many tokens an answer may use so the request does not claim more of the minute than it needs', () => {
       expect(groqRequestBody('openai/gpt-oss-120b', []).max_completion_tokens).toBeLessThanOrEqual(1500)
     })
-  })
-  it('does not report signup success or send email on invalid address or limiter failure', async () => {
-    const fetchImpl = vi.fn()
-    const handler = createWaitlistHandler({
-      env,
-      fetchImpl,
-      limiter: async () => {
-        throw new Error('offline')
-      },
-    })
-    expect((await handler(request({ email: 'a@' }))).status).toBe(400)
-    expect((await handler(request({ email: 'student@example.test' }))).status).toBe(503)
-    expect(fetchImpl).not.toHaveBeenCalled()
   })
   it('rejects unsupported methods without invoking upstream services', async () => {
     expect(

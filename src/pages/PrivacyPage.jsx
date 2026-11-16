@@ -32,7 +32,6 @@ The Form 8843 tool asks for passport details, addresses and an optional SSN/ITIN
 • To authenticate you securely via Google Sign-In.
 • To generate and store your personalized tax checklist based on your questionnaire answers.
 • To power the AI chat assistant with context about your tax situation.
-• To record a waitlist signup when you explicitly submit your email. Automatic deadline reminders are not currently available.
 
 We do not sell, rent, or share your personal data with third parties for advertising purposes.`,
     },
@@ -56,7 +55,6 @@ Your messages are transmitted to Groq when you use AI chat. The form generator d
 • Supabase (accounts, anonymous daily usage totals, and short-lived request counters keyed by a hash of your network address, used for rate limiting) — supabase.com
 • Groq (AI chat completions) — groq.com
 • Vercel (hosting) — vercel.com
-• Resend (waitlist signup delivery) — resend.com
 • Sentry (error reporting, when configured) — sentry.io
 
 We only share the minimum data necessary with each provider to operate the service. We do not use cookies for advertising or cross-site tracking.`,

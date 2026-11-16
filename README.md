@@ -16,7 +16,7 @@ npm run build
 npm audit --audit-level=high
 ```
 
-Vite serves the frontend. Use `vercel dev` when testing the `/api/chat` and `/api/waitlist` Edge functions locally. `npm run preview` serves the production frontend build. CI runs tests, the build, and the dependency audit for pull requests and pushes to main.
+Vite serves the frontend. Use `vercel dev` when testing the `/api/chat` Edge function locally. `npm run preview` serves the production frontend build. CI runs tests, the build, and the dependency audit for pull requests and pushes to main.
 
 ### Browser tests
 
@@ -33,7 +33,6 @@ Copy `.env.example` to `.env.local` and replace placeholders for the services yo
 | `GROQ_API_KEY`, optional `GROQ_MODEL`                | Server only       | Chat inference; default model is `openai/gpt-oss-120b` (Groq retired `llama-3.3-70b-versatile`)      |
 | `GROQ_FALLBACK_MODELS`                              | Server, optional  | Models tried, in order, when the first is over its Groq limit or down. Default `openai/gpt-oss-20b`; `none` turns it off |
 | `CHAT_DAILY_CAP`                                    | Server only       | Optional. Global ceiling on AI chat requests per day (default 3000), counted in Supabase              |
-| `RESEND_API_KEY`                                     | Server only       | Waitlist confirmation email                                                                           |
 | `ALLOWED_ORIGINS`                                    | Server, optional  | Comma-separated exact additional origins; Vercel deployment and branch URLs are allowed automatically |
 
 Configure Supabase's site URL and redirect allowlist for `/auth/callback` on each supported app origin. If the Supabase project changes, update its exact host in the Content Security Policy in `vercel.json` too. Origin checks limit browser callers; they do not authenticate public guest API traffic. Rate limits remain necessary.
@@ -78,4 +77,4 @@ Before enabling a new form year: obtain the final IRS PDF, verify its printed ye
 - Browser storage keys include tax year and user ID. Completed questionnaires can also sync to authenticated Supabase user metadata. Chat history and checklist progress are local to the browser.
 - Sensitive Form 8843 drafts use tab-scoped `sessionStorage`; PDF generation runs locally with `pdf-lib` and an embedded Inter font. Form fields are not sent to the chat API. Browser storage is not encrypted, and downloaded PDFs must be managed separately.
 
-Live OAuth, Groq, Resend, Supabase deletion, and Vercel routing require checks in a configured environment. The automated suite uses synthetic data and mocked external services.
+Live OAuth, Groq, Supabase deletion, and Vercel routing require checks in a configured environment. The automated suite uses synthetic data and mocked external services.
