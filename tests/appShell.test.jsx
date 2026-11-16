@@ -125,6 +125,16 @@ describe('filing journey', () => {
     expect(journey.done).toBe(0)
   })
 
+  it('says to mail after December 31 while the tax year is open, then that the form is ready', () => {
+    store(seasonKey('questionnaire'), questionnaire())
+    store(seasonKey('8843-generated', 'guest'), true)
+    const file = (today) => computeJourney(guest, today).steps.find((s) => s.id === 'file')
+    expect(file(new Date('2026-11-15T12:00:00Z')).detail).toBe(
+      'Mail it after December 31, once your 2026 days are final',
+    )
+    expect(file(new Date('2027-01-05T12:00:00Z')).detail).toBe('Your form is ready to mail')
+  })
+
   it('moves to Form 8843 for a likely nonresident and reports draft progress honestly', () => {
     store(seasonKey('questionnaire'), questionnaire())
     expect(computeJourney(guest).next).toMatchObject({ id: 'form8843', action: 'Start Form 8843' })
@@ -252,7 +262,7 @@ describe('Home', () => {
     expect(screen.getByText('1 of 4 done')).toBeTruthy()
     expect(screen.getByRole('heading', { name: /expected deadline: June 15, 2027/ })).toBeTruthy()
     // The last step explains why it is locked instead of offering a dead link.
-    expect(screen.getByText('Unlocks when the IRS releases the 2026 form')).toBeTruthy()
+    expect(screen.getByText('After you download Form 8843')).toBeTruthy()
     expect(screen.queryByRole('link', { name: /Print, sign and mail/ })).toBeNull()
   })
 })

@@ -10,7 +10,7 @@ Order matters. Each phase ships as its own PR with tests; colours stay as tokens
 2. Weekly keep-alive workflow so the free Supabase project is not auto-paused.
 3. Chat failure alerting (Sentry on `/api/chat` 5xx) and a manual QA list of representative F-1 questions.
 4. Playwright smoke test in CI: public pages, guest flow, status check, Form 8843 fill and PDF download, chat (mocked).
-5. 2026 Form 8843 stays preparation-only until the IRS publishes the final form; reminder for January.
+5. 2026 Form 8843 enabled 15 Nov 2026 after the IRS published the final form (verified fields, hash, rendered output). Re-check the IRS page in January for a revised form or instructions.
 
 ## Phase 1: Onboarding and Home
 
@@ -40,5 +40,5 @@ Order matters. Each phase ships as its own PR with tests; colours stay as tokens
 - Chat failure alerting (Sentry on `/api/chat` 5xx) and the manual QA question list.
 - In-app preview of the actual generated PDF. The wizard has a live HTML replica ("Preparation preview, not for filing"); showing the real PDF needs a pdf.js worker and a CSP change, so it is deferred.
 - Lighthouse on a local build: mobile 94, desktop 100, accessibility, best practices and SEO 100. The remaining mobile gap is client-side rendering of the landing headline; closing it needs prerendering.
-- January 2027: replace the 2026 draft with the final IRS Form 8843 and verify the field mapping before enabling generation.
+- January 2027: re-check the IRS Form 8843 page for a revised 2026 form or instructions; any new file needs a new hash and a rendered check. In 2027 add the 2027 form the same way.
 - Verify the standalone mailing address in `FORM_8843_MAILING` each season (the form's own instructions and the IRS where-to-file page should agree).

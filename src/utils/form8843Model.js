@@ -1,4 +1,4 @@
-import { TAX_YEAR, FORM_8843_TEMPLATE_YEAR, daysInYear } from '../data/taxSeason.js'
+import { TAX_YEAR, FORM_8843_TEMPLATE_YEARS, daysInYear } from '../data/taxSeason.js'
 export const presenceYears = (year) => [Number(year), Number(year) - 1, Number(year) - 2]
 export const visaYears = (year) => Array.from({ length: 6 }, (_, i) => Number(year) - 6 + i)
 export function blank8843(year = TAX_YEAR) {
@@ -125,7 +125,7 @@ export function validate8843(data, step, today = new Date()) {
   // Explanations are only shown, and only printed, when their answer is Yes.
   if (data.line12Answer !== 'yes') inScope.delete('line12Explanation')
   if (data.line13Answer !== 'yes') inScope.delete('line14Explanation')
-  if (![TAX_YEAR, FORM_8843_TEMPLATE_YEAR].includes(Number(data.taxYear)))
+  if (![TAX_YEAR, ...FORM_8843_TEMPLATE_YEARS].includes(Number(data.taxYear)))
     errors.taxYear = 'Select a supported tax year.'
   for (const i of steps)
     for (const key of required[i]) if (!String(data[key] ?? '').trim()) errors[key] = 'Required'

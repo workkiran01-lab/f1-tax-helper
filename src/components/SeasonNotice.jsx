@@ -1,5 +1,5 @@
 import { CalendarDays, ExternalLink } from 'lucide-react'
-import { TAX_YEAR, FILING_YEAR, SOURCES } from '../data/taxSeason.js'
+import { TAX_YEAR, FILING_YEAR, SOURCES, taxYearOpen } from '../data/taxSeason.js'
 
 export default function SeasonNotice({ compact = false }) {
   return (
@@ -10,8 +10,10 @@ export default function SeasonNotice({ compact = false }) {
       </div>
       {!compact && (
         <p className="mt-2 leading-relaxed">
-          Start preparing now. The IRS has released a draft 2026 Form 8843; downloads for 2026 will
-          open after the final form is verified. Prior-year 2025 filing remains available.
+          The final {TAX_YEAR} Form 8843 is available to fill in and download here.
+          {taxYearOpen(TAX_YEAR) &&
+            ` It asks for your actual days in the US during ${TAX_YEAR}, so recount them after December 31 before you print or mail it.`}{' '}
+          Prior-year 2025 filing remains available.
         </p>
       )}
       {!compact && (

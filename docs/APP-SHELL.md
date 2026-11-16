@@ -19,7 +19,7 @@ Desktop shows the four places in a left sidebar; phones show a bottom tab bar. O
 - **Step order is Status → Form 8843 → Documents → File.** The mockup listed documents second, but the checklist contains "Form 8843" itself, so it cannot be finished before the form.
 - **The two status tools still exist and still ask different questions.** Fusing their question sets would change screening logic, which needs a tax review. Instead `currentTaxProfile()` picks the most recent result and every screen, including the chat, reads only that. "Edit my answers" opens the questionnaire. The quick status check stays as the no-login entry from the homepage.
 - **Form 8843 progress is read from the tab's draft.** Drafts hold passport details and stay in `sessionStorage`, so a new tab reports "Not started" rather than claiming saved sections it cannot show.
-- **Tax year 2026 cannot be downloaded yet**, so "Print, sign and mail" stays locked with the reason shown, and a completed draft reads "waiting", not "done".
+- **A year without a verified IRS form cannot be downloaded**, so "Print, sign and mail" stays locked with the reason shown, and a completed draft reads "waiting", not "done". 2026 is verified; while the tax year is still open, a downloaded form shows "mail it after December 31, once your days are final".
 - **Sign-out destination.** `signOut('/')` from a protected screen used to land on `/login` because the route guard's redirect overrode it. The guard now uses the destination passed to `signOut`.
 
 ## Removed

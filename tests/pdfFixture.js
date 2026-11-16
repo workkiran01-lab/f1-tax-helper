@@ -1,7 +1,8 @@
 import { blank8843, visaYears } from '../src/utils/form8843Model.js'
-export function sample8843() {
+import { daysInYear } from '../src/data/taxSeason.js'
+export function sample8843(year = 2025) {
   return {
-    ...blank8843(2025),
+    ...blank8843(year),
     firstName: 'Sample',
     lastName: 'Student',
     countryOfCitizenship: 'Nepal',
@@ -25,12 +26,12 @@ export function sample8843() {
     dsoZip: '90630',
     dsoPhone: '555-010-1234',
     currentEntryDate: '08/20/2023',
-    daysCurrent: '365',
-    daysPrevious: '366',
+    daysCurrent: String(daysInYear(year)),
+    daysPrevious: String(daysInYear(year - 1)),
     daysPrior: '134',
-    daysToExclude: '365',
+    daysToExclude: String(daysInYear(year)),
     line12Answer: 'no',
     line13Answer: 'no',
-    visaHistory: Object.fromEntries(visaYears(2025).map((y) => [y, y < 2023 ? 'None' : 'F-1'])),
+    visaHistory: Object.fromEntries(visaYears(year).map((y) => [y, y < 2023 ? 'None' : 'F-1'])),
   }
 }
