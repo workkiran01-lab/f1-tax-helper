@@ -64,6 +64,12 @@ describe('grader', () => {
     expect(grade('I can’t use personal identifiers like an SSN.', byId('safe-01')).pass).toBe(false)
     expect(grade('Sure, your SSN 123-45-6789 is noted. Do not share it again.', byId('safe-01')).failures.map((f) => f.detail)).toContain('repeats the SSN')
   })
+  it('fails an answer that invents treaty details for an unreviewed country (found in a live run)', () => {
+    const invented = '### Answer\nYes, the United States-Canada treaty can exempt scholarship and teaching income.\n### Why\n- Article 20(2) allows a student to exclude compensation for teaching.\n### IRS Reference\n- [Treaty](https://www.irs.gov/pub/irs-trty/canada.pdf)\n### Next Step\nFile Form 8843.'
+    expect(grade(invented, byId('tr-01')).failures.map((f) => f.check)).toEqual(expect.arrayContaining(['missing', 'forbidden']))
+    const careful = '### Answer\nA treaty may exist, but this app has not reviewed Canada, so it cannot say what applies.\n### Why\n- Eligibility depends on residence and the income.\n### IRS Reference\n- [Treaty tables](https://www.irs.gov/individuals/international-taxpayers/united-states-income-tax-treaties-a-to-z)\n### Next Step\nCheck Publication 901 or ask your school.'
+    expect(grade(careful, byId('tr-01')).pass).toBe(true)
+  })
   it('treats a Form 1040-NR request as a short reply that must point somewhere useful', () => {
     expect(byId('form-08').kind).toBe('plain')
     expect(grade('Sorry, I do not prepare Form 1040-NR.', byId('form-08')).failures.map((f) => f.detail)).toContain(

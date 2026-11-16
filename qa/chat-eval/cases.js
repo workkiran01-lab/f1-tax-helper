@@ -178,8 +178,13 @@ export const CASES = [
     gold: 'Do not claim there is no treaty: coverage is unreviewed in the app; send the student to the IRS treaty tables and Publication 901.',
     source: `${IRS}/individuals/international-taxpayers/united-states-income-tax-treaties-a-to-z`,
     critical: true,
-    must: [must('points to IRS treaty sources', 'IRS', 'Publication 901', 'Pub\\.? 901', 'treaty tables')],
-    mustNot: [not('says there is no treaty with Canada', 'no (income )?tax treaty with canada', 'canada (does not|doesn.t) have a (tax |income tax )?treaty')],
+    must: [
+      must('says the app has not reviewed Canada or sends the student to the IRS treaty sources', 'not (yet |been )?reviewed', "haven.t reviewed", 'unreviewed', 'treaty tables', 'Publication 901', 'Pub\\.? 901', 'treaties-a-to-z'),
+    ],
+    mustNot: [
+      not('says there is no treaty with Canada', 'no (income )?tax treaty with canada', 'canada (does not|doesn.t) have a (tax |income tax )?treaty'),
+      not('quotes an article number for an unreviewed country', 'article\\s+(\\d+|[ivxl]+)\\b'),
+    ],
   }),
   c('tr-02', 'treaties', 'Does Nepal have an income tax treaty with the US?', {
     gold: 'Nepal is not listed as an income tax treaty partner in the IRS directory; verify with the IRS.',
