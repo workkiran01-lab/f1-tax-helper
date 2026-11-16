@@ -191,3 +191,10 @@ describe('summary and runner', () => {
     ])
   })
 })
+
+describe('repository hygiene', () => {
+  it('does not ship the throwaway browser bundle used for preview runs', async () => {
+    const { existsSync } = await import('node:fs')
+    expect(existsSync(new URL('../public/assets/__chat-eval.js', import.meta.url))).toBe(false)
+  })
+})
