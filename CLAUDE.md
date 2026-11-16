@@ -18,6 +18,7 @@ Current architecture and setup are in [README.md](README.md). Review [docs/AUDIT
 - `lib/taxPrompt.js` shares season/treaty data with the UI. `api/chat.js` and `api/waitlist.js` use the validated, rate-limited helpers in `lib/apiSafety.js`. Keep server secrets out of `VITE_` variables and browser code. Chat size limits live in `lib/chatLimits.js`; the client must fit history with `fitChatHistory` rather than send it raw.
 - `src/utils/form8843Fields.js` fills exact native AcroForm fields and checkbox states with an embedded font. It gates the printed tax year and template hash. Never draw an X as a substitute for a checkbox value, put a calendar year into a fiscal-year blank, or relabel a prior-year form.
 - `src/utils/form8843Model.js` defines the wizard schema and validation. Step validation reports only that step's fields (`STEP_FIELDS`); add new fields there. Tax year 2026 is preparation-only until the final IRS template and mapping have been verified.
+- Rate limits and the daily chat ceiling use `public.rate_hit` (`supabase/migrations/202611150002_rate_limit.sql`). The anon key is public, so counter keys must stay HMAC-derived from a server secret; never use a guessable key such as one built from the date or a raw address. If the counter is down the limiter falls back to a per-instance limit and logs; it must not return 503 on its own.
 - Account deletion requires the authenticated RPC in `supabase/migrations/202609070001_self_delete.sql`. Never use Supabase admin credentials in the browser.
 
 ## Verification

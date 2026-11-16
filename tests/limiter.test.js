@@ -20,7 +20,7 @@ describe('shared limiter', () => {
     const [url, init] = fetchImpl.mock.calls[0]
     expect(url).toBe('https://x.supabase.co/rest/v1/rpc/rate_hit')
     const body = JSON.parse(init.body)
-    expect(body.p_key).toMatch(/^rl:chat:[0-9a-f]{16}$/)
+    expect(body.p_key).toMatch(/^rl:chat:[0-9a-f]{32}$/)
     expect(init.body).not.toContain('198.51.100.77')
   })
   it('falls back to a per-instance limit, logs, and never throws when Supabase is down', async () => {
@@ -45,10 +45,25 @@ describe('daily budget', () => {
     expect(await dailyBudget('chat', 3000, env, counter(3000))).toBe(false)
     expect(await dailyBudget('chat', 3000, env, counter(3001))).toBe(true)
   })
-  it('uses a date-scoped key', async () => {
-    const fetchImpl = counter(1)
-    await dailyBudget('chat', 10, env, fetchImpl)
-    expect(JSON.parse(fetchImpl.mock.calls[0][1].body).p_key).toMatch(/^budget:chat:\d{4}-\d{2}-\d{2}$/)
+  it('uses an unguessable key: no date in it, stable per secret and day, different per secret', async () => {
+    const key = async (secret) => {
+      const fetchImpl = counter(1)
+      await dailyBudget('chat', 10, { ...env, GROQ_API_KEY: secret }, fetchImpl)
+      return JSON.parse(fetchImpl.mock.calls[0][1].body).p_key
+    }
+    const a = await key('secret-one')
+    expect(a).toMatch(/^budget:chat:[0-9a-f]{32}$/)
+    expect(a).not.toContain(new Date().toISOString().slice(0, 10))
+    expect(await key('secret-one')).toBe(a)
+    expect(await key('secret-two')).not.toBe(a)
+  })
+  it('keys per-address counters the same way', async () => {
+    const key = async (secret) => {
+      const fetchImpl = counter(1)
+      await rateLimit(req('198.51.100.7'), 'chat', 20, { ...env, GROQ_API_KEY: secret }, fetchImpl)
+      return JSON.parse(fetchImpl.mock.calls[0][1].body).p_key
+    }
+    expect(await key('secret-one')).not.toBe(await key('secret-two'))
   })
   it('counts locally when the shared counter is unavailable', async () => {
     vi.spyOn(console, 'error').mockImplementation(() => {})
