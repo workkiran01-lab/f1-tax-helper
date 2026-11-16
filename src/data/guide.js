@@ -127,6 +127,40 @@ export const GUIDE_SECTIONS = [
     ],
   },
   {
+    id: 'scholarships',
+    title: 'Scholarships and fellowships',
+    blocks: [
+      {
+        type: 'p',
+        text: 'A scholarship or fellowship can be partly tax-free and partly taxable. If you are a candidate for a degree, the part used for tuition and fees, and for the fees, books, supplies and equipment your courses require, is generally tax-free. The part used for room and board, travel or other expenses is taxable.',
+      },
+      {
+        type: 'p',
+        text: 'The part that pays you for teaching, research or other services is taxable, even if every student in your program must do that work. It is treated like pay, not like a scholarship.',
+      },
+      {
+        type: 'p',
+        text: 'As a nonresident you are generally taxed only on US-source income. The source of a scholarship generally follows the residence of the payer: a grant from a US university or organization for study in the US is US source, while one from a foreign government or company is foreign source. A grant for activities outside the US is not US source.',
+      },
+      {
+        type: 'ul',
+        items: [
+          '**Withholding:** the payer generally withholds 14%, or a lower treaty rate, from the taxable part of a US-source scholarship paid to an F, J, M or Q student; 30% applies in some other cases. The part that pays for services is withheld on like wages.',
+          '**Form 1042-S:** the payer reports the scholarship and any tax withheld on Form 1042-S. Box 2 shows gross income, which is not always taxable income.',
+          '**Treaties:** some tax treaties exempt scholarship income. You claim reduced withholding by giving the payer Form W-8BEN, or Form 8233 if you also claim a treaty exemption for pay from the same payer. Whether a treaty applies depends on its terms; [look up your country](/tax-treaties).',
+          '**A taxable scholarship can mean a return:** whether you must file Form 1040-NR depends on your US income and withholding; see [Step 4](/tax-guide#return). This app does not prepare Form 1040-NR.',
+        ],
+      },
+      { type: 'dates', ids: ['form1042s'] },
+    ],
+    sources: [
+      src('Publication 519, U.S. Tax Guide for Aliens', 'pub519'),
+      src('Withholding on scholarships and fellowships paid to nonresident aliens', 'scholarshipWithholding'),
+      src('Instructions for Form 1042-S', 'form1042s'),
+      src('Taxation of nonresident aliens', 'nonresidentTaxation'),
+    ],
+  },
+  {
     id: 'fica',
     title: 'Social Security and Medicare tax (FICA)',
     blocks: [
@@ -202,6 +236,10 @@ export const GUIDE_SECTIONS = [
 export const REVIEW_LOG = [
   {
     date: '2026-11-16',
+    text: 'Added the scholarships and fellowships section and its FAQ answer, checked against Publication 519 (chapters 2, 3 and 8) and the IRS page on withholding on scholarships paid to nonresident aliens.',
+  },
+  {
+    date: '2026-11-16',
     text: "Guide, FAQ and treaty lookup published. Every IRS link in the app was checked; the treaty directory link was corrected after the IRS moved that page.",
   },
   {
@@ -247,6 +285,11 @@ export const FAQ_ITEMS = [
     id: 'prepare-1040nr',
     q: 'Can F1 Tax Helper prepare or file my Form 1040-NR?',
     a: `No. This app prepares Form 8843 only. It does not prepare, file or e-file Form 1040-NR or any state return. Start with the [Form 1040-NR instructions](${SOURCES.nonresidentReturn}), your school's international student office or a qualified tax preparer. The [guide](/tax-guide#return) explains when a return is needed.`,
+  },
+  {
+    id: 'scholarship',
+    q: 'Is my scholarship taxable?',
+    a: 'Often only part of it is. If you are a degree candidate, the part used for tuition, required fees, books, supplies and equipment is generally tax-free. The part used for room, board or travel is taxable, and so is any part that pays you for teaching or research. As a nonresident you are generally taxed only on US-source scholarships; one from a foreign government or company is generally foreign source. The payer reports it on Form 1042-S. The [guide](/tax-guide#scholarships) explains withholding and treaties.',
   },
   {
     id: 'fica',
