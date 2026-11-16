@@ -5,7 +5,7 @@ import { LegalLayout } from '../components/legal/LegalLayout'
 
 const POLICY_CONTENT = {
   title: 'Privacy Policy',
-  lastUpdated: 'September 2026',
+  lastUpdated: 'November 2026',
   intro:
     'F1 Tax Helper is committed to protecting your privacy. This policy explains what personal data we collect, how we use it, and the choices you have.',
   sections: [
@@ -18,7 +18,7 @@ const POLICY_CONTENT = {
 
 • Account information: your name and email address obtained via Google OAuth when you sign in.
 • Questionnaire responses: answers you provide about your visa status, income sources, and tax situation, used to generate your personalized checklist.
-• Usage data: pages visited and features used, collected in aggregate to improve the service.
+• Usage totals: five anonymous daily counts (a visit, a finished status check, a started Form 8843, a downloaded Form 8843 and a sent chat message). Our database keeps only a number per day and event name: no account, address, device identifier, form content or message text (as with any web request, the hosting and database providers' own server logs can briefly record a network address). They are skipped when your browser sends Do Not Track or Global Privacy Control, and because they can be sent by anyone they are approximate.
 
 The Form 8843 tool asks for passport details, addresses and an optional SSN/ITIN to fill your PDF locally. These fields are held in this browser tab and are not sent to our server by the form tool. Do not paste them into AI chat: messages you send there are transmitted to our server and Groq.`,
     },
@@ -53,7 +53,7 @@ Your messages are transmitted to Groq when you use AI chat. The form generator d
         `F1 Tax Helper uses the following third-party services, each with their own privacy policies:
 
 • Google OAuth (authentication) — accounts.google.com
-• Supabase (accounts, and short-lived request counters keyed by a hash of your network address, used for rate limiting) — supabase.com
+• Supabase (accounts, anonymous daily usage totals, and short-lived request counters keyed by a hash of your network address, used for rate limiting) — supabase.com
 • Groq (AI chat completions) — groq.com
 • Vercel (hosting) — vercel.com
 • Resend (waitlist signup delivery) — resend.com

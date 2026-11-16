@@ -2,7 +2,7 @@
 
 US tax preparation guidance for international students. The current season is **2027 filing for 2026 income**. The app provides educational guidance, a residency screening flow, document checklists, AI chat, and a client-side Form 8843 helper. It does not submit returns or certify tax eligibility.
 
-See [the September 2026 audit](docs/AUDIT-2027.md) for corrected bugs, IRS sources, verification, and release limits. The [November 2026 bug sweep](docs/BUGFIXES-2026-11.md) lists later fixes.
+See [the September 2026 audit](docs/AUDIT-2027.md) for corrected bugs, IRS sources, verification, and release limits. The [November 2026 bug sweep](docs/BUGFIXES-2026-11.md) lists later fixes. Anonymous daily usage totals (what is counted, how to read it, how far to trust it) are described in [docs/USAGE-COUNTS.md](docs/USAGE-COUNTS.md).
 
 ## Run and verify
 

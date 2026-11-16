@@ -36,6 +36,7 @@ Order matters. Each phase ships as its own PR with tests; colours stay as tokens
 
 ## Open
 
+- Done 2026-11-16: anonymous daily usage totals (`docs/USAGE-COUNTS.md`). Still to add: a download-event assertion in the signed-in e2e test.
 - Test account deletion end to end with a throwaway Google account (owner).
 - Chat failure alerting (Sentry on `/api/chat` 5xx) and the manual QA question list.
 - In-app preview of the actual generated PDF. The wizard has a live HTML replica ("Preparation preview, not for filing"); showing the real PDF needs a pdf.js worker and a CSP change, so it is deferred.

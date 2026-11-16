@@ -19,6 +19,7 @@ import {
 } from '../data/taxSeason.js'
 import MailingGuide from '../components/form8843/MailingGuide'
 import { readStored, writeStored, removeStored, seasonKey } from '../utils/storage.js'
+import { trackEvent } from '../utils/usage.js'
 import { FormPreview } from '../components/form8843/FormPreview'
 import SeasonNotice from '../components/SeasonNotice'
 import useAuth from '../hooks/useAuth'
@@ -158,6 +159,7 @@ export default function Form8843Page() {
     }
     setNotice('')
     setDirection(1)
+    trackEvent('form8843_started', { once: true })
     if (step === 4) setReview(true)
     else setStep(step + 1)
   }
@@ -209,6 +211,7 @@ export default function Form8843Page() {
       link.remove()
       setTimeout(() => URL.revokeObjectURL(url), 1000)
       writeStored(seasonKey('8843-generated', uid, year), true)
+      trackEvent('form8843_downloaded')
       removeStored(key, 'sessionStorage')
       setSuccess(true)
     } catch (error) {
