@@ -8,7 +8,7 @@ Order matters. Each phase ships as its own PR with tests; colours stay as tokens
 
 1. Apply `supabase/migrations/202609070001_self_delete.sql` to the live project and test account deletion with a throwaway account.
 2. Weekly keep-alive workflow so the free Supabase project is not auto-paused.
-3. Chat failure alerting (Sentry on `/api/chat` 5xx). The representative-questions QA list is `qa/chat-eval/` (37 graded cases, see its README).
+3. Chat failure alerting (Sentry on `/api/chat` 5xx). The representative-questions QA list is `qa/chat-eval/` (38 graded cases, see its README).
 4. Playwright smoke test in CI: public pages, guest flow, status check, Form 8843 fill and PDF download, chat (mocked).
 5. 2026 Form 8843 enabled 15 Nov 2026 after the IRS published the final form (verified fields, hash, rendered output). Re-check the IRS page in January for a revised form or instructions.
 

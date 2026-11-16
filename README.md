@@ -55,7 +55,7 @@ Groq's free tier limits each model separately: 8,000 tokens a minute, 200,000 a 
 
 ## Chat answer quality
 
-`qa/chat-eval/` holds 37 student questions with the facts each answer must contain and the mistakes it must not make (wrong deadline, "no treaty" for an unreviewed country, asking for an SSN, non-IRS links, guarantees). Run it after any change to `lib/taxPrompt.js`, the season or treaty data, or the chat model, then read a few answers yourself. It calls the real API and spends free-tier model tokens, so it is not part of CI. See [qa/chat-eval/README.md](qa/chat-eval/README.md).
+`qa/chat-eval/` holds 38 student questions with the facts each answer must contain and the mistakes it must not make (wrong deadline, "no treaty" for an unreviewed country, asking for an SSN, non-IRS links, guarantees). Run it after any change to `lib/taxPrompt.js`, the season or treaty data, or the chat model, then read a few answers yourself. It calls the real API and spends free-tier model tokens, so it is not part of CI. See [qa/chat-eval/README.md](qa/chat-eval/README.md).
 
 ## Tax season and Form 8843
 
