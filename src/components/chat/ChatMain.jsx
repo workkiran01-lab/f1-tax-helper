@@ -90,8 +90,12 @@ export function parseSections(content) {
     .filter((s) => s.type !== 'plain' || s.text)
   // Sometimes the model skips the Answer heading and opens straight with the answer. The text
   // before the first heading is then the answer; show it as one instead of loose text.
-  if (sections[0]?.type === 'plain' && !sections.some((s) => s.type === 'answer'))
-    sections[0] = { ...sections[0], type: 'answer' }
+  if (sections[0]?.type === 'plain') {
+    // With an Answer heading present, the model's lead-in ("Sure!", or a one-line repeat of the
+    // answer) is redundant: the reply format says nothing comes before the first heading.
+    if (sections.some((s) => s.type === 'answer')) sections.shift()
+    else sections[0] = { ...sections[0], type: 'answer' }
+  }
   return { sections }
 }
 

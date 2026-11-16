@@ -70,6 +70,11 @@ describe('grader', () => {
     const careful = '### Answer\nA treaty may exist, but this app has not reviewed Canada, so it cannot say what applies.\n### Why\n- Eligibility depends on residence and the income.\n### IRS Reference\n- [Treaty tables](https://www.irs.gov/individuals/international-taxpayers/united-states-income-tax-treaties-a-to-z)\n### Next Step\nCheck Publication 901 or ask your school.'
     expect(grade(careful, byId('tr-01')).pass).toBe(true)
   })
+  it('does not mistake "you do not always need to file Form 8833" for "always required"', () => {
+    const reply = '### Answer\nNo, you do not always need to file Form 8833.\n### Why\n- Many student claims have exceptions.\n### IRS Reference\n- [Claiming Tax Treaty Benefits](https://www.irs.gov/individuals/international-taxpayers/claiming-tax-treaty-benefits)\n### Next Step\nCheck the disclosure exceptions.'
+    expect(grade(reply, byId('tr-04')).pass).toBe(true)
+    expect(grade(reply.replace('do not always need', 'always need'), byId('tr-04')).failures.map((f) => f.check)).toContain('forbidden')
+  })
   it('treats a Form 1040-NR request as a short reply that must point somewhere useful', () => {
     expect(byId('form-08').kind).toBe('plain')
     expect(grade('Sorry, I do not prepare Form 1040-NR.', byId('form-08')).failures.map((f) => f.detail)).toContain(

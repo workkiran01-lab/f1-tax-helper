@@ -202,7 +202,7 @@ export const CASES = [
     gold: 'No. Many student, trainee and scholarship claims have disclosure exceptions.',
     source: `${IRS}/forms-pubs/about-form-8833`,
     must: [must('says not always', 'not (always|required for every|universally|necessarily)', 'depends', 'exception', 'sometimes')],
-    mustNot: [not('says always required', 'always (need|required|must)')],
+    mustNot: [not('says always required', '(?<!not )always (need|required|must)')],
   }),
   c('tr-05', 'treaties', 'What is the difference between Form 8233 and Form W-8BEN?', {
     gold: 'Form 8233 claims a treaty exemption from withholding on pay for personal services; W-8BEN generally covers noncompensatory income such as a scholarship.',
