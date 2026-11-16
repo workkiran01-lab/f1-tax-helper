@@ -197,6 +197,26 @@ describe('summary and runner', () => {
   })
 })
 
+describe('runner: which model answered', () => {
+  it('records the model each answer came from and counts them in the summary', async () => {
+    const models = ['openai/gpt-oss-120b', 'openai/gpt-oss-20b']
+    let i = 0
+    const ask = async () => ({ text: 'Form 8843.', model: models[i++ % 2] })
+    const { results, summary } = await runCases({ ask, only: ['form-01', 'form-02'], delayMs: 0 })
+    expect(results.map((r) => r.model)).toEqual(models)
+    expect(summary.byModel).toEqual({ 'openai/gpt-oss-120b': 1, 'openai/gpt-oss-20b': 1 })
+  })
+  it('still accepts a plain answer string and leaves the model out', async () => {
+    const { results, summary } = await runCases({
+      ask: async () => 'Form 8843.',
+      only: ['form-01'],
+      delayMs: 0,
+    })
+    expect(results[0].model).toBeUndefined()
+    expect(summary.byModel).toBeUndefined()
+  })
+})
+
 describe('repository hygiene', () => {
   it('does not ship the throwaway browser bundle used for preview runs', async () => {
     const { existsSync } = await import('node:fs')

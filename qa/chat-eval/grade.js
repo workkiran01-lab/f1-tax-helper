@@ -97,6 +97,8 @@ export function summarize(results, { minPassRate = 0.9 } = {}) {
   const criticalFailures = results.filter((r) => r.critical && !r.pass)
   const byCheck = {}
   for (const r of results) for (const f of r.failures) byCheck[f.check] = (byCheck[f.check] || 0) + 1
+  const byModel = {}
+  for (const r of results) if (r.model) byModel[r.model] = (byModel[r.model] || 0) + 1
   const passRate = total ? passed / total : 0
   return {
     total,
@@ -104,6 +106,7 @@ export function summarize(results, { minPassRate = 0.9 } = {}) {
     passRate: Number(passRate.toFixed(3)),
     criticalFailures: criticalFailures.map((r) => r.id),
     byCheck,
+    ...(Object.keys(byModel).length ? { byModel } : {}),
     ok: total > 0 && passRate >= minPassRate && criticalFailures.length === 0,
   }
 }

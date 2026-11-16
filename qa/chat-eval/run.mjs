@@ -31,7 +31,7 @@ async function ask(question) {
   }
   let text = ''
   for await (const delta of readChatStream(response.body)) text += delta
-  return text
+  return { text, model: response.headers.get('x-chat-model') }
 }
 
 const { summary, results } = await runCases({
