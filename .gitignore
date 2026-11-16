@@ -4,6 +4,7 @@ node_modules/
 # Build output
 dist/
 dist-signed-in/
+.prerender/
 
 # Local env files
 .env
@@ -21,7 +22,8 @@ yarn-error.log*
 
 # OS
 .DS_Store
-Thumbs.db
+Thumbs.db
+
 .vercel
 
 # Local dev artifacts

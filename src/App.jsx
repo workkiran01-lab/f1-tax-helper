@@ -14,6 +14,11 @@ import TermsPage from './pages/TermsPage'
 import ContactPage from './pages/ContactPage'
 import NotFoundPage from './pages/NotFoundPage'
 import StatusCheckerPage from './pages/StatusCheckerPage'
+// Loaded with the app, not lazily: these pages are pre-rendered to static HTML at build time
+// (scripts/prerender.mjs), and a lazy page would swap that HTML for a loading skeleton.
+import TaxGuidePage from './pages/TaxGuidePage'
+import FaqPage from './pages/FaqPage'
+import TaxTreatiesPage from './pages/TaxTreatiesPage'
 import useAuth, { AuthProvider } from './hooks/useAuth'
 import { useRouteMeta } from './hooks/useRouteMeta.js'
 import { MotionConfig } from 'framer-motion'
@@ -23,9 +28,6 @@ import { trackEvent } from './utils/usage.js'
 const ChatPage = lazy(() => import('./pages/ChatPage'))
 const Form8843Page = lazy(() => import('./pages/Form8843Page'))
 const AboutPage = lazy(() => import('./pages/AboutPage'))
-const TaxGuidePage = lazy(() => import('./pages/TaxGuidePage'))
-const FaqPage = lazy(() => import('./pages/FaqPage'))
-const TaxTreatiesPage = lazy(() => import('./pages/TaxTreatiesPage'))
 
 function LazySuspense({ children }) {
   return (
@@ -147,27 +149,15 @@ function AppRoutes() {
       {/* Public information pages. There is no blog: that address is the not-found page. */}
       <Route
         path="/tax-guide"
-        element={
-          <LazySuspense>
-            <TaxGuidePage />
-          </LazySuspense>
-        }
+        element={<TaxGuidePage />}
       />
       <Route
         path="/faq"
-        element={
-          <LazySuspense>
-            <FaqPage />
-          </LazySuspense>
-        }
+        element={<FaqPage />}
       />
       <Route
         path="/tax-treaties"
-        element={
-          <LazySuspense>
-            <TaxTreatiesPage />
-          </LazySuspense>
-        }
+        element={<TaxTreatiesPage />}
       />
       <Route path="/privacy-policy" element={<Navigate to="/privacy" replace />} />
       <Route path="/terms-of-service" element={<Navigate to="/terms" replace />} />

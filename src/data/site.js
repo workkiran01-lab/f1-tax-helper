@@ -18,6 +18,11 @@ export function canonicalUrl(path = '/') {
   return `${SITE_ORIGIN}${clean || '/'}`
 }
 
+// Public pages written to static HTML at build time (src/prerender.jsx, scripts/prerender.mjs)
+// so search engines and no-JS readers get the text. Each needs a PAGE_META entry, a sitemap
+// entry and a rewrite in vercel.json ahead of the catch-all; tests/prerender.test.js checks all three.
+export const PRERENDERED_ROUTES = Object.freeze(['/tax-guide', '/faq', '/tax-treaties'])
+
 // Titles and descriptions for the pages this file owns. Other pages set their own title.
 export const PAGE_META = Object.freeze({
   '/': {
