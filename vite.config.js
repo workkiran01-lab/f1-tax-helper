@@ -13,6 +13,9 @@ const vendorGroups = [
 
 export default defineConfig({
   plugins: [react()],
+  // The signed-in browser tests serve a build under the production hostname (see
+  // playwright.config.js), so the preview server has to accept it.
+  preview: { allowedHosts: ['www.f1taxhelper.com'] },
   build: {
     rollupOptions: {
       output: {

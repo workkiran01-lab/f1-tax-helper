@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test'
+import { downloadForm8843 } from './helpers.js'
 
 // Guest-mode smoke tests against the production build. The AI endpoint is mocked so
 // no paid model is called, and nothing here needs a Supabase account.
@@ -193,51 +194,7 @@ test.describe('guest journey', () => {
     test(`a completed ${year} Form 8843 downloads and shows the print, sign and mail guide`, async ({
       page,
     }) => {
-      await page.goto('/form-8843')
-      await page.getByLabel('First name').waitFor()
-      await page.getByLabel('Income year').selectOption(String(year))
-      const valueFor = (name) =>
-        /date/i.test(name)
-          ? '08/15/2022'
-          : /zip/i.test(name)
-            ? '10001'
-            : /state/i.test(name)
-              ? 'NY'
-              : /phone/i.test(name)
-                ? '2125550100'
-                : /days/i.test(name)
-                  ? '100'
-                  : 'Test'
-      // Fill every visible field with a valid value, then advance, until the review step.
-      for (let step = 0; step < 6; step++) {
-        const fields = page.locator(
-          'input:not([type=radio]):not([type=checkbox]):visible, textarea:visible',
-        )
-        for (const field of await fields.all()) {
-          const name = (await field.getAttribute('name')) || ''
-          if (/tinOrSSN|middleInitial/.test(name) || (await field.inputValue())) continue
-          await field.fill(valueFor(name))
-        }
-        for (const select of await page
-          .locator('select:visible:not([aria-label="Income year"])')
-          .all())
-          if (!(await select.inputValue())) await select.selectOption('F-1')
-        // Click through the DOM: the step is still animating in, which makes Playwright's
-        // own check() flaky on the phone project.
-        for (const radio of await page.locator('input[type=radio][value=no]:visible').all())
-          if (!(await radio.isChecked())) await radio.evaluate((el) => el.click())
-        const generate = page.getByRole('button', {
-          name: new RegExp(`Generate & download ${year} form`),
-        })
-        if (await generate.count()) break
-        await page.getByRole('button', { name: /Continue|Review my information/ }).click()
-        await page.waitForTimeout(700)
-      }
-      const download = page.waitForEvent('download')
-      await page
-        .getByRole('button', { name: new RegExp(`Generate & download ${year} form`) })
-        .click()
-      expect((await download).suggestedFilename()).toMatch(/\.pdf$/i)
+      await downloadForm8843(page, year)
       await expect(page.getByRole('heading', { name: 'Print, sign and mail' })).toBeVisible()
       await expect(page.getByText('Austin, TX 73301')).toBeVisible()
       await expect(page.getByText(/Do not sign the form/)).toBeVisible()
