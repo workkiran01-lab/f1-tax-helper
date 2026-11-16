@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+  <rect width="64" height="64" rx="12" fill="#080c14" />
+  <rect x="0.5" y="0.5" width="63" height="63" rx="11.5" fill="none" stroke="#1e293b" stroke-width="1" />
+  <!-- "F1" as geometric path outlines (vertical/horizontal strokes, mono aesthetic) -->
+  <path fill="#3b82f6" d="M14 14 H32 V21 H21 V28 H29 V35 H21 V50 H14 Z M37 14 H50 V50 H43 V21 H37 Z" />
+</svg>

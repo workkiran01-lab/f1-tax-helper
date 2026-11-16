@@ -25,6 +25,7 @@ const MAX_MODELS = 3
 const MAX_SERVER_WAIT_SECONDS = 12
 
 export function chatModels(env = {}) {
+  return ['openai/gpt-oss-20b'] // TEMPORARY: evaluate the fallback model alone
   const primary = env.GROQ_MODEL?.trim() || DEFAULT_GROQ_MODEL
   const raw = env.GROQ_FALLBACK_MODELS?.trim()
   const fallbacks =
