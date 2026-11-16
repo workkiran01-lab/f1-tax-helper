@@ -77,6 +77,9 @@ describe('tax guide', () => {
     // Never a promise that a scholarship is wholly tax-free.
     expect(text).not.toMatch(/scholarships? (is|are) (always )?(fully )?tax-free/i)
     expect(FAQ_ITEMS.find((x) => x.id === 'scholarship').a).toMatch(/\/tax-guide#scholarships/)
+    // The Form 1042-S instructions: amounts exempt under section 117 are not reported.
+    expect(text).toMatch(/tax-free as a qualified scholarship[^.]*is not reported/)
+    expect(FAQ_ITEMS.find((x) => x.id === 'scholarship').a).toMatch(/US payer reports a US-source scholarship on Form 1042-S, leaving out the tax-free part/)
   })
   it('states that the app does not prepare Form 1040-NR, in the scope note and in the return step', () => {
     const { container } = at('/tax-guide', <TaxGuidePage />)

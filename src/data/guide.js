@@ -146,7 +146,7 @@ export const GUIDE_SECTIONS = [
         type: 'ul',
         items: [
           '**Withholding:** the payer generally withholds 14%, or a lower treaty rate, from the taxable part of a US-source scholarship paid to an F, J, M or Q student; 30% applies in some other cases. The part that pays for services is withheld on like wages.',
-          '**Form 1042-S:** the payer reports the scholarship and any tax withheld on Form 1042-S. Box 2 shows gross income, which is not always taxable income.',
+          '**Form 1042-S:** the payer reports a US-source scholarship and any tax withheld on Form 1042-S. The IRS instructions say the part that is tax-free as a qualified scholarship (tuition and required course costs) is not reported on it, so a tuition-only award may not come with one. Box 2 shows gross income, which is not always taxable income.',
           '**Treaties:** some tax treaties exempt scholarship income. You claim reduced withholding by giving the payer Form W-8BEN, or Form 8233 if you also claim a treaty exemption for pay from the same payer. Whether a treaty applies depends on its terms; [look up your country](/tax-treaties).',
           '**A taxable scholarship can mean a return:** whether you must file Form 1040-NR depends on your US income and withholding; see [Step 4](/tax-guide#return). This app does not prepare Form 1040-NR.',
         ],
@@ -236,7 +236,7 @@ export const GUIDE_SECTIONS = [
 export const REVIEW_LOG = [
   {
     date: '2026-11-16',
-    text: 'Added the scholarships and fellowships section and its FAQ answer, checked against Publication 519 (chapters 2, 3 and 8) and the IRS page on withholding on scholarships paid to nonresident aliens.',
+    text: 'Added the scholarships and fellowships section and its FAQ answer, checked against Publication 519 (chapters 2, 3 and 8), the Form 1042-S instructions and the IRS page on withholding on scholarships paid to nonresident aliens.',
   },
   {
     date: '2026-11-16',
@@ -289,7 +289,7 @@ export const FAQ_ITEMS = [
   {
     id: 'scholarship',
     q: 'Is my scholarship taxable?',
-    a: 'Often only part of it is. If you are a degree candidate, the part used for tuition, required fees, books, supplies and equipment is generally tax-free. The part used for room, board or travel is taxable, and so is any part that pays you for teaching or research. As a nonresident you are generally taxed only on US-source scholarships; one from a foreign government or company is generally foreign source. The payer reports it on Form 1042-S. The [guide](/tax-guide#scholarships) explains withholding and treaties.',
+    a: 'Often only part of it is. If you are a degree candidate, the part used for tuition, required fees, books, supplies and equipment is generally tax-free. The part used for room, board or travel is taxable, and so is any part that pays you for teaching or research. As a nonresident you are generally taxed only on US-source scholarships; one from a foreign government or company is generally foreign source. A US payer reports a US-source scholarship on Form 1042-S, leaving out the tax-free part for tuition and required course costs. The [guide](/tax-guide#scholarships) explains withholding and treaties.',
   },
   {
     id: 'fica',
