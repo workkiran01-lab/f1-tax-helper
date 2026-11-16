@@ -9,7 +9,7 @@ It does not prove an answer is right. It is a tripwire. After every prompt, mode
 - After editing `lib/taxPrompt.js` or the season and treaty data (`src/data`) that feed the prompt.
 - After changing `GROQ_MODEL` or when Groq retires a model.
 - When the filing season rolls forward (re-review every case, see below).
-- Not on every commit: it calls the real chat API, which spends free-tier model quota and the shared daily chat budget (`CHAT_DAILY_CAP`, default 3000). A full run is 37 requests, about 110,000 model tokens and roughly 20 minutes. Groq's free tier allows 200,000 tokens a day per model, so a full run uses about half of what students can use that day. Run a subset (`--only`) while iterating and the full set once before a release, ideally late in the evening US time.
+- Not on every commit: it calls the real chat API, which spends free-tier model quota and the shared daily chat budget (`CHAT_DAILY_CAP`, default 3000). A full run is 38 requests, about 100,000 model tokens and roughly 20 minutes. Groq's free tier allows 200,000 tokens a day per model, so a full run uses about half of what students can use that day. Run a subset (`--only`) while iterating and the full set once before a release, ideally late in the evening US time.
 
 ## How to run it
 
