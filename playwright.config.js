@@ -1,4 +1,5 @@
 import { defineConfig, devices } from '@playwright/test'
+import { ANON_KEY, SUPABASE_URL } from './e2e/supabaseMock.js'
 
 // Two builds of the app are tested against `vite preview`; neither talks to a real service.
 //
@@ -30,6 +31,8 @@ export default defineConfig({
       use: {
         ...device,
         channel: 'chromium',
+        // A service worker would answer some requests without the mock seeing them.
+        serviceWorkers: 'block',
         baseURL: `http://${SIGNED_IN_HOST}:${SIGNED_IN_PORT}`,
         launchOptions: {
           args: [
@@ -50,7 +53,8 @@ export default defineConfig({
       timeout: 120000,
     },
     {
-      command: `VITE_SUPABASE_URL=https://e2e-test.supabase.co VITE_SUPABASE_ANON_KEY=e2e-anon-key npx vite build --outDir dist-signed-in && npx vite preview --outDir dist-signed-in --port ${SIGNED_IN_PORT} --strictPort`,
+      command: `npx vite build --outDir dist-signed-in && npx vite preview --outDir dist-signed-in --port ${SIGNED_IN_PORT} --strictPort`,
+      env: { VITE_SUPABASE_URL: SUPABASE_URL, VITE_SUPABASE_ANON_KEY: ANON_KEY },
       url: `http://localhost:${SIGNED_IN_PORT}`,
       reuseExistingServer: !process.env.CI,
       timeout: 120000,

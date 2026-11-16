@@ -57,6 +57,7 @@ export function clearUserStorage(uid = 'guest') {
             'f1-conversations_',
             'display_name_',
             'university_',
+            'profile_pending_',
           ].some((prefix) => key === prefix + uid)
         ) {
           storage.removeItem(key)

@@ -13,16 +13,25 @@ import {
 // the answer, not that a real project works. They run under the production hostname, which is
 // what switches the anonymous usage counter on (see playwright.config.js).
 
+const APP_HOST = 'www.f1taxhelper.com'
 const PROFILE = { display_name: 'Ada Student', university: 'Example University' }
 const userKey = `f1:2026:${USER_ID}:checklist`
 
+// The mock in use by the running test. After each test it must not have been asked for an
+// endpoint it does not answer: a new Supabase call needs a mock route and a test.
+let active = null
 test.beforeEach(async ({ page }) => {
+  active = null
   await page.addInitScript(() => localStorage.setItem('f1_disclaimer_ack_v1', 'true'))
+})
+test.afterEach(() => {
+  expect(active?.unmocked() ?? []).toEqual([])
 })
 
 // A signed-in student whose name and school are already on the account.
 async function signedIn(page, options = {}) {
   const supabase = await mockSupabase(page, { metadata: PROFILE, ...options })
+  active = supabase
   await seedSession(page, supabase.state.user)
   return supabase
 }
@@ -37,6 +46,7 @@ test.describe('signing in', () => {
     const errors = []
     page.on('pageerror', (e) => errors.push(e.message))
     const supabase = await mockSupabase(page)
+    active = supabase
     await page.goto('/login')
     await page.getByRole('button', { name: /continue with google/i }).click()
     await expect(page).toHaveURL(/\/home$/)
@@ -67,7 +77,7 @@ test.describe('signing in', () => {
   })
 
   test('a signed-out visitor on a signed-in screen is sent to Login', async ({ page }) => {
-    await mockSupabase(page)
+    active = await mockSupabase(page)
     await page.goto('/taxes')
     await expect(page).toHaveURL(/\/login$/)
     await expect(page.getByRole('button', { name: /continue with google/i })).toBeVisible()
@@ -122,7 +132,7 @@ test.describe('account sync', () => {
     })
   })
 
-  test('the profile still saves in this browser when the account is unreachable', async ({
+  test('a profile saved while the account is unreachable stays in this browser and shows after a reload', async ({
     page,
   }) => {
     await signedIn(page, { fail: { updateUser: 500 } })
@@ -130,10 +140,24 @@ test.describe('account sync', () => {
     await page.getByLabel('Full name').fill('Grace Student')
     await page.getByRole('button', { name: 'Save changes' }).click()
     await expect(page.getByText(/saved in this browser/i)).toBeVisible()
-    // The new name is kept in this browser even though the account could not be updated.
-    expect(
-      await page.evaluate((id) => localStorage.getItem(`display_name_${id}`), USER_ID),
-    ).toBe('"Grace Student"')
+    await page.reload()
+    // The account still holds the older name; this browser's newer one is what is shown.
+    await expect(page.getByLabel('Full name')).toHaveValue('Grace Student')
+  })
+
+  test('once the account saves again, its name is the one shown', async ({ page }) => {
+    const supabase = await signedIn(page, { fail: { updateUser: 500 } })
+    await page.goto('/account')
+    await page.getByLabel('Full name').fill('Grace Student')
+    await page.getByRole('button', { name: 'Save changes' }).click()
+    await expect(page.getByText(/saved in this browser/i)).toBeVisible()
+    supabase.state.fail.updateUser = 0
+    await page.getByLabel('Full name').fill('Grace Hopper')
+    await page.getByRole('button', { name: 'Save changes' }).click()
+    await expect(page.getByText('Saved.')).toBeVisible()
+    await page.reload()
+    await expect(page.getByLabel('Full name')).toHaveValue('Grace Hopper')
+    expect(supabase.state.user.user_metadata.display_name).toBe('Grace Hopper')
   })
 })
 
@@ -141,6 +165,14 @@ test.describe('anonymous usage counts', () => {
   test('a signed-in visit and a Form 8843 download send only event names, never the account or the form', async ({
     page,
   }) => {
+    // Everything the browser sends that could carry a value: request bodies, and query strings
+    // (or the whole address, for anything outside the app's own files).
+    const outgoing = []
+    page.on('request', (request) => {
+      const url = new URL(request.url())
+      const ownFile = url.hostname === APP_HOST
+      outgoing.push(`${ownFile ? '' : url.host + url.pathname}${url.search} ${request.postData() ?? ''}`)
+    })
     const supabase = await signedIn(page)
     await page.goto('/home')
     await expect.poll(() => supabase.countNames()).toContain('visit')
@@ -161,8 +193,9 @@ test.describe('anonymous usage counts', () => {
       expect(count.headers.apikey).toBe(ANON_KEY)
       expect(count.headers.cookie).toBeUndefined()
     }
-    // Nothing typed into the form reached Supabase in any request.
-    const sent = JSON.stringify(supabase.state.requests.map((r) => [r.body, r.query]))
+    // Nothing typed into the form left the browser in any request, to Supabase or anywhere else.
+    const sent = outgoing.join('\n')
+    expect(sent, 'the check can see the usage counts').toContain('form8843_downloaded')
     for (const value of Object.values(FORM_VALUES)) expect(sent, value).not.toContain(value)
   })
 

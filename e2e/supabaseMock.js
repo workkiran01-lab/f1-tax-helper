@@ -42,6 +42,8 @@ export async function mockSupabase(page, { fail = {}, metadata = {} } = {}) {
       updated_at: '2026-01-01T00:00:00Z',
     },
     deleted: false,
+    fail: { ...fail },
+    unmocked: [],
     // Every request the app made to Supabase, with its parsed JSON body (if any).
     requests: [],
   }
@@ -54,6 +56,8 @@ export async function mockSupabase(page, { fail = {}, metadata = {} } = {}) {
     deleteCalls: () => calls((r) => r.path === '/rest/v1/rpc/delete_user'),
     logouts: () => calls((r) => r.path === '/auth/v1/logout'),
     authorizations: () => calls((r) => r.path === '/auth/v1/authorize'),
+    // Requests no route above answers. The app must not call an endpoint the tests do not know.
+    unmocked: () => state.unmocked,
   }
 
   await page.route(`${SUPABASE_URL}/**`, async (route) => {
@@ -102,7 +106,7 @@ export async function mockSupabase(page, { fail = {}, metadata = {} } = {}) {
     if (url.pathname === '/auth/v1/user') {
       if (state.deleted) return json(401, { code: 401, msg: 'invalid claim: missing sub claim' })
       if (method === 'PUT') {
-        if (fail.updateUser) return json(fail.updateUser, { code: fail.updateUser, msg: 'failed' })
+        if (state.fail.updateUser) return json(state.fail.updateUser, { code: state.fail.updateUser, msg: 'failed' })
         state.user = {
           ...state.user,
           user_metadata: { ...state.user.user_metadata, ...(body?.data || {}) },
@@ -121,17 +125,18 @@ export async function mockSupabase(page, { fail = {}, metadata = {} } = {}) {
       })
     }
     if (url.pathname === '/auth/v1/logout') {
-      if (fail.logout) return json(fail.logout, { code: fail.logout, msg: 'failed' })
+      if (state.fail.logout) return json(state.fail.logout, { code: state.fail.logout, msg: 'failed' })
       // A deleted user's token is no longer valid; supabase-js treats that as already signed out.
       if (state.deleted) return json(401, { code: 401, msg: 'invalid JWT' })
       return route.fulfill({ status: 204, headers: cors })
     }
     if (url.pathname === '/rest/v1/rpc/count_event') return route.fulfill({ status: 204, headers: cors })
     if (url.pathname === '/rest/v1/rpc/delete_user') {
-      if (fail.deleteUser) return json(fail.deleteUser, { message: 'delete failed' })
+      if (state.fail.deleteUser) return json(state.fail.deleteUser, { message: 'delete failed' })
       state.deleted = true
       return route.fulfill({ status: 204, headers: cors })
     }
+    state.unmocked.push(`${method} ${url.pathname}`)
     return json(404, { message: `unexpected request to ${url.pathname}` })
   })
   return api
