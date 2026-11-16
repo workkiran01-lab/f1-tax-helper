@@ -53,9 +53,11 @@ export default defineConfig({
       timeout: 120000,
     },
     {
-      command: `npx vite build --outDir dist-signed-in && npx vite preview --outDir dist-signed-in --port ${SIGNED_IN_PORT} --strictPort`,
+      command: `npx vite build --outDir dist-signed-in && npx vite preview --outDir dist-signed-in --host 127.0.0.1 --port ${SIGNED_IN_PORT} --strictPort`,
       env: { VITE_SUPABASE_URL: SUPABASE_URL, VITE_SUPABASE_ANON_KEY: ANON_KEY },
-      url: `http://localhost:${SIGNED_IN_PORT}`,
+      // Chromium maps the site's hostname to 127.0.0.1, so the server must listen on IPv4: a
+      // bare `localhost` can bind IPv6 only (as on GitHub's runners) and the browser is refused.
+      url: `http://127.0.0.1:${SIGNED_IN_PORT}`,
       reuseExistingServer: !process.env.CI,
       timeout: 120000,
     },
