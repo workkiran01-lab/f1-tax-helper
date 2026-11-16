@@ -36,9 +36,9 @@ order by total desc;
 - Each event stops counting at 1,000,000 a day so a flood cannot grow the numbers without bound.
 - Counts are skipped when the browser blocks the request or Do Not Track is on, so they undercount.
 
-## Not covered by a test yet
+## Browser tests
 
-`form8843_started` and `form8843_downloaded` are wired in `Form8843Page.jsx` but only the visit, status check and chat events have tests that watch them fire. The signed-in end-to-end test (Fix 6, with Supabase mocked) should assert the download event and route-mock `count_event`; never point it at the real project.
+`e2e/signed-in.spec.js` opens the app under the production hostname with Supabase mocked (`e2e/supabaseMock.js`; it never touches the real project). It checks that `visit`, `form8843_started` and `form8843_downloaded` each fire once, that every count body is exactly `{ "p_event": <name> }`, that the request uses the public key and not the student's session, that no value typed into Form 8843 appears in any request to Supabase, and that Do Not Track and Global Privacy Control turn the counter off.
 
 ## Adding an event
 

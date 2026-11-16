@@ -18,6 +18,10 @@ npm audit --audit-level=high
 
 Vite serves the frontend. Use `vercel dev` when testing the `/api/chat` and `/api/waitlist` Edge functions locally. `npm run preview` serves the production frontend build. CI runs tests, the build, and the dependency audit for pull requests and pushes to main.
 
+### Browser tests
+
+`npm run test:e2e` builds the app twice and runs Playwright on desktop and phone sizes. The guest tests (`e2e/smoke.spec.js`) use a build without Supabase settings. The signed-in tests (`e2e/signed-in.spec.js`) use a build pointed at a fake Supabase address and open it under the production hostname (Chromium maps `www.f1taxhelper.com` to the local preview server and treats it as a secure context), which is what switches the anonymous usage counter on. `e2e/supabaseMock.js` answers every request to the fake address: Google sign-in, the user record, sign-out, the usage counter and account deletion. They check what the app sends (only an event name in each count, the public key rather than the student's session, no form values anywhere) and what it does with failures. They do not show that the real project works; test sign-in, sync and deletion once against a throwaway account before a release. When the app starts calling a new Supabase endpoint, add it to the mock and cover it in a signed-in test.
+
 ## Configuration
 
 Copy `.env.example` to `.env.local` and replace placeholders for the services you use. Do not commit real credentials. Public tools and guest mode work without Supabase configuration; email and OAuth sign-in require it.

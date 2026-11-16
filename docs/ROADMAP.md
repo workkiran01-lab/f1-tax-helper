@@ -38,7 +38,8 @@ Order matters. Each phase ships as its own PR with tests; colours stay as tokens
 
 - Done 2026-11-16: tax guide, FAQ and treaty lookup replace the "coming soon" pages; `/blog` removed; canonical, sitemap and robots moved to the www host. Owner decision: the waitlist endpoint (`/api/waitlist`, Resend, and the waitlist lines in the privacy policy) has no page in the app any more. Delete it, or put a waitlist for a future Form 1040-NR tool on a real page.
 - Not built: Form 1040-NR preparation (decision 2026-11-15, too complex for now).
-- Done 2026-11-16: anonymous daily usage totals (`docs/USAGE-COUNTS.md`). Still to add: a download-event assertion in the signed-in e2e test.
+- Done 2026-11-16: anonymous daily usage totals (`docs/USAGE-COUNTS.md`), with signed-in browser tests (`e2e/signed-in.spec.js`) that check each count carries only an event name and that no form value is sent to Supabase.
+- Known edge: if saving a name to the account fails, the new name is kept in this browser, but after a reload the older name from the account is shown. Fix with a "pending sync" marker if students report it.
 - Test account deletion end to end with a throwaway Google account (owner).
 - Run `node scripts/check-irs-links.mjs --online` before each season (28 addresses; all opened on 2026-11-16).
 - Chat failure alerting (Sentry on `/api/chat` 5xx).

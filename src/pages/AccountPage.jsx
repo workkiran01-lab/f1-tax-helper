@@ -4,7 +4,12 @@ import { ChevronRight, Info, Lock, Mail, ScrollText, TriangleAlert } from 'lucid
 import useAuth from '../hooks/useAuth'
 import supabase from '../utils/supabase'
 import { clearUserStorage, writeStored } from '../utils/storage.js'
-import { displayNameFor, initialOf, universityFor } from '../utils/displayName.js'
+import {
+  displayNameFor,
+  initialOf,
+  markProfileSynced,
+  universityFor,
+} from '../utils/displayName.js'
 import { PageHeader } from '../components/app/PageHeader'
 import { Sequence, SequenceItem, Sheet } from '../components/app/motion'
 import { ThemePicker } from '../components/app/ThemeSwitch'
@@ -50,6 +55,7 @@ export default function AccountPage() {
       const { error } = await supabase.auth
         .updateUser({ data: { display_name: n, university: u } })
         .catch((e) => ({ error: e }))
+      markProfileSynced(uid, !error)
       if (error) message = 'Saved in this browser. Account sync is temporarily unavailable.'
     }
     setSaved(message)

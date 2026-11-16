@@ -15,7 +15,12 @@ import supabase from '../utils/supabase'
 import { writeStored } from '../utils/storage.js'
 import { checklistProgress, computeJourney } from '../utils/journey.js'
 import IconTile from '../components/app/IconTile'
-import { displayNameFor, firstName, universityFor } from '../utils/displayName.js'
+import {
+  displayNameFor,
+  firstName,
+  markProfileSynced,
+  universityFor,
+} from '../utils/displayName.js'
 import { TAX_YEAR, FILING_YEAR } from '../data/taxSeason.js'
 import { PageHeader } from '../components/app/PageHeader'
 import { cn } from '../utils/cn'
@@ -37,7 +42,10 @@ function Onboarding({ user, onDone }) {
     writeStored(`display_name_${uid}`, n)
     writeStored(`university_${uid}`, u)
     if (supabase && !user?.is_guest)
-      supabase.auth.updateUser({ data: { display_name: n, university: u } }).catch(() => {})
+      supabase.auth
+        .updateUser({ data: { display_name: n, university: u } })
+        .then(({ error }) => markProfileSynced(uid, !error))
+        .catch(() => markProfileSynced(uid, false))
     onDone()
   }
   return (
