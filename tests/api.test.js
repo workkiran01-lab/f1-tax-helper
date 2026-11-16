@@ -245,8 +245,19 @@ describe('public endpoint safety', () => {
       expect(fetchImpl).toHaveBeenCalledTimes(4)
       expect(sleeps).toHaveLength(1)
     })
-    it('keeps the wait between 5 and 60 seconds and defaults to 30', () => {
-      expect([waitSeconds('0.2'), waitSeconds('27'), waitSeconds('500'), waitSeconds(null), waitSeconds('soon')]).toEqual([5, 27, 60, 30, 30])
+    it('reports Groq\'s wait, at least 5 seconds, and 30 when Groq did not say', () => {
+      expect([waitSeconds('0.2'), waitSeconds('27'), waitSeconds('500'), waitSeconds(null), waitSeconds('soon')]).toEqual([5, 27, 500, 30, 30])
+    })
+    it('says the limit is reached, not "about a minute", when the wait is hours (a daily allowance)', async () => {
+      vi.spyOn(console, 'error').mockImplementation(() => {})
+      const fetchImpl = vi.fn(async () => rateLimited('6240'))
+      const res = await run(fetchImpl)
+      expect(res.status).toBe(503)
+      expect(res.headers.get('retry-after')).toBe('3600')
+      const { error } = await res.json()
+      expect(error).toMatch(/reached its limit for now/)
+      expect(error).not.toMatch(/\d+ seconds/)
+      expect(sleeps).toEqual([])
     })
     it('does not retry on another model when the key is rejected', async () => {
       const log = vi.spyOn(console, 'error').mockImplementation(() => {})

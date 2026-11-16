@@ -36,8 +36,8 @@ export function chatModels(env = {}) {
 }
 
 export function groqRequestBody(model, messages) {
-  // The cap counts against the per-minute limit before the answer is written, so keep it near
-  // what answers really use (a few hundred tokens) rather than at the model's maximum.
+  // Answers use a few hundred tokens. Groq may count the cap toward the per-minute limit when
+  // it admits a request, so keep it near real use rather than at the model's maximum.
   const body = { model, messages, stream: true, max_completion_tokens: 1200, temperature: 0.2 }
   // GPT-OSS models reason before answering. Keep reasoning short so it does not
   // consume the answer budget, and never stream it to the browser.
@@ -48,10 +48,12 @@ export function groqRequestBody(model, messages) {
   return body
 }
 
-// Seconds to ask the student to wait, from Groq's Retry-After, kept within a useful range.
+// Seconds Groq says to wait (its Retry-After), at least 5, or 30 when it did not say. A wait
+// over MAX_SHOWN_WAIT_SECONDS means a daily allowance is used up, not a busy minute.
+export const MAX_SHOWN_WAIT_SECONDS = 120
 export function waitSeconds(header) {
   const seconds = Math.ceil(Number(header))
-  return Number.isFinite(seconds) && seconds > 0 ? Math.min(60, Math.max(5, seconds)) : 30
+  return Number.isFinite(seconds) && seconds > 0 ? Math.max(5, seconds) : 30
 }
 
 // Groq's own explanation of a rate limit ("Limit 8000, Used ..., Requested ...") holds no
@@ -191,6 +193,12 @@ export function createChatHandler({
     if (result.closed) return jsonError('The AI response was interrupted. Please try again.', 502)
     if (result.busy) {
       const seconds = Math.min(...result.waits)
+      if (seconds > MAX_SHOWN_WAIT_SECONDS)
+        return jsonError(
+          'AI chat has reached its limit for now. Your checklist and form preparation still work; please try again in an hour or so.',
+          503,
+          { 'Retry-After': '3600' },
+        )
       return jsonError(
         `Lots of students are asking questions right now. Please try again in about ${seconds} seconds.`,
         503,

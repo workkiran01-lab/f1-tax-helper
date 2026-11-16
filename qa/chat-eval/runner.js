@@ -23,10 +23,15 @@ export async function runCases({
   const results = []
   for (const [index, testCase] of selected.entries()) {
     let answer = ''
+    let model
     let error = ''
     for (let attempt = 0; attempt <= retries; attempt += 1) {
       try {
-        answer = await ask(testCase.question)
+        // `ask` returns the answer, or { text, model } when the server says which model wrote it
+        // (the X-Chat-Model header), so a run can show how much of it came from a fallback.
+        const reply = await ask(testCase.question)
+        answer = typeof reply === 'string' ? reply : String(reply?.text ?? '')
+        model = typeof reply === 'string' ? undefined : reply?.model || undefined
         // The app shows an empty answer as an error, so a blank one is a dropped response,
         // not a quality result: ask again instead of grading nothing.
         if (!String(answer).trim()) throw new Error('The model returned an empty answer.')
@@ -48,6 +53,7 @@ export async function runCases({
         }
       : grade(answer, testCase)
     result.answer = answer
+    if (model) result.model = model
     results.push(result)
     onResult(result, index + 1, selected.length)
     if (error && /daily|limit for today/i.test(error)) break
