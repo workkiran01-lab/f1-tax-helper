@@ -1,4 +1,4 @@
-import { readChatStream, safeIRSUrl } from '../../utils/chatStream.js'
+import { readChatStream, safeIRSUrl, wasCutShort } from '../../utils/chatStream.js'
 import { fitChatHistory } from '../../../lib/chatLimits.js'
 import { useEffect, useMemo, useState, useRef, useCallback, useId } from 'react'
 import { Link } from 'react-router-dom'
@@ -391,13 +391,17 @@ export function ChatMain({ initialContext, navigationKey, onMessagesChange }) {
         { id: responseId, role: 'assistant', content: '', createdAt: Date.now() },
       ])
       let content = ''
-      for await (const delta of readChatStream(res.body)) {
+      const stream = {}
+      for await (const delta of readChatStream(res.body, stream)) {
         if (!current()) return
         content += delta
         const value = content
         setMessages((prev) => prev.map((m) => (m.id === responseId ? { ...m, content: value } : m)))
       }
       if (!content.trim()) throw new Error('The AI returned an empty answer. Please try again.')
+      // The model stopped at its answer cap: the text ends mid-thought and looks finished.
+      if (wasCutShort(stream))
+        setMessages((prev) => prev.map((m) => (m.id === responseId ? { ...m, cutShort: true } : m)))
     } catch (error) {
       if (!current()) return
       setRequestError(
@@ -485,6 +489,11 @@ export function ChatMain({ initialContext, navigationKey, onMessagesChange }) {
                   </button>
                 )}
               </div>
+              {message.role === 'assistant' && message.cutShort && (
+                <p role="note" className="mt-1 px-1 text-xs text-ink-3">
+                  This answer was cut short. Ask again, or ask about one part at a time.
+                </p>
+              )}
               {message.role === 'assistant' && <IRSDisclaimer />}
               {formatTime(message.createdAt) && (
                 <p className="mt-1 px-1 text-xs text-ink-4">{formatTime(message.createdAt)}</p>

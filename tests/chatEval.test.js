@@ -217,6 +217,29 @@ describe('runner: which model answered', () => {
   })
 })
 
+describe('runner: answers cut off at the cap', () => {
+  it('fails an answer the model stopped early and counts it in the summary', async () => {
+    const asked = ['form-01', 'form-02']
+    let i = 0
+    const ask = async () => ({ text: 'Form 8843.', model: 'openai/gpt-oss-120b', truncated: i++ === 0 })
+    const { results, summary } = await runCases({ ask, only: asked, delayMs: 0 })
+    expect(results[0].truncated).toBe(true)
+    expect(results[0].pass).toBe(false)
+    expect(results[0].failures.map((f) => f.check)).toContain('truncated')
+    expect(results[1].truncated).toBeUndefined()
+    expect(summary.truncated).toBe(1)
+    expect(summary.byCheck.truncated).toBe(1)
+  })
+  it('reports zero when nothing was cut off', async () => {
+    const { summary } = await runCases({
+      ask: async () => ({ text: 'Form 8843.', truncated: false }),
+      only: ['form-01'],
+      delayMs: 0,
+    })
+    expect(summary.truncated).toBe(0)
+  })
+})
+
 describe('repository hygiene', () => {
   it('does not ship the throwaway browser bundle used for preview runs', async () => {
     const { existsSync } = await import('node:fs')

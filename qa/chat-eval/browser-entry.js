@@ -1,6 +1,6 @@
 // Bundled into one script (see README.md) and loaded by a page of a deployed preview of the
 // site, because the production API only accepts requests from the site's own origin.
-import { readChatStream } from '../../src/utils/chatStream.js'
+import { readChatStream, wasCutShort } from '../../src/utils/chatStream.js'
 import { runCases } from './runner.js'
 
 async function ask(question) {
@@ -16,8 +16,9 @@ async function ask(question) {
     throw error
   }
   let text = ''
-  for await (const delta of readChatStream(response.body)) text += delta
-  return { text, model: response.headers.get('x-chat-model') }
+  const stream = {}
+  for await (const delta of readChatStream(response.body, stream)) text += delta
+  return { text, model: response.headers.get('x-chat-model'), truncated: wasCutShort(stream) }
 }
 
 window.runChatEval = (options = {}) => runCases({ ask, ...options })

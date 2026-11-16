@@ -4,8 +4,12 @@ import { downloadForm8843 } from './helpers.js'
 // Guest-mode smoke tests against the production build. The AI endpoint is mocked so
 // no paid model is called, and nothing here needs a Supabase account.
 
-const sse = (text) =>
-  `data: ${JSON.stringify({ choices: [{ delta: { content: text } }] })}\n\ndata: [DONE]\n\n`
+const sse = (text, finishReason) =>
+  `data: ${JSON.stringify({ choices: [{ delta: { content: text } }] })}\n\n` +
+  (finishReason
+    ? `data: ${JSON.stringify({ choices: [{ delta: {}, finish_reason: finishReason }] })}\n\n`
+    : '') +
+  'data: [DONE]\n\n'
 
 test.describe('public pages', () => {
   for (const [path, heading] of [
@@ -158,6 +162,31 @@ test.describe('guest journey', () => {
       role: 'user',
       content: 'Do I need to file with no income?',
     })
+  })
+
+  test('chat says so when an answer was cut off at the cap, and not when it finished', async ({
+    page,
+  }) => {
+    let reason = 'length'
+    await page.route('**/api/chat', (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: 'text/event-stream',
+        body: sse('The deadline is', reason),
+      }),
+    )
+    await page.goto('/chat')
+    const send = async (text) => {
+      await page.getByLabel('Your tax question').fill(text)
+      await page.getByRole('button', { name: 'Send message' }).click()
+    }
+    await send('When is the deadline?')
+    await expect(page.getByText('The deadline is')).toBeVisible()
+    await expect(page.getByRole('note').filter({ hasText: 'cut short' })).toHaveCount(1)
+    reason = 'stop'
+    await send('And for wages?')
+    await expect(page.getByText('The deadline is')).toHaveCount(2)
+    await expect(page.getByRole('note').filter({ hasText: 'cut short' })).toHaveCount(1)
   })
 
   test('chat shows a friendly message when the service is down', async ({ page }) => {
