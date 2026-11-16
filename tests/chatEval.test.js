@@ -217,6 +217,16 @@ describe('runner: which model answered', () => {
   })
 })
 
+describe('tr-04 does not mistake an echoed question for a claim', () => {
+  it('passes "Do I always need..." repeated above a correct answer, and still fails a real claim', () => {
+    const tr04 = CASES.find((x) => x.id === 'tr-04')
+    const echoed = `Do I always need to file Form 8833 to claim a treaty benefit?\n\n${answer('No, you only need Form 8833 when the treaty claim is not covered by an exception; many student claims are exempt.')}`
+    expect(grade(echoed, tr04).failures.map((f) => f.check)).not.toContain('forbidden')
+    const wrong = answer('Yes, you always need to file Form 8833 for every treaty claim.')
+    expect(grade(wrong, tr04).failures.map((f) => f.check)).toContain('forbidden')
+  })
+})
+
 describe('runner: answers cut off at the cap', () => {
   it('fails an answer the model stopped early and counts it in the summary', async () => {
     const asked = ['form-01', 'form-02']
