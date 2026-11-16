@@ -66,8 +66,10 @@ describe('student residency screening', () => {
 describe('reviewed season and treaty sources', () => {
   it('separates income year, season and verified IRS PDF year', () => {
     expect([TAX_YEAR, FILING_YEAR]).toEqual([2026, 2027])
-    expect(canGenerate8843(2026)).toBe(false)
+    expect(canGenerate8843(2026)).toBe(true) // IRS 2026 form reviewed 2026-11-15
     expect(canGenerate8843(2025)).toBe(true)
+    expect(canGenerate8843(2027)).toBe(false) // never roll forward with the clock
+    expect(canGenerate8843(2024)).toBe(false)
     expect(STANDARD_DEDUCTION_SINGLE).toEqual({ 2025: 15750, 2026: 16100 })
     expect(DEADLINES.map((d) => d.date)).toContain('Mar 15, 2027')
   })

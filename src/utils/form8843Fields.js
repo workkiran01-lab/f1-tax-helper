@@ -1,7 +1,7 @@
 import { PDFDocument, rgb } from 'pdf-lib'
 import fontkit from '@pdf-lib/fontkit'
 import { buildNameField, buildUsAddress, buildSchoolLine, buildDsoLine } from './form8843Display.js'
-import { canGenerate8843, FORM_8843_TEMPLATE_SHA256 } from '../data/taxSeason.js'
+import { FORM_8843_TEMPLATES, canGenerate8843 } from '../data/taxSeason.js'
 import { validate8843, visaYears } from './form8843Model.js'
 const P1 = 'topmostSubform[0].Page1[0]'
 
@@ -16,7 +16,8 @@ export async function fillForm8843(pdfBytes, data, fontBytes) {
   const digest = Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', pdfBytes)), (b) =>
     b.toString(16).padStart(2, '0'),
   ).join('')
-  if (digest !== FORM_8843_TEMPLATE_SHA256)
+  const template = FORM_8843_TEMPLATES[Number(data.taxYear)]
+  if (digest !== template.sha256)
     throw new Error(
       'The PDF template has changed. Download is paused until its IRS year and field mapping are verified.',
     )
@@ -28,8 +29,10 @@ export async function fillForm8843(pdfBytes, data, fontBytes) {
   // the complete accepted input alphabet so fields remain editable in viewers.
   const font = await pdf.embedFont(fontBytes, { subset: true })
   font.encodeText(Array.from({ length: 95 }, (_, i) => String.fromCharCode(i + 32)).join(''))
+  // The 2026 form drops the zero padding in field names (f1_04 is now f1_4).
+  const name = (id) => (template.unpaddedFields ? id.replace(/^(f\d_)0(\d)$/, '$1$2') : id)
   function text(id, value) {
-    const field = form.getTextField(`${P1}.${id}[0]`)
+    const field = form.getTextField(`${P1}.${name(id)}[0]`)
     field.setText(String(value || '')) // Missing fields are fatal; never skip them.
     field.acroField.setDefaultAppearance(`/${font.name} 10 Tf 0 g`)
     if (['f1_07', 'f1_08', 'f1_26', 'f1_27', 'f1_34'].includes(id)) {

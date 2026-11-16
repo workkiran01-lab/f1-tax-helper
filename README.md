@@ -39,9 +39,9 @@ The account deletion UI calls the authenticated `public.delete_user()` RPC. Its 
 
 `src/data/taxSeason.js` holds the explicit tax year, filing year, reviewed dates, source URLs, expected deadlines, and verified PDF fingerprint. The season never advances automatically with the calendar.
 
-As reviewed on September 7, 2026, the final IRS Form 8843 available is for **2025**; the 2026 form is a draft. The wizard defaults to **2026 preparation only**. It blocks downloads until that year's final form and exact field mapping have been verified. Users can explicitly select the verified 2025 form for prior-year work. Never relabel a prior-year PDF or enable filing from a draft.
+Two IRS forms are verified and filled in the browser (`FORM_8843_TEMPLATES` in `taxSeason.js`): **2026** (the default, filed in 2027; reviewed November 15, 2026, title "2026 Form 8843", created 5/11/26, served at the IRS current-revision link) and **2025** for prior-year filing. Each year has its own file in `public/`, SHA-256 and field-name style (the 2026 form drops the zero padding, `f1_04` became `f1_4`). Any other year, or a file whose hash does not match its year, is refused. Never relabel a prior-year PDF or fill a draft.
 
-Before enabling a new form year: obtain the final IRS PDF, verify its printed year and every AcroForm field, update the template year and SHA-256, review dates and rules, update the PDF regression fixtures, and inspect rendered output and native checkbox values. See the audit's release steps.
+Before enabling a new form year: obtain the final IRS PDF, verify its printed year and every AcroForm field, add a `FORM_8843_TEMPLATES` entry (file, SHA-256, field style), review dates and rules, update the PDF regression fixtures, and inspect rendered output and native checkbox values. See the audit's release steps.
 
 ## Architecture and privacy
 

@@ -10,7 +10,7 @@ import {
   visaYears,
   presenceYears,
 } from '../utils/form8843Model.js'
-import { TAX_YEAR, canGenerate8843 } from '../data/taxSeason.js'
+import { TAX_YEAR, FORM_8843_TEMPLATES, canGenerate8843 } from '../data/taxSeason.js'
 import MailingGuide from '../components/form8843/MailingGuide'
 import { readStored, writeStored, removeStored, seasonKey } from '../utils/storage.js'
 import { FormPreview } from '../components/form8843/FormPreview'
@@ -184,7 +184,7 @@ export default function Form8843Page() {
     try {
       const [{ fillForm8843 }, response, fontResponse] = await Promise.all([
         import('../utils/form8843Fields.js'),
-        fetch('/form8843.pdf'),
+        fetch(FORM_8843_TEMPLATES[year].file),
         fetch(pdfFontUrl),
       ])
       if (!response.ok || !fontResponse.ok)
@@ -249,7 +249,7 @@ export default function Form8843Page() {
               }}
               className={inputClass}
             >
-              <option value={2026}>2026 · prepare for 2027</option>
+              <option value={2026}>2026 · file in 2027</option>
               <option value={2025}>2025 · prior-year filing</option>
             </select>
           </label>
@@ -386,7 +386,7 @@ export default function Form8843Page() {
                           ? 'Preparing PDF…'
                           : ready
                             ? `Generate & download ${year} form`
-                            : 'Awaiting final 2026 IRS form'}
+                            : `Awaiting final ${year} IRS form`}
                       </button>
                     </div>
                   ) : (
@@ -589,7 +589,7 @@ export default function Form8843Page() {
           <aside className="min-w-0 lg:sticky lg:top-24">
             <div className="mb-3 flex items-center justify-between text-xs text-muted-foreground">
               <span>Live preview · {year}</span>
-              <span>Preparation only</span>
+              {!ready && <span>Preparation only</span>}
             </div>
             <FormPreview formData={data} activeStep={step} showReview={review} />
             <p className="mt-4 flex items-start gap-2 text-xs leading-relaxed text-muted-foreground">

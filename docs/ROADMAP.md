@@ -10,7 +10,7 @@ Order matters. Each phase ships as its own PR with tests; colours stay as tokens
 2. Weekly keep-alive workflow so the free Supabase project is not auto-paused.
 3. Chat failure alerting (Sentry on `/api/chat` 5xx) and a manual QA list of representative F-1 questions.
 4. Playwright smoke test in CI: public pages, guest flow, status check, Form 8843 fill and PDF download, chat (mocked).
-5. 2026 Form 8843 stays preparation-only until the IRS publishes the final form; reminder for January.
+5. 2026 Form 8843 enabled 15 Nov 2026 after the IRS published the final form (verified fields, hash, rendered output). Re-check the IRS page in January for a revised form or instructions.
 
 ## Phase 1: Onboarding and Home
 

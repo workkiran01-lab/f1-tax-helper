@@ -252,7 +252,7 @@ describe('Home', () => {
     expect(screen.getByText('1 of 4 done')).toBeTruthy()
     expect(screen.getByRole('heading', { name: /expected deadline: June 15, 2027/ })).toBeTruthy()
     // The last step explains why it is locked instead of offering a dead link.
-    expect(screen.getByText('Unlocks when the IRS releases the 2026 form')).toBeTruthy()
+    expect(screen.getByText('After you download Form 8843')).toBeTruthy()
     expect(screen.queryByRole('link', { name: /Print, sign and mail/ })).toBeNull()
   })
 })
