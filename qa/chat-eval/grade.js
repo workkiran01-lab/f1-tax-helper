@@ -45,8 +45,12 @@ export function grade(answer, testCase) {
     fail('empty', 'no answer text')
   } else {
     if (testCase.kind === 'substantive') {
+      // The chat screen shows text before the first heading as the answer (see parseSections in
+      // ChatMain.jsx), so an answer that skips "### Answer" but opens with its text is accepted.
+      const opensWithAnswer = text.includes('### Why') && text.slice(0, text.indexOf('### Why')).trim() !== ''
       for (const heading of SECTIONS)
-        if (!text.includes(heading)) fail('format', `missing section ${heading}`)
+        if (!text.includes(heading) && !(heading === '### Answer' && opensWithAnswer))
+          fail('format', `missing section ${heading}`)
       if (!sectionText(text, '### Next Step')) fail('format', 'Next Step is empty')
       const reference = sectionText(text, '### IRS Reference')
       if (text.includes('### IRS Reference') && !/irs\.gov|pub(lication)?\.? ?\d|form ?\w+|instructions/i.test(reference))

@@ -8,7 +8,7 @@ Order matters. Each phase ships as its own PR with tests; colours stay as tokens
 
 1. Apply `supabase/migrations/202609070001_self_delete.sql` to the live project and test account deletion with a throwaway account.
 2. Weekly keep-alive workflow so the free Supabase project is not auto-paused.
-3. Chat failure alerting (Sentry on `/api/chat` 5xx) and a manual QA list of representative F-1 questions.
+3. Chat failure alerting (Sentry on `/api/chat` 5xx). The representative-questions QA list is `qa/chat-eval/` (37 graded cases, see its README).
 4. Playwright smoke test in CI: public pages, guest flow, status check, Form 8843 fill and PDF download, chat (mocked).
 5. 2026 Form 8843 enabled 15 Nov 2026 after the IRS published the final form (verified fields, hash, rendered output). Re-check the IRS page in January for a revised form or instructions.
 
@@ -38,7 +38,8 @@ Order matters. Each phase ships as its own PR with tests; colours stay as tokens
 
 - Done 2026-11-16: anonymous daily usage totals (`docs/USAGE-COUNTS.md`). Still to add: a download-event assertion in the signed-in e2e test.
 - Test account deletion end to end with a throwaway Google account (owner).
-- Chat failure alerting (Sentry on `/api/chat` 5xx) and the manual QA question list.
+- Chat failure alerting (Sentry on `/api/chat` 5xx).
+- Chat answer-quality check (`qa/chat-eval/`) done: run it after any prompt, model or season change and read five answers. It spends Groq free-tier tokens (a full run is about half of one model's daily allowance). The free tier (about 200,000 tokens a day, 8,000 a minute per model) is also the real capacity limit for students: roughly 60 answers a day.
 - In-app preview of the actual generated PDF. The wizard has a live HTML replica ("Preparation preview, not for filing"); showing the real PDF needs a pdf.js worker and a CSP change, so it is deferred.
 - Lighthouse on a local build: mobile 94, desktop 100, accessibility, best practices and SEO 100. The remaining mobile gap is client-side rendering of the landing headline; closing it needs prerendering.
 - January 2027: re-check the IRS Form 8843 page for a revised 2026 form or instructions; any new file needs a new hash and a rendered check. In 2027 add the 2027 form the same way.

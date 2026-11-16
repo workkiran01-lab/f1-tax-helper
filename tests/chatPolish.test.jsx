@@ -67,6 +67,13 @@ describe('answer sections', () => {
     expect(sections[0].text).toBe('Yes.')
     expect(sections[3].text).toBe('File it.')
   })
+  it('shows text before the first heading as the answer when the Answer heading is missing', () => {
+    const { sections } = parseSections('The deadline is **June 15, 2027**.\n\n### Why\n- Because.\n### Next Step\nFile it.')
+    expect(sections.map((s) => s.type)).toEqual(['answer', 'why', 'next'])
+    expect(sections[0].text).toBe('The deadline is **June 15, 2027**.')
+    // An explicit Answer heading keeps any greeting in front of it separate.
+    expect(parseSections('Sure!\n### Answer\nYes.\n### Why\n- x.').sections.map((s) => s.type)).toEqual(['plain', 'answer', 'why'])
+  })
   it('leaves ordinary text, and a line that merely starts with a section word, alone', () => {
     expect(parseSections('Hello! How can I help?').plain).toBe('Hello! How can I help?')
     expect(parseSections('Answer the phone when the IRS calls.\nWhy not?').plain).toBeDefined()

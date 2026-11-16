@@ -88,6 +88,10 @@ export function parseSections(content) {
   const sections = raw
     .map((s) => ({ type: s.type, text: s.lines.join('\n').trim() }))
     .filter((s) => s.type !== 'plain' || s.text)
+  // Sometimes the model skips the Answer heading and opens straight with the answer. The text
+  // before the first heading is then the answer; show it as one instead of loose text.
+  if (sections[0]?.type === 'plain' && !sections.some((s) => s.type === 'answer'))
+    sections[0] = { ...sections[0], type: 'answer' }
   return { sections }
 }
 
