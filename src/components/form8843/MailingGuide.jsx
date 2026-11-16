@@ -1,9 +1,14 @@
 import { ExternalLink } from 'lucide-react'
-import { FORM_8843_MAILING, filingDeadline } from '../../data/taxSeason.js'
+import {
+  FORM_8843_MAILING,
+  filingDeadline,
+  taxYearOpen,
+  yearOpenNotice,
+} from '../../data/taxSeason.js'
 
 // Shown after the form is downloaded: exactly what to do with the paper, in order.
 // This app never submits anything to the IRS.
-export default function MailingGuide({ year }) {
+export default function MailingGuide({ year, today = new Date() }) {
   const deadline = filingDeadline(false, year)
   const steps = [
     ['Review every entry', 'Check your name, dates and days in the US against your records.'],
@@ -22,6 +27,14 @@ export default function MailingGuide({ year }) {
       <h3 id="mailing-title" className="text-[17px] font-semibold text-ink">
         Print, sign and mail
       </h3>
+      {taxYearOpen(year, today) && (
+        <p
+          role="note"
+          className="mt-3 rounded-xl border border-warning/30 bg-warning-soft p-3 text-sm text-warn-ink"
+        >
+          {yearOpenNotice(year)}
+        </p>
+      )}
       <ol className="mt-4 space-y-4">
         {steps.map(([title, body], i) => (
           <li key={title} className="flex gap-3">

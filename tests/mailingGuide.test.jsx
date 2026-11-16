@@ -22,3 +22,13 @@ it('lists the steps, the reviewed IRS address and the source link', () => {
   expect(link.getAttribute('rel')).toContain('noopener')
   expect(FORM_8843_MAILING.reviewed).toBe('2026-11-15')
 })
+
+it('warns until the tax year has ended, and not afterwards', () => {
+  const { unmount } = render(<MailingGuide year={2026} today={new Date('2026-11-15T12:00:00Z')} />)
+  expect(screen.getByRole('note').textContent).toMatch(/2026 tax year is not over/)
+  expect(screen.getByRole('note').textContent).toMatch(/wait until December 31/)
+  expect(screen.getAllByRole('listitem')).toHaveLength(4)
+  unmount()
+  render(<MailingGuide year={2026} today={new Date('2027-01-02T12:00:00Z')} />)
+  expect(screen.queryByRole('note')).toBeNull()
+})

@@ -6,9 +6,9 @@ export const REVIEWED_ON = '2026-09-07'
 // Each IRS Form 8843 the app can fill: the file served from /public, its SHA-256 (a changed
 // file pauses downloads until its year and field mapping are re-verified), and whether its
 // AcroForm field names drop the zero padding (f1_01 became f1_1 in the 2026 form).
-// 2026: the IRS "Current revision" link serves this file (titled "2026 Form 8843", created
-// 5/11/26, no draft marking); its 51 fields and layout match 2025, and the text differs only
-// in years and line labels. Reviewed 2026-11-15.
+// 2026: byte-identical (same SHA-256) to the file the IRS serves at its Form 8843 link on
+// 2026-11-15 (posted 2026-11-05; the form's footer reads "Created 5/11/26", i.e. May 11, 2026).
+// Its 51 fields and layout match 2025; the text differs only in years and line labels.
 export const FORM_8843_TEMPLATES = Object.freeze({
   2025: Object.freeze({
     file: '/form8843.pdf',
@@ -26,7 +26,6 @@ export const SOURCES = Object.freeze({
   whereToFile: 'https://www.irs.gov/filing/where-to-file-forms-beginning-with-the-number-8',
   form8843: 'https://www.irs.gov/forms-pubs/about-form-8843',
   form8843Pdf: 'https://www.irs.gov/pub/irs-pdf/f8843.pdf',
-  form8843Draft: 'https://www.irs.gov/pub/irs-dft/f8843--dft.pdf',
   nonresidentReturn: 'https://www.irs.gov/instructions/i1040nr',
   student:
     'https://www.irs.gov/individuals/international-taxpayers/exempt-individual-who-is-a-student',
@@ -69,6 +68,14 @@ export function filingDeadline(hasWithholdingWages, year = TAX_YEAR) {
 }
 export function daysInYear(year) {
   return new Date(Date.UTC(Number(year), 1, 29)).getUTCMonth() === 1 ? 366 : 365
+}
+// Line 4a asks for the days actually present during the tax year, so a form for a year that
+// has not ended yet cannot be final. The app warns instead of blocking.
+export function taxYearOpen(year, today = new Date()) {
+  return today.getTime() < Date.UTC(Number(year) + 1, 0, 1)
+}
+export function yearOpenNotice(year) {
+  return `The ${year} tax year is not over. The form asks for the days you were actually in the US during ${year}, so wait until December 31, recount your days, and check every entry before you print, sign or mail it.`
 }
 export function canGenerate8843(year) {
   return Object.hasOwn(FORM_8843_TEMPLATES, Number(year))

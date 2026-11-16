@@ -1,4 +1,4 @@
-import { TAX_YEAR, canGenerate8843 } from '../data/taxSeason.js'
+import { TAX_YEAR, canGenerate8843, taxYearOpen } from '../data/taxSeason.js'
 import { checklistItems } from '../data/checklistItems.js'
 import { STEP_FIELDS, restore8843, validate8843 } from './form8843Model.js'
 import { readStored, seasonKey } from './storage.js'
@@ -26,7 +26,7 @@ export function checklistProgress(uid, profile) {
 
 // The four filing steps shown on Home, plus the single thing to do next.
 // state: 'done' | 'current' | 'todo' | 'waiting' | 'locked'
-export function computeJourney(user) {
+export function computeJourney(user, today = new Date()) {
   const uid = user?.id || 'guest'
   const profile = currentTaxProfile(user)
   const downloadable = canGenerate8843(TAX_YEAR)
@@ -67,7 +67,7 @@ export function computeJourney(user) {
   else if (draftComplete && !downloadable)
     Object.assign(form, {
       state: 'waiting',
-      detail: `Draft complete · download opens when the IRS ${TAX_YEAR} form is final`,
+      detail: `Draft complete · download opens when the ${TAX_YEAR} form is verified here`,
     })
   else
     Object.assign(form, {
@@ -77,7 +77,7 @@ export function computeJourney(user) {
           ? `In progress · ${sections} of ${FORM_SECTIONS} sections`
           : downloadable
             ? 'Not started'
-            : `Not started · you can draft now, download opens later`,
+            : `Not started · the IRS ${TAX_YEAR} form is not verified here yet`,
     })
 
   const documents = {
@@ -100,7 +100,13 @@ export function computeJourney(user) {
     about: 'Print, sign and date your form, then mail it or attach it to your tax return.',
   }
   if (filed) Object.assign(file, { state: 'done', detail: 'Marked as filed' })
-  else if (generated) Object.assign(file, { state: 'todo', detail: 'Your form is ready to mail' })
+  else if (generated)
+    Object.assign(file, {
+      state: 'todo',
+      detail: taxYearOpen(TAX_YEAR, today)
+        ? `Mail it after December 31, once your ${TAX_YEAR} days are final`
+        : 'Your form is ready to mail',
+    })
   else
     Object.assign(file, {
       state: 'locked',
@@ -108,7 +114,7 @@ export function computeJourney(user) {
         ? 'After your residency review'
         : downloadable
           ? 'After you download Form 8843'
-          : `Unlocks when the IRS releases the ${TAX_YEAR} form`,
+          : `Unlocks when the ${TAX_YEAR} form is verified here`,
     })
 
   const steps = [status, form, documents, file]

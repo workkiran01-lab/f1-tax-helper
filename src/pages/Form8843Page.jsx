@@ -10,7 +10,13 @@ import {
   visaYears,
   presenceYears,
 } from '../utils/form8843Model.js'
-import { TAX_YEAR, FORM_8843_TEMPLATES, canGenerate8843 } from '../data/taxSeason.js'
+import {
+  TAX_YEAR,
+  FORM_8843_TEMPLATES,
+  canGenerate8843,
+  taxYearOpen,
+  yearOpenNotice,
+} from '../data/taxSeason.js'
 import MailingGuide from '../components/form8843/MailingGuide'
 import { readStored, writeStored, removeStored, seasonKey } from '../utils/storage.js'
 import { FormPreview } from '../components/form8843/FormPreview'
@@ -369,6 +375,14 @@ export default function Form8843Page() {
                             </p>
                           ))}
                       </div>
+                      {ready && taxYearOpen(year) && (
+                        <p
+                          role="note"
+                          className="rounded-xl border border-warning/30 bg-warning-soft p-4 text-sm text-warn-ink"
+                        >
+                          {yearOpenNotice(year)}
+                        </p>
+                      )}
                       {!ready && (
                         <p className="rounded-xl border border-warning/30 bg-warning-soft p-4 text-sm text-warn-ink">
                           Preparation only. The final {year} IRS form is not yet verified for

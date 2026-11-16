@@ -5,10 +5,12 @@ import {
   buildActionItems,
 } from '../src/utils/taxRules.js'
 import { treatyGuidance, getTreatyByCountryName } from '../src/data/treaties.js'
+import { systemPrompt } from '../lib/taxPrompt.js'
 import {
   TAX_YEAR,
   FILING_YEAR,
   canGenerate8843,
+  taxYearOpen,
   STANDARD_DEDUCTION_SINGLE,
   DEADLINES,
 } from '../src/data/taxSeason.js'
@@ -72,6 +74,23 @@ describe('reviewed season and treaty sources', () => {
     expect(canGenerate8843(2024)).toBe(false)
     expect(STANDARD_DEDUCTION_SINGLE).toEqual({ 2025: 15750, 2026: 16100 })
     expect(DEADLINES.map((d) => d.date)).toContain('Mar 15, 2027')
+  })
+  it('treats a tax year as open until January 1 of the next year (UTC)', () => {
+    expect(taxYearOpen(2026, new Date('2026-11-15T00:00:00Z'))).toBe(true)
+    expect(taxYearOpen(2026, new Date('2026-12-31T23:59:59Z'))).toBe(true)
+    expect(taxYearOpen(2026, new Date('2027-01-01T00:00:00Z'))).toBe(false)
+    expect(taxYearOpen(2025, new Date('2026-11-15T00:00:00Z'))).toBe(false)
+  })
+  it('tells the chat model the date and that 2026 days are not final until the year ends', () => {
+    const during = systemPrompt(new Date('2026-11-15T12:00:00Z'))
+    expect(during).toContain('TODAY: 2026-11-15')
+    expect(during).toMatch(/2026 tax year has not ended/)
+    expect(during).toMatch(/wait until December 31/)
+    const after = systemPrompt(new Date('2027-01-05T12:00:00Z'))
+    expect(after).toContain('TODAY: 2027-01-05')
+    expect(after).toContain('The 2026 tax year has ended.')
+    expect(after).not.toMatch(/wait until December 31/)
+    expect(during).not.toMatch(/irs-dft|draft 2026/i)
   })
   it('never treats unreviewed treaty coverage as an absence', () => {
     for (const name of ['Canada', 'Mexico', 'United Kingdom']) {

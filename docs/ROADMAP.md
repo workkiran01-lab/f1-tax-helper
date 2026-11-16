@@ -40,5 +40,5 @@ Order matters. Each phase ships as its own PR with tests; colours stay as tokens
 - Chat failure alerting (Sentry on `/api/chat` 5xx) and the manual QA question list.
 - In-app preview of the actual generated PDF. The wizard has a live HTML replica ("Preparation preview, not for filing"); showing the real PDF needs a pdf.js worker and a CSP change, so it is deferred.
 - Lighthouse on a local build: mobile 94, desktop 100, accessibility, best practices and SEO 100. The remaining mobile gap is client-side rendering of the landing headline; closing it needs prerendering.
-- January 2027: replace the 2026 draft with the final IRS Form 8843 and verify the field mapping before enabling generation.
+- January 2027: re-check the IRS Form 8843 page for a revised 2026 form or instructions; any new file needs a new hash and a rendered check. In 2027 add the 2027 form the same way.
 - Verify the standalone mailing address in `FORM_8843_MAILING` each season (the form's own instructions and the IRS where-to-file page should agree).

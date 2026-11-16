@@ -7,7 +7,7 @@ import {
   rateLimit,
   dailyBudget,
 } from '../lib/apiSafety.js'
-import { SYSTEM_PROMPT } from '../lib/taxPrompt.js'
+import { systemPrompt } from '../lib/taxPrompt.js'
 
 // Groq shut down llama-3.3-70b-versatile on August 16, 2026 and recommends
 // openai/gpt-oss-120b. Model IDs are retired regularly; see
@@ -83,7 +83,7 @@ export function createChatHandler({
         },
         body: JSON.stringify(
           groqRequestBody(env.GROQ_MODEL?.trim() || DEFAULT_GROQ_MODEL, [
-            { role: 'system', content: SYSTEM_PROMPT },
+            { role: 'system', content: systemPrompt() },
             ...messages,
           ]),
         ),

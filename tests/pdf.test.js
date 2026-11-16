@@ -99,6 +99,30 @@ it('fills actual AcroForm values, native checkboxes, history and leaves fiscal-y
   expect(form.getCheckBox(`${p}c1_3[1]`).isChecked()).toBe(true)
   expect(pdf.getPageCount()).toBe(4)
 })
+it('fills the 2026 yes answers: native Yes boxes, line 14 pointer and supporting pages', async () => {
+  const bytes = await fillForm8843(
+    readFileSync('public/form8843-2026.pdf'),
+    {
+      ...sample8843(2026),
+      line12Answer: 'yes',
+      line12Explanation: 'Sample supporting facts for review.',
+      line13Answer: 'yes',
+      line14Explanation: 'Sample pending application details.',
+    },
+    fontBytes,
+  )
+  const pdf = await PDFDocument.load(bytes)
+  const form = pdf.getForm()
+  const p = 'topmostSubform[0].Page1[0].'
+  expect(form.getCheckBox(`${p}c1_2[0]`).isChecked()).toBe(true)
+  expect(form.getCheckBox(`${p}c1_2[1]`).isChecked()).toBe(false)
+  expect(form.getCheckBox(`${p}c1_3[0]`).isChecked()).toBe(true)
+  expect(form.getCheckBox(`${p}c1_3[1]`).isChecked()).toBe(false)
+  expect(form.getTextField(`${p}f1_34[0]`).getText()).toBe(
+    'See attached statement for Part III, line 14.',
+  )
+  expect(pdf.getPageCount()).toBe(6) // 4 IRS pages (form + instructions) plus one statement page per yes answer
+})
 it('includes supporting statements for lines 12, 14 and visa changes', async () => {
   const bytes = await fillForm8843(
     readFileSync('public/form8843.pdf'),
