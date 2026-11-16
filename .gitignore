@@ -31,3 +31,6 @@ public/test_filled.pdf
 # Playwright
 test-results/
 playwright-report/
+
+# chat answer-quality runs (qa/chat-eval)
+qa/chat-eval/results/
