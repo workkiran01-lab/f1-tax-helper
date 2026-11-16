@@ -62,13 +62,13 @@ describe('public endpoint safety', () => {
   ])('rejects invalid JSON message shape %j', async (body) => {
     expect((await createChatHandler({ env })(request(body))).status).toBe(400)
   })
-  it('fails closed during Redis outages without making a paid request', async () => {
+  it('returns 503 without a paid request if an injected limiter throws', async () => {
     const fetchImpl = vi.fn()
     const response = await createChatHandler({
       env,
       fetchImpl,
       limiter: async () => {
-        throw new Error('Redis offline')
+        throw new Error('limiter offline')
       },
     })(request())
     expect(response.status).toBe(503)
@@ -80,13 +80,13 @@ describe('public endpoint safety', () => {
       env,
       fetchImpl: vi.fn(),
       limiter: async () => {
-        throw new Error('Redis offline')
+        throw new Error('limiter offline')
       },
     })(request())
-    expect(log).toHaveBeenCalledWith('Rate limiter failed: Error: Redis offline')
+    expect(log).toHaveBeenCalledWith('Rate limiter failed: Error: limiter offline')
     log.mockRestore()
   })
-  it('uses a bounded local limiter when Upstash is not configured', async () => {
+  it('uses a bounded local limiter when Supabase is not configured', async () => {
     const fetchImpl = vi.fn(
       async () =>
         new Response('data: [DONE]\n\n', { headers: { 'Content-Type': 'text/event-stream' } }),
@@ -140,7 +140,7 @@ describe('public endpoint safety', () => {
     expect(res.status).toBe(502)
     expect(log).toHaveBeenCalledWith('Groq request failed: HTTP 404')
   })
-  it('does not report signup success or send email on invalid address or Redis failure', async () => {
+  it('does not report signup success or send email on invalid address or limiter failure', async () => {
     const fetchImpl = vi.fn()
     const handler = createWaitlistHandler({
       env,
