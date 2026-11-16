@@ -372,7 +372,7 @@ describe('configuration and static assets', () => {
       expect(existsSync(`public/${file}`), file).toBe(true)
     expect(readFileSync('public/robots.txt', 'utf8')).toContain('sitemap.xml')
     expect(existsSync('public/sitemap.xml')).toBe(true)
-    const rewrite = JSON.parse(readFileSync('vercel.json', 'utf8')).rewrites[0].source
+    const rewrite = JSON.parse(readFileSync('vercel.json', 'utf8')).rewrites.find((r) => r.destination === '/index.html').source
     for (const file of ['og-image\\.png', 'sitemap\\.xml']) expect(rewrite).toContain(file)
   })
   it('defines every theme colour that components reference', async () => {

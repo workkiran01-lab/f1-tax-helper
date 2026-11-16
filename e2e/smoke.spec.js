@@ -11,6 +11,40 @@ const sse = (text, finishReason) =>
     : '') +
   'data: [DONE]\n\n'
 
+test.describe('pre-rendered information pages', () => {
+  // Built by scripts/prerender.mjs. `vite preview` serves dist/tax-guide.html for /tax-guide,
+  // as the vercel.json rewrite does in production.
+  test.describe('without JavaScript', () => {
+    test.use({ javaScriptEnabled: false })
+    for (const [path, heading, text] of [
+      ['/tax-guide', /tax guide for f-1 students/i, 'Scholarships and fellowships'],
+      ['/faq', /frequently asked questions/i, 'Is my scholarship taxable?'],
+      ['/tax-treaties', /tax treaty lookup/i, 'This app has reviewed notes for a few countries only'],
+    ])
+      test(`${path} shows its text`, async ({ page }) => {
+        await page.goto(path)
+        await expect(page.getByRole('heading', { level: 1, name: heading })).toBeVisible()
+        await expect(page.getByText(text).first()).toBeVisible()
+      })
+  })
+  test('the app takes over the guide without showing a loading skeleton, and keeps the section in view', async ({
+    page,
+  }) => {
+    // Record whether a skeleton ever appears while the app starts on top of the static HTML.
+    await page.addInitScript(() => {
+      window.__sawSkeleton = false
+      new MutationObserver(() => {
+        if (document.querySelector('[role="status"][aria-label="Loading"]')) window.__sawSkeleton = true
+      }).observe(document, { childList: true, subtree: true })
+    })
+    await page.goto('/tax-guide#scholarships')
+    await expect(page.getByRole('heading', { level: 2, name: 'Scholarships and fellowships' })).toBeInViewport()
+    await page.waitForLoadState('networkidle')
+    expect(await page.evaluate(() => window.__sawSkeleton)).toBe(false)
+    await expect(page.locator('link[rel="canonical"]')).toHaveCount(1)
+  })
+})
+
 test.describe('public pages', () => {
   for (const [path, heading] of [
     ['/', /Answer 5 questions/i],

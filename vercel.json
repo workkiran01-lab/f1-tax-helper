@@ -1,6 +1,18 @@
 {
   "rewrites": [
     {
+      "source": "/tax-guide",
+      "destination": "/tax-guide.html"
+    },
+    {
+      "source": "/faq",
+      "destination": "/faq.html"
+    },
+    {
+      "source": "/tax-treaties",
+      "destination": "/tax-treaties.html"
+    },
+    {
       "source": "/((?!api(?:/|$)|assets(?:/|$)|form8843(?:-2026)?\\.pdf$|favicon\\.svg$|manifest\\.webmanifest$|icons(?:/|$)|og-image\\.png$|theme\\.js$|sitemap\\.xml$|robots\\.txt$).*)",
       "destination": "/index.html"
     }
