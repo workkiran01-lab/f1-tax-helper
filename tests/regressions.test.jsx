@@ -3,7 +3,7 @@
 import React from 'react'
 import { existsSync, readFileSync } from 'node:fs'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { act, cleanup, configure, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import App from '../src/App.jsx'
 import { ChatMain, StructuredMessage } from '../src/components/chat/ChatMain.jsx'
@@ -15,6 +15,11 @@ import { COUNTRIES, treatyGuidance } from '../src/data/treaties.js'
 import { seasonKey } from '../src/utils/storage.js'
 
 vi.mock('../src/utils/supabase', () => ({ default: null, authConfigured: false }))
+
+// These tests render the whole app, whose lazy route chunks and step transitions can take
+// longer than Testing Library's 1-second default on a busy CI machine (one run failed at 1.4 s
+// waiting for the next wizard step). The wait ends as soon as the element appears.
+configure({ asyncUtilTimeout: 5000 })
 
 beforeEach(() => {
   localStorage.clear()
