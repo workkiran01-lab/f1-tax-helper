@@ -11,6 +11,7 @@ import {
   FILING_YEAR,
   canGenerate8843,
   taxYearOpen,
+  FORM_8843_MAILING,
   STANDARD_DEDUCTION_SINGLE,
   DEADLINES,
 } from '../src/data/taxSeason.js'
@@ -91,6 +92,15 @@ describe('reviewed season and treaty sources', () => {
     expect(after).toContain('The 2026 tax year has ended.')
     expect(after).not.toMatch(/wait until December 31/)
     expect(during).not.toMatch(/irs-dft|draft 2026/i)
+  })
+  it('gives the model the answer shape, the app scope and the reviewed mailing address', () => {
+    const prompt = systemPrompt(new Date('2026-11-15T12:00:00Z'))
+    for (const heading of ['### Answer', '### Why', '### IRS Reference', '### Next Step'])
+      expect(prompt).toContain(heading)
+    expect(prompt).toMatch(/Never use bold text, colons, numbering or other labels/)
+    expect(prompt).toMatch(/does not prepare, file or e-file Form 1040-NR/)
+    expect(prompt).toContain(FORM_8843_MAILING.standalone.join(', '))
+    expect(prompt).toContain(`checked ${FORM_8843_MAILING.reviewed}`)
   })
   it('never treats unreviewed treaty coverage as an absence', () => {
     for (const name of ['Canada', 'Mexico', 'United Kingdom']) {

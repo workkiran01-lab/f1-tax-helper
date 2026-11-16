@@ -49,11 +49,22 @@ const SECTION_TYPES = {
   'Next Step': 'next',
 }
 
+// The model is asked for "### Answer" style headings but sometimes writes "**Answer**" or
+// "Answer:" instead. Accept those too, so the structured layout does not depend on it.
+const SECTION_NAMES = 'Answer|Why|IRS Reference|Next Step'
+const HEADER_RE = new RegExp(
+  `^\\s*(?:#{1,4}\\s*(?:\\*\\*)?(${SECTION_NAMES})(?:\\*\\*)?:?|\\*\\*(${SECTION_NAMES}):?\\*\\*:?|(${SECTION_NAMES}):)\\s*$`,
+  'i',
+)
+const SECTION_KEYS = Object.fromEntries(
+  Object.keys(SECTION_TYPES).map((name) => [name.toLowerCase(), name]),
+)
+
 // Parses the full accumulated content on every render (cheap at these sizes).
 // A partially streamed header line (e.g. "### Ans") doesn't match the full-line
 // regex, so it stays attached to the previous section until it completes.
-function parseSections(content) {
-  const headerRe = /^### (Answer|Why|IRS Reference|Next Step)\s*$/
+export function parseSections(content) {
+  const headerRe = HEADER_RE
   const lines = content.split('\n')
   const raw = []
   let current = { type: 'plain', lines: [] }
@@ -64,7 +75,8 @@ function parseSections(content) {
     if (m) {
       sawHeader = true
       raw.push(current)
-      current = { type: SECTION_TYPES[m[1]], lines: [] }
+      const name = SECTION_KEYS[(m[1] || m[2] || m[3]).toLowerCase()]
+      current = { type: SECTION_TYPES[name], lines: [] }
     } else {
       current.lines.push(line)
     }
@@ -81,7 +93,8 @@ function parseSections(content) {
 
 // Inline formatting: **bold** and [label](url). Only https://irs.gov links become links;
 // any other URL keeps just its label. Everything else is plain text (React escapes it).
-const INLINE = /(\*\*[^*]+\*\*|\[[^\]]+\]\((?:[^()\s]|\([^()]*\))+\))/g
+const INLINE =
+  /(\*\*[^*]+\*\*|\[[^\]]+\]\((?:[^()\s]|\([^()]*\))+\)|<https?:\/\/[^>\s]+>)/g
 function Inline({ text }) {
   return text.split(INLINE).map((part, i) => {
     if (part.startsWith('**') && part.endsWith('**') && part.length > 4)
@@ -90,7 +103,10 @@ function Inline({ text }) {
           {part.slice(2, -2)}
         </strong>
       )
-    const link = part.match(/^\[([^\]]+)\]\(((?:[^()\s]|\([^()]*\))+)\)$/)
+    const auto = part.match(/^<(https?:\/\/[^>\s]+)>$/)
+    const link = auto
+      ? [part, auto[1].replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, ''), auto[1]]
+      : part.match(/^\[([^\]]+)\]\(((?:[^()\s]|\([^()]*\))+)\)$/)
     if (link) {
       const href = safeIRSUrl(link[2])
       return href ? (
