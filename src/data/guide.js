@@ -139,7 +139,7 @@ export const GUIDE_SECTIONS = [
         items: [
           '**A return is usually required:** a nonresident with US wages generally files Form 1040-NR and attaches Form 8843; see [Step 4](/tax-guide#return). This app does not prepare Form 1040-NR.',
           '**Social Security and Medicare tax:** the IRS lists practical training among the work covered by the student exemption while you are a nonresident. If your employer withheld these taxes, see [Social Security and Medicare tax](/tax-guide#fica).',
-          '**The exemption can end:** it does not apply once you become a resident for tax purposes, which can happen after more than 5 calendar years as a student. That often falls during OPT or a STEM extension; see [Step 1](/tax-guide#status).',
+          '**The exemption can end:** it does not apply once you become a resident for tax purposes, which can happen after more than 5 calendar years as a student; see [Step 1](/tax-guide#status).',
           '**A treaty may cover some wages:** it depends on your country and the treaty\'s terms; [look up your country](/tax-treaties).',
         ],
       },
@@ -333,7 +333,7 @@ export const FAQ_ITEMS = [
   {
     id: 'missed-8843',
     q: 'I did not file Form 8843 for an earlier year. What now?',
-    a: `The requirement was to file by the due date of your return. The IRS says that without a timely form you cannot exclude your days as an exempt individual, unless you can show by clear and convincing evidence that you took reasonable actions to learn of the filing requirements and significant steps to comply. Each year has its own form: the [IRS Form 8843 page](${SOURCES.form8843}) links earlier revisions, and each revision carries its own instructions and mailing address. This app can prepare the 2025 and 2026 forms. If you missed several years, or your days might count toward residency, ask your school's international office or a tax professional.`,
+    a: `The requirement was to file by the due date of your return. The IRS says that without a timely form you cannot exclude your days as an exempt individual, unless you can show by clear and convincing evidence that you took reasonable actions to learn of the filing requirements and significant steps to comply. Each year has its own form: the [IRS Form 8843 page](${SOURCES.form8843}) links earlier revisions; use the revision for the year you missed and follow its instructions. This app can prepare the 2025 and 2026 forms. Because a late form can affect whether your days count toward residency, ask your school's international office or a tax professional about your case.`,
   },
   {
     id: 'fica',
