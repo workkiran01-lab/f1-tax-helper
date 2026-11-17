@@ -462,6 +462,12 @@ button:disabled {
 main {
   animation: page-enter 300ms ease-out;
 }
+/* A pre-rendered page arrives with its text on screen (scripts/prerender.mjs marks <html>).
+   Fading it in again when the app takes over would make it blink, so the page the reader
+   landed on does not animate; the mark is removed on the first navigation (App.jsx). */
+html[data-prerendered] main {
+  animation: none;
+}
 @keyframes page-enter {
   from {
     opacity: 0;

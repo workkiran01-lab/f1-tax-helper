@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 // Writes static HTML for the public information pages after `vite build`:
-//   dist/tax-guide.html, dist/faq.html, dist/tax-treaties.html
+//   dist/index.html (the landing page), dist/tax-guide.html, dist/faq.html, dist/tax-treaties.html,
+//   and dist/app-shell.html (the empty page every other route starts from)
 // It takes the built index.html (scripts and styles already linked), puts the server-rendered
 // page into #root and sets that page's title, description, social tags and canonical address.
 // vercel.json rewrites each address to its file. Any failure exits non-zero so the build fails
@@ -39,6 +40,9 @@ export function injectPage(template, { html, title, description, url }) {
   out = setTag(out, /<meta name="twitter:title" content="[^"]*" \/>/, `<meta name="twitter:title" content="${t}" />`)
   out = setTag(out, /<meta name="twitter:description" content="[^"]*" \/>/, `<meta name="twitter:description" content="${d}" />`)
   out = out.replace('</head>', `  <link rel="canonical" href="${u}" />\n    <meta property="og:url" content="${u}" />\n  </head>`)
+  // Tells the stylesheet not to replay the page's fade-in when the app takes over (index.css).
+  if (!out.includes('<html lang="en">')) throw new Error('index.html has no <html lang="en"> tag to mark')
+  out = out.replace('<html lang="en">', '<html lang="en" data-prerendered>')
   return out.replace(ROOT_EMPTY, `<div id="root">${html}</div>`)
 }
 
@@ -52,15 +56,24 @@ async function main() {
   const outDir = resolve(process.argv[2] || 'dist')
   const serverDir = resolve('.prerender')
   try {
+    // The empty page from `vite build`. Every page below is built from it, and it is kept as
+    // the shell for all other routes, because index.html becomes the landing page.
     const template = readFileSync(join(outDir, 'index.html'), 'utf8')
     const entry = join(serverDir, 'prerender.js')
     if (!existsSync(entry)) throw new Error(`missing ${entry}; run vite build --ssr src/prerender.jsx first`)
-    const { render, PRERENDERED_ROUTES } = await import(pathToFileURL(entry).href)
-    for (const path of PRERENDERED_ROUTES) {
+    const { render, PRERENDERED_ROUTES, APP_SHELL_FILE, prerenderedFile } = await import(pathToFileURL(entry).href)
+    if (!template.includes(ROOT_EMPTY)) throw new Error('index.html has no empty #root; was it already pre-rendered?')
+    const pages = PRERENDERED_ROUTES.map((path) => {
       const page = injectPage(template, render(path))
       checkPage(path, page)
-      writeFileSync(join(outDir, `${path.slice(1)}.html`), page)
-      console.log(`pre-rendered ${path} -> ${path.slice(1)}.html (${page.length} bytes)`)
+      return [path, prerenderedFile(path), page]
+    })
+    // Nothing is written until every page rendered, and the shell goes first.
+    writeFileSync(join(outDir, APP_SHELL_FILE), template)
+    console.log(`app shell -> ${APP_SHELL_FILE}`)
+    for (const [path, file, page] of pages) {
+      writeFileSync(join(outDir, file), page)
+      console.log(`pre-rendered ${path} -> ${file} (${page.length} bytes)`)
     }
   } finally {
     rmSync(serverDir, { recursive: true, force: true })

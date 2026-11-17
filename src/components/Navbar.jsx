@@ -6,6 +6,7 @@ import useAuth from '../hooks/useAuth'
 import { Brand } from './Brand'
 import { ThemeToggle } from './app/ThemeSwitch'
 import { settle } from './app/motion'
+import { skipEntryAnimation } from '../utils/firstPaint.js'
 
 const NAV_LINKS = [
   { label: 'How it works', href: '/#features' },
@@ -34,6 +35,9 @@ export function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const { user, loading, signOut } = useAuth()
+  // The pre-rendered page already says "Sign in" (see src/utils/firstPaint.js). While the
+  // session is checked the label must not flip to "Loading…" and back; the link is the same.
+  const [overStaticPage] = useState(skipEntryAnimation)
   // signOut rejects when the request fails; do not leave that unhandled, and do
   // not pass the click event through as its redirect path.
   const handleSignOut = () => signOut('/login').catch(() => {})
@@ -78,7 +82,7 @@ export function Navbar() {
             ) : (
               <>
                 <Link to="/login" className={`${pill} text-ink-2 hover:text-ink`}>
-                  {loading ? 'Loading…' : 'Sign in'}
+                  {loading && !overStaticPage ? 'Loading…' : 'Sign in'}
                 </Link>
                 <Link
                   to="/status-checker"

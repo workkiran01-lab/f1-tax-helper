@@ -2,6 +2,7 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import * as Sentry from '@sentry/react'
 import App from './App'
+import { startOverPrerenderedHtml } from './utils/firstPaint.js'
 import '@fontsource/inter/400.css'
 import '@fontsource/inter/500.css'
 import '@fontsource/inter/600.css'
@@ -25,7 +26,11 @@ if (import.meta.env.VITE_SENTRY_DSN) {
   })
 }
 
-ReactDOM.createRoot(document.getElementById('root')).render(
+const rootElement = document.getElementById('root')
+// Pre-rendered pages arrive with their text already in #root (scripts/prerender.mjs).
+if (rootElement.hasChildNodes()) startOverPrerenderedHtml()
+
+ReactDOM.createRoot(rootElement).render(
   <React.StrictMode>
     <Sentry.ErrorBoundary
       fallback={
