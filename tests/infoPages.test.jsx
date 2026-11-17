@@ -81,6 +81,34 @@ describe('tax guide', () => {
     expect(text).toMatch(/tax-free as a qualified scholarship[^.]*is not reported/)
     expect(FAQ_ITEMS.find((x) => x.id === 'scholarship').a).toMatch(/US payer reports a US-source scholarship on Form 1042-S, leaving out the tax-free part/)
   })
+  it('explains OPT and CPT pay, bank interest and a missed Form 8843 from IRS sources only', () => {
+    const section = GUIDE_SECTIONS.find((x) => x.id === 'opt-cpt')
+    const text = JSON.stringify(section.blocks)
+    expect(text).toMatch(/usually engaged in a US trade or business when you perform personal services/)
+    expect(text).toMatch(/This app does not prepare Form 1040-NR/)
+    expect(text).toMatch(/does not apply once you become a resident for tax purposes/)
+    expect(section.blocks).toContainEqual({ type: 'dates', ids: ['w2', 'return-wages'] })
+    expect(section.sources.map((x) => x.url)).toEqual(
+      expect.arrayContaining([SOURCES.pub519, SOURCES.fica, SOURCES.nonresidentTaxation]),
+    )
+    const faq = (id) => FAQ_ITEMS.find((x) => x.id === id).a
+    expect(faq('opt-cpt')).toMatch(/does not prepare Form 1040-NR/)
+    expect(faq('opt-cpt')).toMatch(/\/tax-guide#opt-cpt/)
+    // Deposit interest only: Publication 519 chapter 3. Nothing about portfolio interest or
+    // self-employment tax, which were not verified.
+    expect(faq('bank-interest')).toMatch(/deposits with a US bank, savings institution or credit union is excluded/)
+    expect(faq('bank-interest')).toMatch(/not connected with a US trade or business/)
+    expect(faq('bank-interest')).toMatch(/does not prepare/)
+    expect(faq('bank-interest')).not.toMatch(/portfolio|self-employment/i)
+    // The substantial presence test page: no exclusion without a timely form, with one exception.
+    expect(faq('missed-8843')).toMatch(/without a timely form you cannot exclude your days as an exempt individual/)
+    expect(faq('missed-8843')).toMatch(/clear and convincing evidence/)
+    expect(faq('missed-8843')).toContain(SOURCES.form8843)
+    // Never a promise that filing late is free of consequences, and no invented late procedure.
+    expect(faq('missed-8843')).not.toMatch(/no penalty|there is no consequence|just file it/i)
+    // No hard-coded dates in these answers; dates come from taxSeason.js through the guide.
+    for (const id of ['opt-cpt', 'bank-interest', 'missed-8843']) expect(faq(id)).not.toMatch(/(April|June) \d+/)
+  })
   it('states that the app does not prepare Form 1040-NR, in the scope note and in the return step', () => {
     const { container } = at('/tax-guide', <TaxGuidePage />)
     const text = container.textContent

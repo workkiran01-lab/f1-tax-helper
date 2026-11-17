@@ -127,6 +127,31 @@ export const GUIDE_SECTIONS = [
     ],
   },
   {
+    id: 'opt-cpt',
+    title: 'Working on OPT or CPT',
+    blocks: [
+      {
+        type: 'p',
+        text: 'Pay for work on Optional Practical Training (OPT) or Curricular Practical Training (CPT) is taxed like pay for any other job in the US. Publication 519 says you are usually engaged in a US trade or business when you perform personal services in the United States, and that wages are personal services income taxed at the rates that apply to US citizens and residents. Your employer reports the pay on Form W-2.',
+      },
+      {
+        type: 'ul',
+        items: [
+          '**A return is usually required:** a nonresident with US wages generally files Form 1040-NR and attaches Form 8843; see [Step 4](/tax-guide#return). This app does not prepare Form 1040-NR.',
+          '**Social Security and Medicare tax:** the IRS lists practical training among the work covered by the student exemption while you are a nonresident. If your employer withheld these taxes, see [Social Security and Medicare tax](/tax-guide#fica).',
+          '**The exemption can end:** it does not apply once you become a resident for tax purposes, which can happen after more than 5 calendar years as a student. That often falls during OPT or a STEM extension; see [Step 1](/tax-guide#status).',
+          '**A treaty may cover some wages:** it depends on your country and the treaty\'s terms; [look up your country](/tax-treaties).',
+        ],
+      },
+      { type: 'dates', ids: ['w2', 'return-wages'] },
+    ],
+    sources: [
+      src('Publication 519, U.S. Tax Guide for Aliens', 'pub519'),
+      src('Taxation of nonresident aliens', 'nonresidentTaxation'),
+      src('Foreign student liability for Social Security and Medicare taxes', 'fica'),
+    ],
+  },
+  {
     id: 'scholarships',
     title: 'Scholarships and fellowships',
     blocks: [
@@ -236,6 +261,10 @@ export const GUIDE_SECTIONS = [
 export const REVIEW_LOG = [
   {
     date: '2026-11-16',
+    text: 'Added the OPT and CPT section and FAQ answers on OPT or CPT pay, bank interest and Form 1099, and a missed Form 8843, checked against Publication 519 (chapters 3 and 4), the Form 8843 instructions, and the IRS pages on the substantial presence test, student FICA liability and taxation of nonresident aliens.',
+  },
+  {
+    date: '2026-11-16',
     text: 'Added the scholarships and fellowships section and its FAQ answer, checked against Publication 519 (chapters 2, 3 and 8), the Form 1042-S instructions and the IRS page on withholding on scholarships paid to nonresident aliens.',
   },
   {
@@ -290,6 +319,21 @@ export const FAQ_ITEMS = [
     id: 'scholarship',
     q: 'Is my scholarship taxable?',
     a: 'Often only part of it is. If you are a degree candidate, the part used for tuition, required fees, books, supplies and equipment is generally tax-free. The part used for room, board or travel is taxable, and so is any part that pays you for teaching or research. As a nonresident you are generally taxed only on US-source scholarships; one from a foreign government or company is generally foreign source. A US payer reports a US-source scholarship on Form 1042-S, leaving out the tax-free part for tuition and required course costs. The [guide](/tax-guide#scholarships) explains withholding and treaties.',
+  },
+  {
+    id: 'opt-cpt',
+    q: 'I worked on OPT or CPT. What do I file?',
+    a: 'Your pay is taxed like pay for any other US job, and your employer reports it on Form W-2. A nonresident with US wages generally files Form 1040-NR and attaches Form 8843. Practical training is among the work covered by the student exemption from Social Security and Medicare tax while you are a nonresident. This app prepares Form 8843 but does not prepare Form 1040-NR. The [guide](/tax-guide#opt-cpt) has the dates and details.',
+  },
+  {
+    id: 'bank-interest',
+    q: 'I got a Form 1099 or earned bank interest. Is it taxable?',
+    a: `Interest on deposits with a US bank, savings institution or credit union is excluded from a nonresident's income when it is not connected with a US trade or business, according to [Publication 519](${SOURCES.pub519}). A Form 1099-INT reporting that interest does not make it taxable. Other 1099 forms, such as 1099-NEC or 1099-MISC, report a payment and do not decide how it is taxed: US income like pay for work generally belongs on Form 1040-NR, which this app does not prepare; see [Step 4](/tax-guide#return). Whether your status allowed the work is an immigration question for your school's international office.`,
+  },
+  {
+    id: 'missed-8843',
+    q: 'I did not file Form 8843 for an earlier year. What now?',
+    a: `The requirement was to file by the due date of your return. The IRS says that without a timely form you cannot exclude your days as an exempt individual, unless you can show by clear and convincing evidence that you took reasonable actions to learn of the filing requirements and significant steps to comply. Each year has its own form: the [IRS Form 8843 page](${SOURCES.form8843}) links earlier revisions, and each revision carries its own instructions and mailing address. This app can prepare the 2025 and 2026 forms. If you missed several years, or your days might count toward residency, ask your school's international office or a tax professional.`,
   },
   {
     id: 'fica',
