@@ -40,3 +40,29 @@ describe('entry animations and pre-rendered HTML', () => {
     expect(opacityOf(render(hero(Sequence, SequenceItem)).container)).toBe('0')
   })
 })
+
+describe('the nav label while the session is being checked', () => {
+  async function nav({ overStatic }) {
+    vi.doMock('../src/hooks/useAuth', () => ({
+      default: () => ({ user: null, loading: true, signOut: () => {} }),
+    }))
+    const firstPaint = await import('../src/utils/firstPaint.js')
+    if (overStatic) firstPaint.startOverPrerenderedHtml()
+    const { Navbar } = await import('../src/components/Navbar.jsx')
+    const { MemoryRouter } = await import('react-router-dom')
+    return render(
+      <MemoryRouter>
+        <Navbar />
+      </MemoryRouter>,
+    ).container.textContent
+  }
+  afterEach(() => vi.doUnmock('../src/hooks/useAuth'))
+  it('keeps "Sign in" over a pre-rendered page instead of flipping to "Loading…"', async () => {
+    const text = await nav({ overStatic: true })
+    expect(text).toContain('Sign in')
+    expect(text).not.toContain('Loading…')
+  })
+  it('still says "Loading…" on a page that was not pre-rendered', async () => {
+    expect(await nav({ overStatic: false })).toContain('Loading…')
+  })
+})
