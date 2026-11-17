@@ -21,7 +21,11 @@ export function canonicalUrl(path = '/') {
 // Public pages written to static HTML at build time (src/prerender.jsx, scripts/prerender.mjs)
 // so search engines and no-JS readers get the text. Each needs a PAGE_META entry, a sitemap
 // entry and a rewrite in vercel.json ahead of the catch-all; tests/prerender.test.js checks all three.
-export const PRERENDERED_ROUTES = Object.freeze(['/tax-guide', '/faq', '/tax-treaties'])
+export const PRERENDERED_ROUTES = Object.freeze(['/', '/tax-guide', '/faq', '/tax-treaties'])
+// The landing page is written to index.html, so the empty page every other route starts from
+// is kept as a separate file, and the catch-all rewrite in vercel.json points at it.
+export const APP_SHELL_FILE = 'app-shell.html'
+export const prerenderedFile = (path) => (path === '/' ? 'index.html' : `${path.slice(1)}.html`)
 
 // Titles and descriptions for the pages this file owns. Other pages set their own title.
 export const PAGE_META = Object.freeze({

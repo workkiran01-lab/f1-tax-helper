@@ -63,6 +63,16 @@ export function AuthProvider({ children }) {
     children,
   )
 }
+// For the build-time render of public pages (src/prerender.jsx): a visitor who is not signed
+// in, with nothing loading, so the static page says "Sign in" rather than "Loading…".
+export function StaticAuthProvider({ children }) {
+  const noop = () => {}
+  return createElement(
+    AuthContext.Provider,
+    { value: { user: null, loading: false, exitPath: '/login', signInAsGuest: noop, signOut: noop } },
+    children,
+  )
+}
 export default function useAuth() {
   const auth = useContext(AuthContext)
   if (!auth) throw new Error('useAuth requires AuthProvider')

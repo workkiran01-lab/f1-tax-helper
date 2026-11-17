@@ -27,6 +27,50 @@ test.describe('pre-rendered information pages', () => {
         await expect(page.getByText(text).first()).toBeVisible()
       })
   })
+  test.describe('landing page without JavaScript', () => {
+    test.use({ javaScriptEnabled: false })
+    test('shows its headline and a working link into the app', async ({ page }) => {
+      await page.goto('/')
+      await expect(page.getByRole('heading', { level: 1, name: /answer 5 questions/i })).toBeVisible()
+      await expect(page.getByRole('link', { name: /sign in/i }).first()).toBeVisible()
+    })
+    test('app routes still start from the empty shell, not the landing page', async ({ page }) => {
+      for (const path of ['/chat', '/home', '/login', '/form-8843', '/no-such-page']) {
+        await page.goto(path)
+        expect(await page.locator('#root').innerHTML(), path).toBe('')
+        await expect(page.locator('link[rel="canonical"]'), path).toHaveCount(0)
+      }
+    })
+  })
+  test('the landing headline stays visible while the app takes over the static page', async ({ page }) => {
+    // Sample the headline's opacity (through its ancestors) on every frame from the first paint.
+    await page.addInitScript(() => {
+      window.__minOpacity = 1
+      window.__samples = 0
+      const sample = () => {
+        const h1 = document.querySelector('h1')
+        if (h1) {
+          let opacity = 1
+          for (let el = h1; el && el !== document.documentElement; el = el.parentElement)
+            opacity *= Number(getComputedStyle(el).opacity)
+          window.__minOpacity = Math.min(window.__minOpacity, opacity)
+          window.__samples += 1
+        } else if (window.__samples > 0) window.__minOpacity = 0 // it was there, then removed
+        requestAnimationFrame(sample)
+      }
+      requestAnimationFrame(sample)
+    })
+    await page.goto('/')
+    await page.waitForLoadState('networkidle')
+    await page.waitForTimeout(600)
+    const { min, samples } = await page.evaluate(() => ({ min: window.__minOpacity, samples: window.__samples }))
+    expect(samples).toBeGreaterThan(10)
+    expect(min).toBe(1)
+    // Arriving from another page still plays the entry animation: the skip is first paint only.
+    await page.goto('/faq')
+    await page.locator('a[href="/"]').first().click()
+    await expect(page.getByRole('heading', { level: 1, name: /answer 5 questions/i })).toBeVisible()
+  })
   test('the app takes over the guide without showing a loading skeleton, and keeps the section in view', async ({
     page,
   }) => {

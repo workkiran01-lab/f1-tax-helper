@@ -1,6 +1,7 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { AnimatePresence, animate, motion, useReducedMotion } from 'framer-motion'
+import { skipEntryAnimation } from '../../utils/firstPaint.js'
 
 // Two springs for the whole app. `snappy` answers a touch (tab highlight,
 // toggles); `settle` moves larger things (screens, sheets, the progress ring).
@@ -25,10 +26,12 @@ export function ScreenTransition({ screenKey, push = false, children }) {
 // One orchestrated arrival for a screen's main blocks, in reading order.
 export function Sequence({ children, className, as = 'div' }) {
   const Tag = motion[as]
+  // Decided once per mount: see src/utils/firstPaint.js.
+  const [skip] = useState(skipEntryAnimation)
   return (
     <Tag
       className={className}
-      initial="hidden"
+      initial={skip ? false : 'hidden'}
       animate="shown"
       variants={{ shown: { transition: { staggerChildren: 0.07, delayChildren: 0.04 } } }}
     >

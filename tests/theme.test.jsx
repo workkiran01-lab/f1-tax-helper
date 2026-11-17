@@ -61,7 +61,7 @@ describe('appearance', () => {
     // An external file, not inline: the site's CSP only allows scripts from 'self'.
     expect(html).toMatch(/<script src="\/theme\.js"><\/script>/)
     expect(html.indexOf('/theme.js')).toBeLessThan(html.indexOf('/src/main.jsx'))
-    expect(JSON.parse(readFileSync('vercel.json', 'utf8')).rewrites.find((r) => r.destination === '/index.html').source).toContain(
+    expect(JSON.parse(readFileSync('vercel.json', 'utf8')).rewrites.find((r) => r.destination === '/app-shell.html').source).toContain(
       'theme\\.js',
     )
     localStorage.setItem('f1_theme', 'light')

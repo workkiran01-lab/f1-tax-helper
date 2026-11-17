@@ -3,7 +3,7 @@ import { expect, it } from 'vitest'
 
 const read = (p) => readFileSync(new URL(`../${p}`, import.meta.url), 'utf8')
 const manifest = JSON.parse(read('public/manifest.webmanifest'))
-const rewrite = new RegExp(`^${JSON.parse(read('vercel.json')).rewrites.find((r) => r.destination === '/index.html').source}$`)
+const rewrite = new RegExp(`^${JSON.parse(read('vercel.json')).rewrites.find((r) => r.destination === '/app-shell.html').source}$`)
 
 it('has a valid installable manifest whose icons exist', () => {
   expect(manifest.display).toBe('standalone')

@@ -1,7 +1,11 @@
+import { useState } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
+import { skipEntryAnimation } from '../utils/firstPaint.js'
 export default function Reveal({ children, ...props }) {
   const reduceMotion = useReducedMotion()
-  const revealOnScroll = !reduceMotion && typeof IntersectionObserver !== 'undefined'
+  // Decided once per mount: see src/utils/firstPaint.js.
+  const [skip] = useState(skipEntryAnimation)
+  const revealOnScroll = !skip && !reduceMotion && typeof IntersectionObserver !== 'undefined'
   return (
     <motion.section
       {...props}

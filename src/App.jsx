@@ -1,5 +1,5 @@
-import { lazy, Suspense, useEffect } from 'react'
-import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
+import { lazy, Suspense, useEffect, useRef } from 'react'
+import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import HomePage from './pages/HomePage'
 import QuestionnairePage from './pages/QuestionnairePage'
 import DashboardPage from './pages/DashboardPage'
@@ -24,6 +24,7 @@ import { useRouteMeta } from './hooks/useRouteMeta.js'
 import { MotionConfig } from 'framer-motion'
 import { PageSkeleton, SessionSplash } from './components/app/Skeleton'
 import { trackEvent } from './utils/usage.js'
+import { endFirstPaint } from './utils/firstPaint.js'
 
 const ChatPage = lazy(() => import('./pages/ChatPage'))
 const Form8843Page = lazy(() => import('./pages/Form8843Page'))
@@ -65,8 +66,19 @@ function InApp({ children, focus = false }) {
   )
 }
 
+// The page someone lands on may be pre-rendered, and then it must not replay its fade-in
+// (index.css). Once they move to another page, pages animate in as usual.
+function usePrerenderedMark() {
+  const { pathname } = useLocation()
+  const landedOn = useRef(pathname)
+  useEffect(() => {
+    if (pathname !== landedOn.current) document.documentElement.removeAttribute('data-prerendered')
+  }, [pathname])
+}
+
 function AppRoutes() {
   useRouteMeta()
+  usePrerenderedMark()
   return (
     <Routes>
       <Route path="/" element={<HomePage />} />
@@ -175,6 +187,8 @@ function App() {
   useEffect(() => {
     trackEvent('visit', { once: true }) // one anonymous count per browser tab session
   }, [])
+  // The first render is committed: later mounts play their entry animations (see firstPaint.js).
+  useEffect(() => endFirstPaint(), [])
   return (
     <BrowserRouter>
       <AuthProvider>

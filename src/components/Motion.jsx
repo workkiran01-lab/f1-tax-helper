@@ -1,4 +1,5 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { skipEntryAnimation } from '../utils/firstPaint.js'
 import {
   AnimatePresence,
   motion,
@@ -86,6 +87,7 @@ export function AnimatedProgress({ value, label, className = '', barClassName = 
 
 export function AnimatedCheck({ checked = true, className = 'h-4 w-4' }) {
   const reduced = useReducedMotion()
+  const [skip] = useState(skipEntryAnimation)
   return (
     <motion.svg
       viewBox="0 0 24 24"
@@ -102,7 +104,7 @@ export function AnimatedCheck({ checked = true, className = 'h-4 w-4' }) {
     >
       <motion.path
         d="m5 12 4 4L19 6"
-        initial={reduced ? false : { pathLength: 0, opacity: 0 }}
+        initial={reduced || skip ? false : { pathLength: 0, opacity: 0 }}
         animate={{ pathLength: checked ? 1 : 0, opacity: checked ? 1 : 0 }}
         transition={{ duration: reduced ? 0 : 0.25, ease: 'easeOut' }}
       />
