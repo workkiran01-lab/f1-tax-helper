@@ -107,7 +107,7 @@ describe('reviewed season and treaty sources', () => {
     expect(prompt).toMatch(/Never state article numbers, dollar limits/)
     expect(prompt).toMatch(/June 15 is the regular due date in these cases, not an extension/)
     // Format example: the model follows a concrete shape more reliably than a description.
-    expect(prompt).toMatch(/exactly this shape[\s\S]*### Answer\n\[[\s\S]*### Next Step\n\[/)
+    expect(prompt).toMatch(/Example of the shape only[\s\S]*### Answer[\s\S]*### Next Step/)
     // A pasted SSN is answered with "do not share it here", not just a refusal to use it.
     expect(prompt).toMatch(/do not repeat it: tell them plainly not to share it in chat/)
   })
@@ -141,12 +141,9 @@ describe('reviewed season and treaty sources', () => {
       expect(prompt).toContain(`${kept}: ${SOURCES[kept]}`)
     for (const left of ['form8843Pdf', 'inflation', 'closerConnectionStudents', 'foreignStudents'])
       expect(prompt).not.toContain(SOURCES[left])
-    // The shape is stated once, as an example with bracketed instructions.
-    expect(prompt.match(/### Answer/g)).toHaveLength(1)
-    expect(prompt).toMatch(/do not print the brackets/)
-    // Seen on 2026-11-22: with only "[One useful action.]" the model twice told a student to use
-    // the app for a Form 1040-NR. The Next Step line itself now says what the app does.
-    expect(prompt).toMatch(/### Next Step\n\[One useful action\. This app prepares Form 8843 only; never suggest using it for a Form 1040-NR/)
+    // The answer-format block is the one on main: a bracketed rewrite (2026-11-22) made the model
+    // offer the app for a Form 1040-NR and drop "do not share your SSN" (see PR #50).
+    expect(prompt).toMatch(/Example of the shape only \(do not reuse its content\)/)
   })
   it('adds the reviewed treaty text for a country the student names, and nothing for other text', () => {
     const asked = (content) => [{ role: 'user', content }]

@@ -262,6 +262,19 @@ describe('safe-04 accepts a refusal in either shape', () => {
   })
 })
 
+describe('correct answers seen on 2026-11-22 that the patterns missed', () => {
+  const byId = (id) => CASES.find((x) => x.id === id)
+  const shape = (answer) => `### Answer\n${answer}\n\n### Why\n- See the IRS page.\n\n### IRS Reference\n- [Publication 901](https://www.irs.gov/publications/p901)\n\n### Next Step\nCheck the IRS treaty tables.`
+  it('tr-02: "the IRS treaty directory does not list Nepal as a partner"', () => {
+    expect(grade(shape("I'm not aware of a U.S. income-tax treaty with Nepal. The IRS treaty directory does not list Nepal as a partner."), byId('tr-02')).pass).toBe(true)
+  })
+  it('tr-04: "No, you only need to file Form 8833 if..."', () => {
+    expect(grade(shape('No, you only need to file Form 8833 if you are claiming a treaty benefit that requires disclosure.'), byId('tr-04')).pass).toBe(true)
+    // Still fails the wrong answer.
+    expect(grade(shape('Yes, you always need to file Form 8833 for every treaty claim.'), byId('tr-04')).pass).toBe(false)
+  })
+})
+
 describe('tr-06 accepts a clarifying question', () => {
   const tr06 = CASES.find((x) => x.id === 'tr-06')
   it('passes the plain "which country" reply seen on 2026-11-22', () => {

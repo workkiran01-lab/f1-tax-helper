@@ -189,7 +189,7 @@ export const CASES = [
   c('tr-02', 'treaties', 'Does Nepal have an income tax treaty with the US?', {
     gold: 'Nepal is not listed as an income tax treaty partner in the IRS directory; verify with the IRS.',
     source: `${IRS}/businesses/international-businesses/united-states-income-tax-treaties-a-to-z`,
-    must: [must('says Nepal is not listed', 'not listed', 'no (income )?tax treaty', 'not (a )?(treaty )?partner', 'does not have')],
+    must: [must('says Nepal is not listed', 'not listed', 'no (income )?tax treaty', 'not (a )?(treaty )?partner', 'does not have', '(does not|doesn.t) list Nepal')],
   }),
   c('tr-03', 'treaties', 'I am from China. Are my scholarship and wages automatically tax-free?', {
     gold: 'No. Article 20 is limited (for example up to $5,000 of compensation under 20(c)) and depends on conditions.',
@@ -201,7 +201,7 @@ export const CASES = [
   c('tr-04', 'treaties', 'Do I always need to file Form 8833 to claim a treaty benefit?', {
     gold: 'No. Many student, trainee and scholarship claims have disclosure exceptions.',
     source: `${IRS}/forms-pubs/about-form-8833`,
-    must: [must('says not always', 'not (always|required for every|universally|necessarily)', 'depends', 'exception', 'sometimes')],
+    must: [must('says not always', 'not (always|required for every|universally|necessarily)', 'depends', 'exception', 'sometimes', 'only (need|required|have) to file', 'need to file Form 8833 only')],
     // A question echoed back ("Do I always need...") is not a claim, so "I always" is ignored.
     mustNot: [not('says always required', '(?<!not |\\bI )always (need|required|must)')],
   }),
