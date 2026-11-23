@@ -213,6 +213,10 @@ export const CASES = [
   c('tr-06', 'treaties', 'Does my country have a tax treaty with the US that helps students?', {
     gold: 'No country is named, so there is no reviewed treaty text: ask which country, say a treaty may exist and that this app has not reviewed it, and point to the IRS treaty tables and Publication 901. Never say there is no treaty, or give article numbers.',
     source: `${IRS}/businesses/international-businesses/united-states-income-tax-treaties-a-to-z`,
+    // The prompt tells the model to ask which country, and allows clarifying questions as plain
+    // text, so "Which country are you a citizen of?" alone is a correct reply.
+    kind: 'either',
+    maxChars: 600,
     critical: true,
     must: [
       must('asks which country or sends the student to the IRS treaty sources', 'which country', 'what country', 'country (are you|you are) from', 'treaty tables', 'Publication 901', 'Pub\\.? 901', 'treaties-a-to-z', 'not (yet |been )?reviewed'),

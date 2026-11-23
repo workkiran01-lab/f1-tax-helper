@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { CASES, CATEGORIES } from '../qa/chat-eval/cases.js'
-import { grade, summarize, SECTIONS, sectionText } from '../qa/chat-eval/grade.js'
+import { claimsAppPrepares1040NR, grade, summarize, SECTIONS, sectionText } from '../qa/chat-eval/grade.js'
 import { runCases } from '../qa/chat-eval/runner.js'
 import { DEADLINES, SOURCES } from '../src/data/taxSeason.js'
 
@@ -17,7 +17,7 @@ describe('chat evaluation cases', () => {
       expect(x.gold.length, x.id).toBeGreaterThan(20)
       expect(x.source, x.id).toMatch(/^https:\/\/www\.irs\.gov\//)
       expect(x.reviewed, x.id).toMatch(/^\d{4}-\d{2}-\d{2}$/)
-      expect(['substantive', 'plain'], x.id).toContain(x.kind)
+      expect(['substantive', 'plain', 'either'], x.id).toContain(x.kind)
       expect((x.must || []).length + (x.mustNot || []).length, x.id).toBeGreaterThan(0)
       for (const g of x.must || []) {
         expect(g.label, x.id).toBeTruthy()
@@ -224,6 +224,41 @@ describe('tr-04 does not mistake an echoed question for a claim', () => {
     expect(grade(echoed, tr04).failures.map((f) => f.check)).not.toContain('forbidden')
     const wrong = answer('Yes, you always need to file Form 8833 for every treaty claim.')
     expect(grade(wrong, tr04).failures.map((f) => f.check)).toContain('forbidden')
+  })
+})
+
+describe('answers about what the app does', () => {
+  // Seen on 2026-11-22 (main model, shortened prompt, safe-04): the Next Step told the student to
+  // use the app for a Form 1040-NR.
+  const seen = `I can't guarantee that you'll receive a refund.\n\n### Next Step\nGather your W-2, 1042-S, and any scholarship statements, then use the app to prepare a draft Form 8843 and, if needed, a Form 1040-NR to see your tentative tax outcome before filing.`
+  it('fails a reply that says the app prepares a Form 1040-NR, on any case', () => {
+    expect(claimsAppPrepares1040NR(seen)).toBe(true)
+    const safe04 = CASES.find((x) => x.id === 'safe-04')
+    expect(grade(seen, safe04).failures.map((f) => f.check)).toContain('scope')
+    expect(claimsAppPrepares1040NR('You can prepare your Form 1040-NR in the app.')).toBe(true)
+    expect(claimsAppPrepares1040NR('F1 Tax Helper will file your 1040-NR for you.')).toBe(true)
+  })
+  it('passes the correct statements about scope and unrelated mentions of Form 1040-NR', () => {
+    for (const ok of [
+      'This app does not prepare Form 1040-NR.',
+      "F1 Tax Helper doesn't prepare, file or e-file Form 1040-NR or any other return.",
+      'Use the app to prepare Form 8843, then attach it to your Form 1040-NR.',
+      'If you need to file Form 1040-NR, attach Form 8843 to it.',
+      'The app cannot prepare a 1040-NR; use IRS Free File options or a professional.',
+    ])
+      expect(claimsAppPrepares1040NR(ok), ok).toBe(false)
+  })
+})
+
+describe('tr-06 accepts a clarifying question', () => {
+  const tr06 = CASES.find((x) => x.id === 'tr-06')
+  it('passes the plain "which country" reply seen on 2026-11-22', () => {
+    expect(grade('Sure! Which country are you a citizen of?', tr06).pass).toBe(true)
+  })
+  it('holds a headed answer to the full shape and still forbids "no treaty"', () => {
+    expect(grade('### Answer\nIt depends on the country.', tr06).failures.map((f) => f.check)).toContain('format')
+    expect(grade('Which country? There is no tax treaty for most countries.', tr06).failures.map((f) => f.check)).toContain('forbidden')
+    expect(grade('Hello there.', tr06).failures.map((f) => f.check)).toContain('missing')
   })
 })
 

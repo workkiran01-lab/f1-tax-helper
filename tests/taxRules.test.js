@@ -144,6 +144,9 @@ describe('reviewed season and treaty sources', () => {
     // The shape is stated once, as an example with bracketed instructions.
     expect(prompt.match(/### Answer/g)).toHaveLength(1)
     expect(prompt).toMatch(/do not print the brackets/)
+    // Seen on 2026-11-22: with only "[One useful action.]" the model twice told a student to use
+    // the app for a Form 1040-NR. The Next Step line itself now says what the app does.
+    expect(prompt).toMatch(/### Next Step\n\[One useful action\. This app prepares Form 8843 only; never suggest using it for a Form 1040-NR/)
   })
   it('adds the reviewed treaty text for a country the student names, and nothing for other text', () => {
     const asked = (content) => [{ role: 'user', content }]

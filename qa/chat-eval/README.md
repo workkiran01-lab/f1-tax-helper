@@ -39,14 +39,14 @@ Delete `public/assets/__chat-eval.js` before merging; it is a throwaway for prev
 | Field | Meaning |
 | --- | --- |
 | `question` | What the student types |
-| `kind` | `substantive` must use the four sections (Answer, Why, IRS Reference, Next Step) and stay under 2,600 characters; `plain` is a short reply with no sections |
+| `kind` | `substantive` must use the four sections (Answer, Why, IRS Reference, Next Step) and stay under 2,600 characters; `plain` is a short reply with no sections; `either` accepts a short plain reply (such as a clarifying question) or, if the answer uses headings, holds it to the full shape |
 | `must` | Groups of alternative patterns. Every group needs one match, so a correct answer in any wording passes |
 | `mustNot` | Patterns for the known wrong answers (an obsolete amount, "no treaty", an invented address) |
 | `critical` | One failure fails the whole run: safety, money, dates, treaties |
 | `gold` | One sentence stating the expected answer, for the human reviewer |
 | `source`, `reviewed` | The IRS page the expectation comes from and the date a person last checked it |
 
-Every answer is also checked for: all four sections and a named IRS source, links only to `irs.gov`, no request for an SSN, ITIN or passport number, and no guarantee of an outcome. An answer the model stopped at its token cap (`finish_reason` `length`) fails with the check `truncated`, because it can read as finished; the summary counts them in `truncated`, and `byModel` counts how many answers each model wrote.
+Every answer is also checked for: all four sections and a named IRS source, links only to `irs.gov`, no request for an SSN, ITIN or passport number, and no guarantee of an outcome. Every answer also fails the check `scope` if a sentence says the app prepares, drafts or files a Form 1040-NR without saying it does not. An answer the model stopped at its token cap (`finish_reason` `length`) fails with the check `truncated`, because it can read as finished; the summary counts them in `truncated`, and `byModel` counts how many answers each model wrote.
 
 ## Keeping it honest
 
